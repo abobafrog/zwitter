@@ -34,7 +34,6 @@ export default function SettingsPage() {
   const [profile, setProfile] = useState({
     displayName: user?.displayName || '',
     bio: user?.bio || '',
-    birthDate: user?.birthDate || '',
   });
 
   // Смена username
@@ -188,12 +187,6 @@ export default function SettingsPage() {
           onChange={(e) => setProfile((p) => ({ ...p, bio: e.target.value }))}
           placeholder="Расскажи о себе..."
           hint="Максимум 160 символов"
-        />
-        <Field
-          label="Дата рождения"
-          type="date"
-          value={profile.birthDate}
-          onChange={(e) => setProfile((p) => ({ ...p, birthDate: e.target.value }))}
         />
         <button
           onClick={saveProfile}

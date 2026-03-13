@@ -5,14 +5,17 @@ import useAuthStore from '../../store/authStore';
 import useChatStore from '../../store/chatStore';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../services/api';
+import SettingsModal from '../ui/SettingModal';
 
 export default function Sidebar() {
   const { user, logout } = useAuthStore();
   const { chats } = useChatStore();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const totalUnread = chats.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
 
@@ -108,21 +111,27 @@ export default function Sidebar() {
             {/* Выпадающее меню */}
             {menuOpen && (
               <>
-                <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-                <div className="absolute bottom-14 left-0 z-20 w-52 bg-x-surface border border-x-border rounded-2xl shadow-xl overflow-hidden py-1">
+                <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }} />
+                <div className="absolute bottom-14 left-0 z-30 w-52 bg-x-surface border border-x-border rounded-2xl shadow-xl overflow-hidden py-1">
                   <div className="px-4 py-3 border-b border-x-border">
                     <p className="font-bold text-sm truncate">{user.displayName}</p>
                     <p className="text-x-muted text-xs truncate">@{user.username}</p>
                   </div>
                   <button
-  onClick={() => { setMenuOpen(false); navigate('/settings'); }}
-  className="flex items-center gap-3 w-full px-4 py-3 hover:bg-white/5 transition-colors"
->
-  <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current text-x-muted">
-    <path d="M12 8.666c-1.838 0-3.333 1.496-3.333 3.334s1.495 3.333 3.333 3.333 3.333-1.495 3.333-3.333S13.838 8.666 12 8.666zm7.5 2.167c.041-.375.083-.75.083-1.167s-.042-.792-.083-1.167l2.5-1.958-2.5-4.333-2.917 1.208c-.625-.458-1.292-.833-2.041-1.125L14.167 0h-5l-.375 2.291c-.75.292-1.417.667-2.042 1.125L3.833 2.208l-2.5 4.333 2.5 1.958C3.792 8.875 3.75 9.25 3.75 9.666s.042.792.083 1.167l-2.5 1.959 2.5 4.333 2.917-1.208c.625.458 1.292.833 2.041 1.125L9.167 19.5h5l.375-2.292c.75-.291 1.417-.666 2.042-1.125l2.916 1.208 2.5-4.333-2.5-1.958z"/>
-  </svg>
-  <span className="text-sm font-medium">Настройки</span>
-</button>
+                    onClick={(e) => { 
+                      e.stopPropagation();
+                      console.log('клик настройки', settingsOpen);
+                      setMenuOpen(false); 
+                      setSettingsOpen(true);
+                      console.log('после setSettingsOpen');
+                    }}
+                    className="flex items-center gap-3 w-full px-4 py-3 hover:bg-white/5 transition-colors"
+                  >
+                    <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current text-x-muted">
+                      <path d="M12 8.666c-1.838 0-3.333 1.496-3.333 3.334s1.495 3.333 3.333 3.333 3.333-1.495 3.333-3.333S13.838 8.666 12 8.666zm7.5 2.167c.041-.375.083-.75.083-1.167s-.042-.792-.083-1.167l2.5-1.958-2.5-4.333-2.917 1.208c-.625-.458-1.292-.833-2.041-1.125L14.167 0h-5l-.375 2.291c-.75.292-1.417.667-2.042 1.125L3.833 2.208l-2.5 4.333 2.5 1.958C3.792 8.875 3.75 9.25 3.75 9.666s.042.792.083 1.167l-2.5 1.959 2.5 4.333 2.917-1.208c.625.458 1.292.833 2.041 1.125L9.167 19.5h5l.375-2.292c.75-.291 1.417-.666 2.042-1.125l2.916 1.208 2.5-4.333-2.5-1.958z"/>
+                    </svg>
+                    <span className="text-sm font-medium">Настройки</span>
+                  </button>
                   <button
                     onClick={() => { setMenuOpen(false); navigate(`/${user.username}`); }}
                     className="flex items-center gap-3 w-full px-4 py-3 hover:bg-white/5 transition-colors"
@@ -180,6 +189,7 @@ export default function Sidebar() {
               }}
             />
           </div>
+          {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
         </>
       )}
     </>
