@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { getProfile, updateProfile, followUser, searchUsers, updateEmail, updatePassword } = require('../controllers/user.controller');
 const { authenticate, optionalAuth } = require('../middleware/auth');
-const { uploadAvatar } = require('../config/cloudinary');
+const { uploadProfileMedia } = require('../config/cloudinary');
 const { getUserTweets } = require('../controllers/user.controller');
 
 router.get('/:username/tweets', optionalAuth, getUserTweets);
@@ -11,7 +11,7 @@ router.get('/:username', optionalAuth, getProfile);
 router.patch(
   '/me/profile',
   authenticate,
-  uploadAvatar.fields([
+  uploadProfileMedia.fields([
     { name: 'avatar', maxCount: 1 },
     { name: 'banner', maxCount: 1 },
   ]),

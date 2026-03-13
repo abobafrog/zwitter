@@ -9,21 +9,17 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const avatarStorage = new CloudinaryStorage({
+const profileMediaStorage = new CloudinaryStorage({
   cloudinary,
-  params: {
-    folder: 'twitter-clone/avatars',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    transformation: [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }],
-  },
-});
-
-const bannerStorage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'twitter-clone/banners',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    transformation: [{ width: 1500, height: 500, crop: 'fill' }],
+  params: async (req, file) => {
+    const isAvatar = file.fieldname === 'avatar';
+    return {
+      folder: isAvatar ? 'twitter-clone/avatars' : 'twitter-clone/banners',
+      allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+      transformation: isAvatar
+        ? [{ width: 400, height: 400, crop: 'fill', gravity: 'face', fetch_format: 'auto', quality: 'auto:good' }]
+        : [{ width: 2400, crop: 'limit', fetch_format: 'auto', quality: 'auto:best' }],
+    };
   },
 });
 
@@ -46,9 +42,9 @@ const messageImageStorage = new CloudinaryStorage({
   },
 });
 
-const uploadAvatar = multer({
-  storage: avatarStorage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+const uploadProfileMedia = multer({
+  storage: profileMediaStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
 });
 
 const uploadTweetImage = multer({
@@ -63,8 +59,7 @@ const uploadMessageImage = multer({
 
 module.exports = {
   cloudinary,
-  uploadAvatar,
+  uploadProfileMedia,
   uploadTweetImage,
-  uploadMessageImage,
-  uploadBanner: multer({ storage: bannerStorage, limits: { fileSize: 10 * 1024 * 1024 } }),
+  uploadMessageImage
 };

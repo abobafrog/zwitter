@@ -119,7 +119,7 @@ export default function EditProfileModal({ user, onClose }) {
             onClick={() => bannerRef.current?.click()}
           >
             {bannerPreview && (
-              <img src={bannerPreview} alt="banner" className="w-full h-full object-cover object-top" />
+              <img src={bannerPreview} alt="banner" className="w-full h-full object-cover object-center" />
             )}
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
               <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white">

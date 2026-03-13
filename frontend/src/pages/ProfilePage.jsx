@@ -86,9 +86,9 @@ export default function ProfilePage() {
       </div>
 
       {/* Banner */}
-      <div className="min-h-[120px] bg-gradient-to-br from-x-accent/40 to-black-900/40 overflow-hidden">
+      <div className="w-full aspect-[3/1] min-h-[400px] max-h-56 bg-gradient-to-br from-x-accent/40 to-black-900/40 overflow-hidden">
         {data.bannerUrl && (
-          <img src={data.bannerUrl} alt="banner" className="h-full object-cover" />
+          <img src={data.bannerUrl} alt="banner" className="w-full h-full object-cover object-center" />
         )}
       </div>
 
