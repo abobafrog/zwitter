@@ -189,9 +189,9 @@ export default function Sidebar() {
               }}
             />
           </div>
-          {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
         </>
       )}
+      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
     </>
   );
 }
