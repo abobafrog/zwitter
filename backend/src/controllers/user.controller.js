@@ -9,9 +9,9 @@ const getProfile = async (req, res, next) => {
     const user = await prisma.user.findUnique({
       where: { username: username.toLowerCase() },
       select: {
-        id: true, username: true, email: false,
-        displayName: true, bio: true, avatarUrl: true,
-        isVerified: true, createdAt: true,
+        id: true, username: true, displayName: true,
+        bio: true, avatarUrl: true, bannerUrl: true,
+        birthDate: true, isVerified: true, createdAt: true,
         _count: { select: { tweets: true, following: true, followers: true } },
         followers: viewerId ? { where: { followerId: viewerId }, select: { id: true } } : false,
       },
@@ -21,7 +21,6 @@ const getProfile = async (req, res, next) => {
 
     const isFollowing = viewerId ? user.followers?.length > 0 : false;
     const { followers, ...rest } = user;
-
     res.json({ user: { ...rest, isFollowing } });
   } catch (error) {
     next(error);
@@ -160,4 +159,30 @@ const updatePassword = async (req, res, next) => {
     next(error);
   }
 };
-module.exports = { getProfile, updateProfile, followUser, searchUsers, updateEmail, updatePassword };
+const getUserTweets = async (req, res, next) => {
+  try {
+    const { username } = req.params;
+    const user = await prisma.user.findUnique({
+      where: { username: username.toLowerCase() },
+      select: { id: true },
+    });
+    if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
+
+    const tweets = await prisma.tweet.findMany({
+      where: { authorId: user.id, parentId: null },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      include: {
+        author: { select: { id: true, username: true, displayName: true, avatarUrl: true, isVerified: true } },
+        likes: req.user ? { where: { userId: req.user.id }, select: { id: true } } : false,
+        retweets: req.user ? { where: { userId: req.user.id }, select: { id: true } } : false,
+        _count: { select: { likes: true, retweets: true, replies: true } },
+      },
+    });
+
+    res.json({ tweets });
+  } catch (error) {
+    next(error);
+  }
+};
+module.exports = { getProfile, updateProfile, followUser, searchUsers, updateEmail, updatePassword, getUserTweets };

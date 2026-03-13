@@ -1,0 +1,23 @@
+{
+  "name": "twitter-clone",
+  "version": "1.0.0",
+  "description": "Полноценный прототип Twitter/X с регистрацией, лентой твитов и чатами в реальном времени.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abobafrog/zwitter.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/abobafrog/zwitter/issues"
+  },
+  "homepage": "https://github.com/abobafrog/zwitter#readme",
+  "dependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
