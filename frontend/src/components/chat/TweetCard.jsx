@@ -64,6 +64,7 @@ const [zoom, setZoom] = useState(1);
   className="flex-shrink-0 self-start cursor-pointer"
   onClick={(e) => { e.stopPropagation(); navigate(`/${tweet.author.username}`); }}
 >
+  
   <div className="w-10 h-10 rounded-full bg-x-surface overflow-hidden border border-x-border">
     {tweet.author.avatarUrl
       ? <img src={tweet.author.avatarUrl} alt={tweet.author.displayName} className="w-full h-full object-cover" />
@@ -72,10 +73,12 @@ const [zoom, setZoom] = useState(1);
         </div>
     }
   </div>
+  
 </div>
   
       {/* Весь контент справа */}
       <div className="flex-1 min-w-0">
+        
   
         {/* Ник + время + корзина */}
         <div className="flex items-center gap-1 mb-0.5 flex-wrap">
@@ -112,6 +115,19 @@ const [zoom, setZoom] = useState(1);
     <img src={tweet.imageUrl} alt="Tweet media" className="w-full object-cover max-h-96" />
   </div>
 )}
+    {/* Плашка репоста */}
+    {tweet.isRetweet && (
+      <div className="flex items-center gap-1.5 text-x-muted text-xs px-4 pt-2">
+        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current">
+          <path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"/>
+        </svg>
+        <span>{tweet.retweetedBy?.displayName} сделал репост</span>
+      </div>
+    )}
+
+    <div className="flex gap-3 px-4 py-3">
+      {/* ... остальной контент твита без изменений */}
+    </div>
 
 {/* Модалка с фото */}
 {imageModal && (
@@ -236,6 +252,13 @@ const [zoom, setZoom] = useState(1);
             </span>
             <span className="text-sm">{likeCount}</span>
           </button>
+          {/* Просмотры */}
+<div className="flex items-center gap-1.5 text-x-muted text-sm">
+  <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] fill-current">
+    <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+  </svg>
+  <span>{tweet.viewsCount || 0}</span>
+</div>
         </div>
       </div>
   

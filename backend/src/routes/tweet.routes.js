@@ -1,14 +1,15 @@
 // src/routes/tweet.routes.js
 const router = require('express').Router();
 const { body } = require('express-validator');
-const { getFeed, createTweet, getTweet, deleteTweet, likeTweet, retweetTweet } = require('../controllers/tweet.controller');
 const { authenticate, optionalAuth } = require('../middleware/auth');
 const { tweetLimiter } = require('../middleware/rateLimiter');
 const { uploadTweetImage } = require('../config/cloudinary');
 const validate = require('../middleware/validate');
+const { getFeed, createTweet, getTweet, deleteTweet, likeTweet, retweetTweet, searchTweets } = require('../controllers/tweet.controller');
 
 router.get('/feed', optionalAuth, getFeed);
 router.get('/:id', optionalAuth, getTweet);
+router.get('/search', authenticate, searchTweets);
 
 router.use(authenticate);
 

@@ -9,9 +9,11 @@ import api from '../services/api';
 import useAuthStore from '../store/authStore';
 import TweetCard from '../components/chat/TweetCard';
 import EditProfileModal from '../components/ui/EditProfileModal';
+import FollowModal from '../components/ui/FollowModal';
 
 export default function ProfilePage() {
   const { username } = useParams();
+  const [followModal, setFollowModal] = useState(null);
   const { user: me } = useAuthStore();
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -23,7 +25,7 @@ export default function ProfilePage() {
     queryFn: () => api.get(`/users/${username}`).then((r) => r.data.user),
   });
 
-  // Твиты только этого пользователя
+  // Звиты только этого пользователя
   const { data: tweetsData } = useQuery({
     queryKey: ['user-tweets', username],
     queryFn: () => api.get(`/users/${username}/tweets`).then((r) => r.data),
@@ -180,9 +182,28 @@ export default function ProfilePage() {
         </div>
 
         <div className="flex gap-4 text-sm">
-          <span><strong>{data._count?.following}</strong> <span className="text-x-muted">Подписок</span></span>
-          <span><strong>{data._count?.followers}</strong> <span className="text-x-muted">Подписчиков</span></span>
-        </div>
+  <button
+    onClick={() => setFollowModal('following')}
+    className="hover:underline"
+  >
+    <strong>{data._count?.following}</strong> <span className="text-x-muted">Подписок</span>
+  </button>
+  <button
+    onClick={() => setFollowModal('followers')}
+    className="hover:underline"
+  >
+    <strong>{data._count?.followers}</strong> <span className="text-x-muted">Подписчиков</span>
+  </button>
+</div>
+
+{/* Модалка подписок */}
+{followModal && (
+  <FollowModal
+    username={data.username}
+    type={followModal}
+    onClose={() => setFollowModal(null)}
+  />
+)}
       </div>
 
       {/* Tabs */}
@@ -193,7 +214,7 @@ export default function ProfilePage() {
             onClick={() => setTab(t)}
             className={`flex-1 py-4 text-sm font-semibold transition-colors hover:bg-white/5 ${tab === t ? 'border-b-2 border-x-accent text-x-text' : 'text-x-muted'}`}
           >
-            {t === 'tweets' ? 'Твиты' : 'Ответы'}
+            {t === 'tweets' ? 'Звиты' : 'Ответы'}
           </button>
         ))}
       </div>

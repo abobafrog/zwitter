@@ -7,6 +7,7 @@ const tweetSelect = (userId) => ({
   content: true,
   imageUrl: true,
   createdAt: true,
+  viewsCount: true,
   parentId: true,
   author: {
     select: { id: true, username: true, displayName: true, avatarUrl: true, isVerified: true },
@@ -31,15 +32,49 @@ const getFeed = async (req, res, next) => {
       orderBy: { createdAt: 'desc' },
       take: parsedLimit,
     });
+// После того как получили твиты — увеличиваем просмотры
+// Записываем просмотры только для новых
+if (tweets.length > 0 && req.user) {
+  const tweetIds = tweets.map((t) => t.id);
+  
+  // Находим уже просмотренные этим пользователем
+  const alreadyViewed = await prisma.tweetView.findMany({
+    where: {
+      tweetId: { in: tweetIds },
+      userId: req.user.id,
+    },
+    select: { tweetId: true },
+  });
 
-    const nextCursor = tweets.length === parsedLimit
-      ? tweets[tweets.length - 1]?.createdAt?.toISOString()
-      : null;
+  const alreadyViewedIds = new Set(alreadyViewed.map((v) => v.tweetId));
+  const newIds = tweetIds.filter((id) => !alreadyViewedIds.has(id));
 
-    res.json({ tweets, nextCursor });
-  } catch (error) {
-    next(error);
+  if (newIds.length > 0) {
+    // Создаём записи просмотров
+    await prisma.tweetView.createMany({
+      data: newIds.map((tweetId) => ({
+        tweetId,
+        userId: req.user.id,
+      })),
+      skipDuplicates: true,
+    });
+
+    // Увеличиваем счётчик только для новых просмотров
+    await prisma.tweet.updateMany({
+      where: { id: { in: newIds } },
+      data: { viewsCount: { increment: 1 } },
+    });
   }
+}
+
+const nextCursor = tweets.length === parsedLimit
+  ? tweets[tweets.length - 1].createdAt.toISOString()
+  : null;
+
+res.json({ tweets, nextCursor });
+} catch (error) {
+  next(error);
+}
 };
 
 const createTweet = async (req, res, next) => {
@@ -160,4 +195,27 @@ const bookmarkTweet = async (req, res, next) => {
   }
 };
 
-module.exports = { getFeed, createTweet, getTweet, deleteTweet, likeTweet, retweetTweet };
+const searchTweets = async (req, res, next) => {
+  try {
+    const { q } = req.query;
+    if (!q?.trim()) return res.json({ tweets: [] });
+
+    const userId = req.user?.id;
+
+    const tweets = await prisma.tweet.findMany({
+      where: {
+        content: { contains: q, mode: 'insensitive' },
+        parentId: null,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      select: tweetSelect(userId),
+    });
+
+    res.json({ tweets });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getFeed, createTweet, getTweet, deleteTweet, likeTweet, retweetTweet, searchTweets };

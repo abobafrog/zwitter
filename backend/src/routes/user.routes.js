@@ -1,11 +1,16 @@
 const router = require('express').Router();
-const { getProfile, updateProfile, followUser, searchUsers, updateEmail, updatePassword } = require('../controllers/user.controller');
+const { 
+  getProfile, updateProfile, followUser, searchUsers, 
+  updateEmail, updatePassword, getUserTweets,
+  getFollowers, getFollowing
+} = require('../controllers/user.controller');
 const { authenticate, optionalAuth } = require('../middleware/auth');
 const { uploadProfileMedia } = require('../config/cloudinary');
-const { getUserTweets } = require('../controllers/user.controller');
 
-router.get('/:username/tweets', optionalAuth, getUserTweets);
 router.get('/search', authenticate, searchUsers);
+router.get('/:username/tweets', optionalAuth, getUserTweets);
+router.get('/:username/followers', optionalAuth, getFollowers);
+router.get('/:username/following', optionalAuth, getFollowing);
 router.get('/:username', optionalAuth, getProfile);
 
 router.patch(

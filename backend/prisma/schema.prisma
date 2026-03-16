@@ -24,6 +24,7 @@ model User {
 
   // Relations
   tweets         Tweet[]
+  tweetViews TweetView[]
   likes          Like[]
   retweets       Retweet[]
   following      Follow[]  @relation("Following")
@@ -49,10 +50,12 @@ model RefreshToken {
 }
 
 model Tweet {
+  viewsCount   Int   @default(0)   @map("views_count")
   id        String   @id @default(uuid())
   content   String   @db.VarChar(280)
   imageUrl  String?  @map("image_url")
   authorId  String   @map("author_id")
+  views     TweetView[]
   parentId  String?  @map("parent_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -64,6 +67,20 @@ model Tweet {
   retweets Retweet[]
 
   @@map("tweets")
+}
+
+model TweetView {
+  id        String   @id @default(cuid())
+  tweetId   String   @map("tweet_id")
+  userId    String?  @map("user_id")
+  ipAddress String?  @map("ip_address")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tweet Tweet  @relation(fields: [tweetId], references: [id], onDelete: Cascade)
+  user  User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tweetId, userId])
+  @@map("tweet_views")
 }
 
 model Like {
@@ -146,4 +163,13 @@ model Message {
   receiver User? @relation("ReceivedMessages", fields: [receiverId], references: [id])
 
   @@map("messages")
+}
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String   // кому уведомление
+  fromId    String   // от кого
+  type      String   // "like" | "retweet" | "follow" | "reply"
+  tweetId   String?  // если связано с твитом
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
 }

@@ -47,8 +47,8 @@ export default function HomePage() {
         </div>
       ) : tweets.length === 0 ? (
         <div className="flex flex-col items-center py-16 px-8 text-center">
-          <p className="text-2xl font-bold mb-2">Нет твитов</p>
-          <p className="text-x-muted">Когда появятся твиты, они будут здесь</p>
+          <p className="text-2xl font-bold mb-2">Нет звитов</p>
+          <p className="text-x-muted">Когда появятся звиты, они будут здесь</p>
         </div>
       ) : (
         <>

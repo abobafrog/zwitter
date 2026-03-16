@@ -118,6 +118,51 @@ const searchUsers = async (req, res, next) => {
     next(error);
   }
 };
+const getFollowers = async (req, res, next) => {
+  try {
+    const { username } = req.params;
+    const user = await prisma.user.findUnique({ 
+      where: { username: username.toLowerCase() } 
+    });
+    if (!user) return res.status(404).json({ error: 'Не найден' });
+
+    const followers = await prisma.follow.findMany({
+      where: { followingId: user.id },
+      include: {
+        follower: { 
+          select: { id: true, username: true, displayName: true, avatarUrl: true, bio: true } 
+        },
+      },
+    });
+
+    res.json({ users: followers.map((f) => f.follower) });
+  } catch (error) { 
+    next(error); 
+  }
+};
+
+const getFollowing = async (req, res, next) => {
+  try {
+    const { username } = req.params;
+    const user = await prisma.user.findUnique({ 
+      where: { username: username.toLowerCase() } 
+    });
+    if (!user) return res.status(404).json({ error: 'Не найден' });
+
+    const following = await prisma.follow.findMany({
+      where: { followerId: user.id },
+      include: {
+        following: { 
+          select: { id: true, username: true, displayName: true, avatarUrl: true, bio: true } 
+        },
+      },
+    });
+
+    res.json({ users: following.map((f) => f.following) });
+  } catch (error) { 
+    next(error); 
+  }
+};
 const updateEmail = async (req, res, next) => {
   try {
     const { newEmail, currentPassword } = req.body;
@@ -168,6 +213,7 @@ const getUserTweets = async (req, res, next) => {
     });
     if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
 
+    // Свои твиты
     const tweets = await prisma.tweet.findMany({
       where: { authorId: user.id, parentId: null },
       orderBy: { createdAt: 'desc' },
@@ -180,9 +226,50 @@ const getUserTweets = async (req, res, next) => {
       },
     });
 
-    res.json({ tweets });
+    // Репосты пользователя
+    const retweets = await prisma.retweet.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      include: {
+        tweet: {
+          include: {
+            author: { select: { id: true, username: true, displayName: true, avatarUrl: true, isVerified: true } },
+            likes: req.user ? { where: { userId: req.user.id }, select: { id: true } } : false,
+            retweets: req.user ? { where: { userId: req.user.id }, select: { id: true } } : false,
+            _count: { select: { likes: true, retweets: true, replies: true } },
+          },
+        },
+        user: { select: { username: true, displayName: true } },
+      },
+    });
+
+    // Помечаем репосты специальным флагом
+    const retweetedTweets = retweets.map((rt) => ({
+      ...rt.tweet,
+      isRetweet: true,
+      retweetedBy: rt.user,
+      retweetedAt: rt.createdAt,
+    }));
+
+    // Объединяем и сортируем по дате
+    const all = [...tweets, ...retweetedTweets].sort(
+      (a, b) => new Date(b.retweetedAt || b.createdAt) - new Date(a.retweetedAt || a.createdAt)
+    );
+
+    res.json({ tweets: all });
   } catch (error) {
     next(error);
   }
 };
-module.exports = { getProfile, updateProfile, followUser, searchUsers, updateEmail, updatePassword, getUserTweets };
+module.exports = { 
+  getProfile, 
+  updateProfile, 
+  followUser, 
+  searchUsers, 
+  updateEmail, 
+  updatePassword, 
+  getUserTweets,
+  getFollowers,
+  getFollowing
+};

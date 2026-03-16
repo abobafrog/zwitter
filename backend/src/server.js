@@ -19,6 +19,8 @@ const authRoutes = require('./routes/auth.routes');
 const chatRoutes = require('./routes/chat.routes');
 const tweetRoutes = require('./routes/tweet.routes');
 const userRoutes = require('./routes/user.routes');
+const notificationRoutes = require('./routes/notification.routes');
+const { getNotifications } = require('./controllers/notification.controller');
 
 // Ensure logs directory exists
 const logsDir = path.join(__dirname, '../logs');
@@ -74,6 +76,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/tweets', tweetRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/notifications', notificationRoutes)
 
 // 404 handler
 app.use((req, res) => {
