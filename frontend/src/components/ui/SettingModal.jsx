@@ -6,7 +6,7 @@ import api from '../../services/api';
 import useAuthStore from '../../store/authStore';
 
 const Section = ({ title, children }) => (
-  <div className="border-b border-x-border px-4 py-5">
+  <div className="border-b border-x-border/80 bg-x-panel/25 px-4 py-5">
     <h2 className="font-bold text-base mb-4">{title}</h2>
     {children}
   </div>
@@ -113,12 +113,12 @@ export default function SettingsModal({ onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-      <div className="bg-black border border-x-border rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-x-bg/75 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="cosmic-panel rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
 
         {/* Шапка */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-x-border sticky top-0 bg-black z-10">
-          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-white/10 transition-colors">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-x-border sticky top-0 bg-x-bg/90 backdrop-blur-xl z-10">
+          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-cyan-300/10 transition-colors">
             <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
               <path d="M18.3 5.71a1 1 0 00-1.41 0L12 10.59 7.11 5.7A1 1 0 005.7 7.11L10.59 12 5.7 16.89a1 1 0 001.41 1.41L12 13.41l4.89 4.89a1 1 0 001.41-1.41L13.41 12l4.89-4.89a1 1 0 000-1.4z"/>
             </svg>

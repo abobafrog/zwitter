@@ -5,6 +5,21 @@ const logger = require('../utils/logger');
 
 const connectedUsers = new Map(); // userId -> Set of socketIds
 
+const messageInclude = {
+  sender: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
+  reactions: {
+    include: {
+      user: { select: { id: true, username: true, displayName: true } },
+    },
+    orderBy: { createdAt: 'asc' },
+  },
+};
+
+const isParticipant = async (chatId, userId) => Boolean(await prisma.chatParticipant.findUnique({
+  where: { chatId_userId: { chatId, userId } },
+  select: { id: true },
+}));
+
 const initSocket = (io) => {
   // Auth middleware for socket
   io.use(async (socket, next) => {
@@ -89,9 +104,7 @@ const initSocket = (io) => {
 
         const message = await prisma.message.create({
           data: { chatId, senderId: userId, receiverId, content: content.trim(), imageUrl: imageUrl || null },
-          include: {
-            sender: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
-          },
+          include: messageInclude,
         });
 
         await prisma.chat.update({ where: { id: chatId }, data: { updatedAt: new Date() } });
@@ -116,17 +129,20 @@ const initSocket = (io) => {
     });
 
     // Typing indicator
-    socket.on('typing:start', ({ chatId }) => {
+    socket.on('typing:start', async ({ chatId }) => {
+      if (!(await isParticipant(chatId, userId))) return;
       socket.to(`chat:${chatId}`).emit('typing:start', { userId, chatId, user: socket.user });
     });
 
-    socket.on('typing:stop', ({ chatId }) => {
+    socket.on('typing:stop', async ({ chatId }) => {
+      if (!(await isParticipant(chatId, userId))) return;
       socket.to(`chat:${chatId}`).emit('typing:stop', { userId, chatId });
     });
 
     // Mark messages as read
     socket.on('messages:read', async ({ chatId }) => {
       try {
+        if (!(await isParticipant(chatId, userId))) return;
         await prisma.message.updateMany({
           where: { chatId, senderId: { not: userId }, isRead: false },
           data: { isRead: true },

@@ -1,6 +1,6 @@
 // src/pages/LoginPage.jsx
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
 import api from '../services/api';
@@ -26,8 +26,12 @@ const Spinner = () => (
 export default function LoginPage() {
   const [form, setForm] = useState({ login: '', password: '' });
   const [touched, setTouched] = useState({ login: false, password: false });
+  const [verificationEmail, setVerificationEmail] = useState('');
+  const [isResending, setIsResending] = useState(false);
   const { login, isLoading } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
+  const stateEmail = location.state?.verificationEmail || '';
 
   const handleChange = (field) => (e) => {
     setForm((f) => ({ ...f, [field]: e.target.value }));
@@ -63,7 +67,11 @@ export default function LoginPage() {
     } else {
       // Определяем тип ошибки
       const err = result.error || '';
-      if (err.includes('пароль') || err.includes('password') || err.includes('неверн')) {
+      if (result.code === 'EMAIL_NOT_VERIFIED') {
+        const email = result.email || (form.login.includes('@') ? form.login : '');
+        setVerificationEmail(email);
+        toast.error('Сначала подтверди email');
+      } else if (err.includes('пароль') || err.includes('password') || err.includes('неверн')) {
         toast.error('Неверный пароль');
       } else if (err.includes('не найден') || err.includes('логин')) {
         toast.error('Пользователь не найден');
@@ -73,12 +81,49 @@ export default function LoginPage() {
     }
   };
 
+  const resendVerification = async () => {
+    const email = verificationEmail || stateEmail || (form.login.includes('@') ? form.login : '');
+    if (!email) {
+      toast.error('Введи email в поле логина');
+      return;
+    }
+
+    setIsResending(true);
+    try {
+      await api.post('/auth/resend-verification', { email });
+      toast.success('Если email не подтверждён, письмо отправлено');
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Не удалось отправить письмо');
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center px-8 py-12">
-      <div className="w-full max-w-sm">
+    <div className="cosmic-auth">
+      <div className="cosmic-auth-card">
 
 
-        <h1 className="text-4xl font-black mb-8">Войти в Zwiteer</h1>
+        <h1 className="text-4xl font-black mb-8 bg-gradient-to-r from-cyan-200 via-x-accent to-blue-400 bg-clip-text text-transparent">Войти в Zwiteer</h1>
+
+        {(stateEmail || verificationEmail) && (
+          <div className="mb-4 rounded-2xl border border-cyan-300/30 bg-cyan-300/10 p-3 text-sm text-x-muted">
+            <p className="font-bold text-x-text">Подтверди email, чтобы войти.</p>
+            <p className="mt-1">Код подтверждения отправлен на {verificationEmail || stateEmail}.</p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <Link
+                to="/verify-email"
+                state={{ verificationEmail: verificationEmail || stateEmail }}
+                className="text-sm font-bold text-x-accent hover:underline"
+              >
+                Ввести код
+              </Link>
+              <button type="button" onClick={resendVerification} disabled={isResending} className="text-sm font-bold text-x-accent hover:underline">
+                {isResending ? 'Отправляем...' : 'Отправить код ещё раз'}
+              </button>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
@@ -132,6 +177,11 @@ export default function LoginPage() {
               className="input-field"
               autoComplete="current-password"
             />
+            <div className="mt-2 text-right">
+              <Link to="/forgot-password" className="text-sm font-semibold text-x-accent hover:underline">
+                Забыли пароль?
+              </Link>
+            </div>
           </div>
 
           <button type="submit" disabled={isLoading} className="btn-primary py-3 mt-2">
@@ -142,7 +192,7 @@ export default function LoginPage() {
         <div className="mt-6 text-center">
           <p className="text-x-muted">
             Нет аккаунта?{' '}
-            <Link to="/register" className="text-x-accent hover:underline font-semibold">
+            <Link to="/register" className="text-x-accent hover:text-x-accent-hover hover:underline font-semibold">
               Зарегистрироваться
             </Link>
           </p>

@@ -5,11 +5,24 @@ const { authenticate, optionalAuth } = require('../middleware/auth');
 const { tweetLimiter } = require('../middleware/rateLimiter');
 const { uploadTweetImage } = require('../config/cloudinary');
 const validate = require('../middleware/validate');
-const { getFeed, createTweet, getTweet, deleteTweet, likeTweet, retweetTweet, searchTweets } = require('../controllers/tweet.controller');
+const {
+  getFeed,
+  getExplore,
+  createTweet,
+  getTweet,
+  deleteTweet,
+  likeTweet,
+  retweetTweet,
+  bookmarkTweet,
+  getBookmarks,
+  searchTweets,
+} = require('../controllers/tweet.controller');
 
 router.get('/feed', optionalAuth, getFeed);
+router.get('/explore', optionalAuth, getExplore);
+router.get('/search', optionalAuth, searchTweets);
+router.get('/bookmarks', authenticate, getBookmarks);
 router.get('/:id', optionalAuth, getTweet);
-router.get('/search', authenticate, searchTweets);
 
 router.use(authenticate);
 
@@ -25,5 +38,6 @@ router.post(
 router.delete('/:id', deleteTweet);
 router.post('/:id/like', likeTweet);
 router.post('/:id/retweet', retweetTweet);
+router.post('/:id/bookmark', bookmarkTweet);
 
 module.exports = router;

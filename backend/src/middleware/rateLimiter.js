@@ -16,6 +16,12 @@ const authLimiter = createLimiter(
   'Слишком много попыток входа, попробуйте через 15 минут'
 );
 
+const refreshLimiter = createLimiter(
+  15 * 60 * 1000,
+  120,
+  'Слишком много обновлений сессии, попробуйте позже'
+);
+
 const apiLimiter = createLimiter(
   parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
   parseInt(process.env.RATE_LIMIT_MAX) || 100,
@@ -34,4 +40,4 @@ const messageLimiter = createLimiter(
   'Слишком много сообщений, подождите'
 );
 
-module.exports = { authLimiter, apiLimiter, tweetLimiter, messageLimiter };
+module.exports = { authLimiter, refreshLimiter, apiLimiter, tweetLimiter, messageLimiter };

@@ -172,8 +172,14 @@ useEffect(() => {
 
     const result = await register(form);
     if (result.success) {
-      toast.success('Аккаунт создан! Добро пожаловать!');
-      navigate('/home');
+      toast.success(result.message || 'Аккаунт создан. Проверь почту с кодом.');
+      navigate('/verify-email', {
+        replace: true,
+        state: {
+          verificationEmail: form.email,
+          emailSent: result.emailSent,
+        },
+      });
     } else {
       const err = result.error || '';
       console.log('Ошибка с сервера:', err); // временно для отладки
@@ -189,10 +195,13 @@ useEffect(() => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center px-8 py-12">
-      <div className="w-full max-w-sm">
+    <div className="cosmic-auth">
+      <div className="cosmic-auth-card">
         
-        <h1 className="text-3xl font-black mb-6">Создать аккаунт в Zwiteer</h1>
+        <div className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-full border border-cyan-300/40 bg-cyan-300/10 text-x-accent shadow-neon">
+          <XLogo />
+        </div>
+        <h1 className="text-3xl font-black mb-6 bg-gradient-to-r from-cyan-200 via-x-accent to-blue-400 bg-clip-text text-transparent">Создать аккаунт в Zwiteer</h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <ValidatedInput label="Отображаемое имя" value={form.displayName}
@@ -219,7 +228,7 @@ useEffect(() => {
         <div className="mt-6 text-center">
           <p className="text-x-muted">
             Уже есть аккаунт?{' '}
-            <Link to="/login" className="text-x-accent hover:underline font-semibold">Войти</Link>
+            <Link to="/login" className="text-x-accent hover:text-x-accent-hover hover:underline font-semibold">Войти</Link>
           </p>
         </div>
       </div>

@@ -1,22 +1,17 @@
 // src/services/api.js
 import axios from 'axios';
+import { clearAccessToken, getAccessToken, setAccessToken } from './tokenStore';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api',
   timeout: 15000,
+  withCredentials: true,
 });
 
 // Request interceptor — attach token
 api.interceptors.request.use((config) => {
-  try {
-    const stored = localStorage.getItem('auth-storage');
-    if (stored) {
-      const { state } = JSON.parse(stored);
-      if (state?.accessToken) {
-        config.headers.Authorization = `Bearer ${state.accessToken}`;
-      }
-    }
-  } catch {}
+  const token = getAccessToken();
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
@@ -55,24 +50,14 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const stored = localStorage.getItem('auth-storage');
-        const { state } = JSON.parse(stored);
-        const { data } = await axios.post(
-          `${api.defaults.baseURL}/auth/refresh`,
-          { refreshToken: state.refreshToken }
-        );
-
-        const authState = JSON.parse(localStorage.getItem('auth-storage'));
-        authState.state.accessToken = data.accessToken;
-        authState.state.refreshToken = data.refreshToken;
-        localStorage.setItem('auth-storage', JSON.stringify(authState));
-
-        api.defaults.headers.common.Authorization = `Bearer ${data.accessToken}`;
+        const { data } = await axios.post(`${api.defaults.baseURL}/auth/refresh`, {}, { withCredentials: true });
+        setAccessToken(data.accessToken);
         processQueue(null, data.accessToken);
         original.headers.Authorization = `Bearer ${data.accessToken}`;
         return api(original);
       } catch (err) {
         processQueue(err, null);
+        clearAccessToken();
         localStorage.removeItem('auth-storage');
         window.location.href = '/login';
         return Promise.reject(err);

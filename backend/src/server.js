@@ -20,6 +20,7 @@ const chatRoutes = require('./routes/chat.routes');
 const tweetRoutes = require('./routes/tweet.routes');
 const userRoutes = require('./routes/user.routes');
 const notificationRoutes = require('./routes/notification.routes');
+const communityRoutes = require('./routes/community.routes');
 const { getNotifications } = require('./controllers/notification.controller');
 
 // Ensure logs directory exists
@@ -28,11 +29,19 @@ if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
 
 const app = express();
 const httpServer = http.createServer(app);
+const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:3000')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const corsOrigin = (origin, callback) => {
+  if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+  return callback(new Error('Not allowed by CORS'));
+};
 
 // Socket.IO
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -47,10 +56,23 @@ app.set('io', io);
 // Security
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'blob:', 'https://res.cloudinary.com'],
+      connectSrc: ["'self'", ...allowedOrigins, 'wss:', 'ws:'],
+      fontSrc: ["'self'", 'data:'],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      frameAncestors: ["'none'"],
+    },
+  },
 }));
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: corsOrigin,
   credentials: true,
 }));
 
@@ -77,6 +99,7 @@ app.use('/api/chats', chatRoutes);
 app.use('/api/tweets', tweetRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes)
+app.use('/api/communities', communityRoutes);
 
 // 404 handler
 app.use((req, res) => {

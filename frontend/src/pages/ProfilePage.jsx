@@ -27,8 +27,8 @@ export default function ProfilePage() {
 
   // Звиты только этого пользователя
   const { data: tweetsData } = useQuery({
-    queryKey: ['user-tweets', username],
-    queryFn: () => api.get(`/users/${username}/tweets`).then((r) => r.data),
+    queryKey: ['user-tweets', username, tab],
+    queryFn: () => api.get(`/users/${username}/tweets?tab=${tab}`).then((r) => r.data),
     enabled: !!data,
   });
 
@@ -61,6 +61,7 @@ export default function ProfilePage() {
   );
 
   const isMe = me?.id === data.id;
+  const isCommunity = data.isCommunity;
   const joinDate = format(new Date(data.createdAt), 'MMMM yyyy', { locale: ru });
 
   // Парсим дату рождения из формата ДД.ММ.ГГГГ
@@ -73,31 +74,32 @@ export default function ProfilePage() {
   };
 
   return (
-    <div>
+    <div className="min-h-full">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-black/80 backdrop-blur-md border-b border-x-border px-4 py-3 flex items-center gap-6">
-        <button onClick={() => navigate(-1)} className="p-1 rounded-full hover:bg-white/10">
+      <div className="cosmic-header px-4 py-3 flex items-center gap-6">
+        <button onClick={() => navigate(-1)} className="p-1 rounded-full hover:bg-cyan-300/10">
           <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
             <path d="M20 11H7.414l4.293-4.293-1.414-1.414L3.586 12l6.707 6.707 1.414-1.414L7.414 13H20v-2z"/>
           </svg>
         </button>
         <div>
           <h1 className="text-xl font-bold leading-tight">{data.displayName}</h1>
-          <p className="text-x-muted text-sm">{data._count?.tweets} твитов</p>
+          <p className="text-x-muted text-sm">{data._count?.tweets} {isCommunity ? 'записей' : 'звитов'}</p>
         </div>
       </div>
 
       {/* Banner */}
-      <div className="w-full aspect-[3/1] min-h-[400px] max-h-56 bg-gradient-to-br from-x-accent/40 to-black-900/40 overflow-hidden">
+      <div className="relative z-0 h-48 w-full overflow-hidden cosmic-banner sm:h-56">
         {data.bannerUrl && (
           <img src={data.bannerUrl} alt="banner" className="w-full h-full object-cover object-center" />
         )}
+        <div className="absolute inset-0 bg-gradient-to-t from-x-bg/80 via-transparent to-transparent" />
       </div>
 
       {/* Profile info */}
-      <div className="px-4 pb-4">
+      <div className="relative z-10 border-b border-x-border/80 bg-x-panel/30 px-4 pb-4">
         <div className="flex items-start justify-between -mt-16 mb-3">
-          <div className="w-32 h-32 rounded-full border-4 border-black bg-x-surface overflow-hidden">
+          <div className={`relative z-20 h-32 w-32 border-4 border-x-bg cosmic-avatar shadow-neon ${isCommunity ? 'rounded-3xl' : 'rounded-full'}`}>
             {data.avatarUrl
               ? <img src={data.avatarUrl} alt={data.displayName} className="w-full h-full object-cover" />
               : <div className="w-full h-full flex items-center justify-center text-5xl font-black">
@@ -138,11 +140,11 @@ export default function ProfilePage() {
                   disabled={followMutation.isPending}
                   className={`text-sm px-4 py-1.5 rounded-full font-bold transition-colors ${
                     data.isFollowing
-                      ? 'border border-x-border hover:border-red-500 hover:text-red-500 hover:bg-red-500/10'
+                      ? 'border border-x-border hover:border-x-danger hover:text-x-danger hover:bg-x-danger/10'
                       : 'btn-primary'
                   }`}
                 >
-                  {followMutation.isPending ? '...' : data.isFollowing ? 'Отписаться' : 'Подписаться'}
+                  {followMutation.isPending ? '...' : data.isFollowing ? (isCommunity ? 'Выйти' : 'Отписаться') : (isCommunity ? 'Вступить' : 'Подписаться')}
                 </button>
               </div>
             )}
@@ -152,6 +154,11 @@ export default function ProfilePage() {
         <div className="mb-3">
           <div className="flex items-center gap-1">
             <h2 className="text-xl font-black">{data.displayName}</h2>
+            {isCommunity && (
+              <span className="rounded-full border border-cyan-300/35 bg-cyan-300/10 px-2 py-0.5 text-xs font-black uppercase tracking-normal text-x-accent">
+                Сообщество
+              </span>
+            )}
             {data.isVerified && (
               <svg viewBox="0 0 24 24" className="w-5 h-5 fill-x-accent">
                 <path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.68-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2L6.8 12.46l1.41-1.42 2.26 2.26 4.8-5.23 1.47 1.36-6.2 6.77z"/>
@@ -165,7 +172,7 @@ export default function ProfilePage() {
 
         {/* Мета-информация */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-x-muted text-sm mb-3">
-          {data.birthDate && (
+          {!isCommunity && data.birthDate && (
             <div className="flex items-center gap-1">
               <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
                 <path d="M12 2C9.243 2 7 4.243 7 7c0 1.67.817 3.156 2.077 4.094-.875.48-1.605 1.168-2.166 2.006C6.179 14.148 6 15.556 6 17v2h2v-2c0-1.292.173-2.379.606-3.114.461-.784 1.21-1.386 2.769-1.386h1.25c1.559 0 2.308.602 2.769 1.386C15.827 14.621 16 15.708 16 17v2h2v-2c0-1.444-.179-2.852-.911-3.9-.561-.838-1.291-1.526-2.166-2.006C16.183 10.156 17 8.67 17 7c0-2.757-2.243-5-5-5zm0 2c1.654 0 3 1.346 3 3s-1.346 3-3 3-3-1.346-3-3 1.346-3 3-3z"/>
@@ -192,7 +199,7 @@ export default function ProfilePage() {
     onClick={() => setFollowModal('followers')}
     className="hover:underline"
   >
-    <strong>{data._count?.followers}</strong> <span className="text-x-muted">Подписчиков</span>
+    <strong>{data._count?.followers}</strong> <span className="text-x-muted">{isCommunity ? 'Участников' : 'Подписчиков'}</span>
   </button>
 </div>
 
@@ -207,25 +214,25 @@ export default function ProfilePage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-x-border">
+      <div className="flex border-b border-x-border/80 bg-x-panel/30">
         {['tweets', 'replies'].map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`flex-1 py-4 text-sm font-semibold transition-colors hover:bg-white/5 ${tab === t ? 'border-b-2 border-x-accent text-x-text' : 'text-x-muted'}`}
+            className={`flex-1 py-4 text-sm font-semibold transition-colors hover:bg-cyan-300/10 ${tab === t ? 'border-b-2 border-x-accent text-x-text shadow-[inset_0_-12px_22px_rgba(34,211,238,0.08)]' : 'text-x-muted'}`}
           >
-            {t === 'tweets' ? 'Звиты' : 'Ответы'}
+            {t === 'tweets' ? (isCommunity ? 'Записи' : 'Звиты') : 'Ответы'}
           </button>
         ))}
       </div>
 
       {/* Tweets */}
       {tweetsData?.tweets?.map((tweet) => (
-        <TweetCard key={tweet.id} tweet={tweet} queryKey={['user-tweets', username]} />
+        <TweetCard key={tweet.id} tweet={tweet} queryKey={['user-tweets', username, tab]} />
       ))}
       {(!tweetsData?.tweets || tweetsData.tweets.length === 0) && (
         <div className="py-12 text-center text-x-muted">
-          <p>Нет твитов</p>
+          <p>{tab === 'replies' ? 'Нет ответов' : isCommunity ? 'Нет записей' : 'Нет звитов'}</p>
         </div>
       )}
     </div>

@@ -12,12 +12,12 @@ export default function FollowModal({ username, type, onClose }) {
   });
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-      <div className="bg-black border border-x-border rounded-2xl w-full max-w-md max-h-[80vh] flex flex-col">
+    <div className="fixed inset-0 z-50 bg-x-bg/75 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="cosmic-panel rounded-2xl w-full max-w-md max-h-[80vh] flex flex-col">
 
         {/* Шапка */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-x-border flex-shrink-0">
-          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-white/10 transition-colors">
+          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-cyan-300/10 transition-colors">
             <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
               <path d="M18.3 5.71a1 1 0 00-1.41 0L12 10.59 7.11 5.7A1 1 0 005.7 7.11L10.59 12 5.7 16.89a1 1 0 001.41 1.41L12 13.41l4.89 4.89a1 1 0 001.41-1.41L13.41 12l4.89-4.89a1 1 0 000-1.4z"/>
             </svg>
@@ -46,9 +46,9 @@ export default function FollowModal({ username, type, onClose }) {
             <button
               key={user.id}
               onClick={() => { onClose(); navigate(`/${user.username}`); }}
-              className="flex items-center gap-3 w-full px-4 py-3 hover:bg-white/5 transition-colors border-b border-x-border"
+              className="flex items-center gap-3 w-full px-4 py-3 cosmic-hover border-b border-x-border"
             >
-              <div className="w-12 h-12 rounded-full bg-x-surface border border-x-border overflow-hidden flex-shrink-0">
+              <div className="w-12 h-12 rounded-full cosmic-avatar flex-shrink-0">
                 {user.avatarUrl
                   ? <img src={user.avatarUrl} alt={user.displayName} className="w-full h-full object-cover" />
                   : <div className="w-full h-full flex items-center justify-center font-bold">

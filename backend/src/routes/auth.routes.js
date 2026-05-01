@@ -1,9 +1,19 @@
 // src/routes/auth.routes.js
 const router = require('express').Router();
 const { body } = require('express-validator');
-const { register, login, refresh, logout, me } = require('../controllers/auth.controller');
+const {
+  forgotPassword,
+  login,
+  logout,
+  me,
+  refresh,
+  register,
+  resendVerification,
+  resetPassword,
+  verifyEmail,
+} = require('../controllers/auth.controller');
 const { authenticate } = require('../middleware/auth');
-const { authLimiter } = require('../middleware/rateLimiter');
+const { authLimiter, refreshLimiter } = require('../middleware/rateLimiter');
 const validate = require('../middleware/validate');
 const prisma = require('../config/prisma');
 const registerValidation = [
@@ -25,10 +35,32 @@ const loginValidation = [
 
 router.post('/register', authLimiter, registerValidation, validate, register);
 router.post('/login', authLimiter, loginValidation, validate, login);
-router.post('/refresh', refresh);
-router.post('/logout', authenticate, logout);
+router.post('/refresh', refreshLimiter, refresh);
+router.post('/logout', logout);
+router.post(
+  '/verify-email',
+  authLimiter,
+  [
+    body('email').isEmail().withMessage('Введите корректный email').normalizeEmail(),
+    body('code').trim().matches(/^\d{6}$/).withMessage('Код должен состоять из 6 цифр'),
+  ],
+  validate,
+  verifyEmail
+);
+router.post('/resend-verification', authLimiter, [body('email').isEmail().withMessage('Введите корректный email').normalizeEmail()], validate, resendVerification);
+router.post('/forgot-password', authLimiter, [body('email').isEmail().withMessage('Введите корректный email').normalizeEmail()], validate, forgotPassword);
+router.post(
+  '/reset-password',
+  authLimiter,
+  [
+    body('token').trim().notEmpty().withMessage('Токен отсутствует'),
+    body('password').isLength({ min: 6 }).withMessage('Пароль минимум 6 символов').matches(/\d/).withMessage('Пароль должен содержать цифру'),
+  ],
+  validate,
+  resetPassword
+);
 router.get('/me', authenticate, me);
-router.get('/check', async (req, res) => {
+router.get('/check', authLimiter, async (req, res) => {
   const { username, email } = req.query;
   const prisma = require('../config/prisma');
 
@@ -47,9 +79,7 @@ router.get('/check', async (req, res) => {
   res.json(result);
 });
 
-module.exports = router; // эта строка уже есть, не дублируй
-module.exports = router;
-router.get('/check-user', async (req, res) => {
+router.get('/check-user', authLimiter, async (req, res) => {
   const { login } = req.query;
   if (!login || login.trim().length < 3) return res.json({ exists: false });
 
@@ -68,3 +98,5 @@ router.get('/check-user', async (req, res) => {
     res.json({ exists: false });
   }
 });
+
+module.exports = router;

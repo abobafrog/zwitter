@@ -14,11 +14,14 @@ model User {
   id           String    @id @default(uuid())
   username     String    @unique @db.VarChar(50)
   email        String    @unique @db.VarChar(255)
+  emailVerified Boolean  @default(false) @map("email_verified")
+  emailVerifiedAt DateTime? @map("email_verified_at")
   passwordHash String    @map("password_hash")
   displayName  String    @map("display_name") @db.VarChar(100)
   bio          String?   @db.VarChar(160)
   avatarUrl    String?   @map("avatar_url")
   isVerified   Boolean   @default(false) @map("is_verified")
+  isCommunity  Boolean   @default(false) @map("is_community")
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
@@ -27,14 +30,68 @@ model User {
   tweetViews TweetView[]
   likes          Like[]
   retweets       Retweet[]
+  bookmarks      Bookmark[]
   following      Follow[]  @relation("Following")
   followers      Follow[]  @relation("Followers")
   messages       Message[] @relation("SentMessages")
   receivedMsgs   Message[] @relation("ReceivedMessages")
+  messageReactions MessageReaction[]
   chatParticipants ChatParticipant[]
   refreshTokens  RefreshToken[]
+  accountTokens   AccountToken[]
+  notifications  Notification[] @relation("NotificationUser")
+  sentNotifications Notification[] @relation("NotificationFrom")
+  ownedCommunities Community[] @relation("CommunityOwner")
+  communityMemberships CommunityMember[]
 
   @@map("users")
+}
+
+model AccountToken {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique @map("token_hash")
+  userId    String   @map("user_id")
+  type      String   @db.VarChar(40)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@map("account_tokens")
+}
+
+model Community {
+  id          String   @id @default(uuid())
+  slug        String   @unique @db.VarChar(50)
+  name        String   @db.VarChar(100)
+  bio         String?  @db.VarChar(180)
+  avatarUrl   String?  @map("avatar_url")
+  bannerUrl   String?  @map("banner_url")
+  ownerId     String   @map("owner_id")
+  isVerified  Boolean  @default(false) @map("is_verified")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  owner   User @relation("CommunityOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members CommunityMember[]
+  tweets  Tweet[]
+
+  @@map("communities")
+}
+
+model CommunityMember {
+  id          String   @id @default(uuid())
+  communityId String   @map("community_id")
+  userId      String   @map("user_id")
+  role        String   @default("member")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([communityId, userId])
+  @@map("community_members")
 }
 
 model RefreshToken {
@@ -55,16 +112,20 @@ model Tweet {
   content   String   @db.VarChar(280)
   imageUrl  String?  @map("image_url")
   authorId  String   @map("author_id")
+  communityId String? @map("community_id")
   views     TweetView[]
   parentId  String?  @map("parent_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   author   User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  community Community? @relation(fields: [communityId], references: [id], onDelete: Cascade)
   parent   Tweet?   @relation("TweetReplies", fields: [parentId], references: [id])
   replies  Tweet[]  @relation("TweetReplies")
   likes    Like[]
   retweets Retweet[]
+  bookmarks Bookmark[]
+  notifications Notification[]
 
   @@map("tweets")
 }
@@ -157,19 +218,56 @@ model Message {
   imageUrl   String?  @map("image_url")
   isRead     Boolean  @default(false) @map("is_read")
   createdAt  DateTime @default(now()) @map("created_at")
+  editedAt   DateTime? @map("edited_at")
 
-  chat     Chat  @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  sender   User  @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver User? @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  chat      Chat              @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender    User              @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver  User?             @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  reactions MessageReaction[]
 
   @@map("messages")
 }
+
+model MessageReaction {
+  id        String   @id @default(uuid())
+  messageId String   @map("message_id")
+  userId    String   @map("user_id")
+  emoji     String   @db.VarChar(16)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
+  @@map("message_reactions")
+}
+model Bookmark {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  tweetId   String   @map("tweet_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tweet Tweet @relation(fields: [tweetId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tweetId])
+  @@map("bookmarks")
+}
+
 model Notification {
   id        String   @id @default(cuid())
-  userId    String   // кому уведомление
-  fromId    String   // от кого
-  type      String   // "like" | "retweet" | "follow" | "reply"
-  tweetId   String?  // если связано с твитом
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  userId    String   @map("user_id")
+  fromId    String   @map("from_id")
+  type      String
+  tweetId   String?  @map("tweet_id")
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user  User   @relation("NotificationUser", fields: [userId], references: [id], onDelete: Cascade)
+  from  User   @relation("NotificationFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  tweet Tweet? @relation(fields: [tweetId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt])
+  @@map("notifications")
 }

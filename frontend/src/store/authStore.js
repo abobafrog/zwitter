@@ -2,32 +2,56 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import api from '../services/api';
+import { clearAccessToken, setAccessToken } from '../services/tokenStore';
 
 const useAuthStore = create(
   persist(
     (set, get) => ({
       user: null,
       accessToken: null,
-      refreshToken: null,
       isLoading: false,
+      hasCheckedAuth: false,
 
-      setAuth: (user, accessToken, refreshToken) =>
-        set({ user, accessToken, refreshToken }),
+      setAuth: (user, accessToken) => {
+        setAccessToken(accessToken);
+        set({ user, accessToken });
+      },
 
       updateUser: (updates) =>
         set((state) => ({ user: state.user ? { ...state.user, ...updates } : null })),
 
-      setTokens: (accessToken, refreshToken) =>
-        set({ accessToken, refreshToken }),
+      setTokens: (accessToken) => {
+        setAccessToken(accessToken);
+        set({ accessToken });
+      },
+
+      initializeAuth: async () => {
+        try {
+          const { data } = await api.post('/auth/refresh');
+          setAccessToken(data.accessToken);
+          set({ user: data.user, accessToken: data.accessToken, hasCheckedAuth: true });
+          return true;
+        } catch {
+          clearAccessToken();
+          set({ user: null, accessToken: null, hasCheckedAuth: true });
+          return false;
+        }
+      },
 
       login: async (loginInput, password) => {
         set({ isLoading: true });
         try {
           const { data } = await api.post('/auth/login', { login: loginInput, password });
-          set({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken });
+          setAccessToken(data.accessToken);
+          set({ user: data.user, accessToken: data.accessToken, hasCheckedAuth: true });
           return { success: true };
         } catch (error) {
-          return { success: false, error: error.response?.data?.error || 'Ошибка входа' };
+          return {
+            success: false,
+            error: error.response?.data?.error || 'Ошибка входа',
+            code: error.response?.data?.code,
+            email: error.response?.data?.email,
+          };
         } finally {
           set({ isLoading: false });
         }
@@ -37,8 +61,7 @@ const useAuthStore = create(
         set({ isLoading: true });
         try {
           const { data } = await api.post('/auth/register', userData);
-          set({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken });
-          return { success: true };
+          return { success: true, message: data.message, emailSent: data.emailSent };
         } catch (error) {
           // Берём текст ошибки с сервера напрямую
           const serverError = error.response?.data?.error || '';
@@ -57,20 +80,25 @@ const useAuthStore = create(
 
       logout: async () => {
         try {
-          const { refreshToken } = get();
-          if (refreshToken) await api.post('/auth/logout', { refreshToken });
+          await api.post('/auth/logout');
         } catch {}
-        set({ user: null, accessToken: null, refreshToken: null });
+        clearAccessToken();
+        set({ user: null, accessToken: null });
       },
 
       isAuthenticated: () => !!get().user && !!get().accessToken,
     }),
     {
       name: 'auth-storage',
+      version: 2,
+      migrate: (persistedState) => ({
+        user: persistedState?.user || null,
+        accessToken: null,
+        isLoading: false,
+        hasCheckedAuth: false,
+      }),
       partialize: (state) => ({
         user: state.user,
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
       }),
     }
   )

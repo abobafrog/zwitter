@@ -1,13 +1,24 @@
 // src/hooks/useSocket.js
 import { useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { connectSocket, disconnectSocket, getSocket } from '../services/socket';
 import useAuthStore from '../store/authStore';
 import useChatStore from '../store/chatStore';
 
 export const useSocket = () => {
   const { accessToken, isAuthenticated } = useAuthStore();
-  const { addMessage, setTyping, setUserOnline, setUserOffline, incrementUnread, activeChat } = useChatStore();
+  const {
+    addMessage,
+    updateMessage,
+    removeMessage,
+    setTyping,
+    setUserOnline,
+    setUserOffline,
+    incrementUnread,
+    activeChat,
+  } = useChatStore();
   const initialized = useRef(false);
+  const qc = useQueryClient();
 
   useEffect(() => {
     if (!isAuthenticated() || !accessToken) {
@@ -23,6 +34,18 @@ export const useSocket = () => {
 
     socket.on('message:new', ({ message, chatId }) => {
       addMessage(chatId, message);
+    });
+
+    socket.on('message:updated', ({ message, chatId }) => {
+      updateMessage(chatId, message);
+    });
+
+    socket.on('message:deleted', ({ messageId, chatId }) => {
+      removeMessage(chatId, messageId);
+    });
+
+    socket.on('notification:new', () => {
+      qc.invalidateQueries({ queryKey: ['notifications'] });
     });
 
     socket.on('chat:notification', ({ chatId, message }) => {
@@ -46,7 +69,7 @@ export const useSocket = () => {
       disconnectSocket();
       initialized.current = false;
     };
-  }, [accessToken, isAuthenticated()]);
+  }, [accessToken, isAuthenticated(), qc]);
 
   return getSocket();
 };

@@ -1,6 +1,8 @@
 // src/controllers/user.controller.js
 const prisma = require('../config/prisma');
 const bcrypt = require('bcryptjs');
+const { createNotification } = require('../services/notification.service');
+const { tweetSelect, withThreadReplyCounts } = require('./tweet.controller');
 const getProfile = async (req, res, next) => {
   try {
     const { username } = req.params;
@@ -11,7 +13,7 @@ const getProfile = async (req, res, next) => {
       select: {
         id: true, username: true, displayName: true,
         bio: true, avatarUrl: true, bannerUrl: true,
-        birthDate: true, isVerified: true, createdAt: true,
+        birthDate: true, isVerified: true, isCommunity: true, createdAt: true,
         _count: { select: { tweets: true, following: true, followers: true } },
         followers: viewerId ? { where: { followerId: viewerId }, select: { id: true } } : false,
       },
@@ -51,6 +53,7 @@ const followUser = async (req, res, next) => {
     }
 
     await prisma.follow.create({ data: { followerId, followingId } });
+    await createNotification({ req, userId: followingId, fromId: followerId, type: 'follow' });
     res.json({ following: true });
   } catch (error) {
     next(error);
@@ -84,7 +87,7 @@ const updateProfile = async (req, res, next) => {
       select: {
         id: true, username: true, displayName: true,
         bio: true, avatarUrl: true, bannerUrl: true,
-        birthDate: true, isVerified: true,
+        birthDate: true, isVerified: true, isCommunity: true,
       },
     });
 
@@ -105,10 +108,11 @@ const searchUsers = async (req, res, next) => {
           { username: { contains: q.toLowerCase(), mode: 'insensitive' } },
           { displayName: { contains: q, mode: 'insensitive' } },
         ],
+        isCommunity: false,
         NOT: { id: req.user.id },
       },
       select: {
-        id: true, username: true, displayName: true, avatarUrl: true, isVerified: true,
+        id: true, username: true, displayName: true, avatarUrl: true, isVerified: true, isCommunity: true,
       },
       take: 10,
     });
@@ -130,7 +134,7 @@ const getFollowers = async (req, res, next) => {
       where: { followingId: user.id },
       include: {
         follower: { 
-          select: { id: true, username: true, displayName: true, avatarUrl: true, bio: true } 
+          select: { id: true, username: true, displayName: true, avatarUrl: true, bio: true, isCommunity: true } 
         },
       },
     });
@@ -153,7 +157,7 @@ const getFollowing = async (req, res, next) => {
       where: { followerId: user.id },
       include: {
         following: { 
-          select: { id: true, username: true, displayName: true, avatarUrl: true, bio: true } 
+          select: { id: true, username: true, displayName: true, avatarUrl: true, bio: true, isCommunity: true } 
         },
       },
     });
@@ -207,44 +211,54 @@ const updatePassword = async (req, res, next) => {
 const getUserTweets = async (req, res, next) => {
   try {
     const { username } = req.params;
+    const viewerId = req.user?.id;
+    const tab = req.query.tab === 'replies' ? 'replies' : 'tweets';
+
     const user = await prisma.user.findUnique({
       where: { username: username.toLowerCase() },
       select: { id: true },
     });
     if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
 
-    // Свои твиты
+    if (tab === 'replies') {
+      const replies = await prisma.tweet.findMany({
+        where: { authorId: user.id, parentId: { not: null } },
+        orderBy: { createdAt: 'desc' },
+        take: 30,
+        select: {
+          ...tweetSelect(viewerId),
+          parent: {
+            select: {
+              id: true,
+              content: true,
+              author: { select: { username: true, displayName: true } },
+              community: { select: { slug: true, name: true } },
+            },
+          },
+        },
+      });
+
+      await withThreadReplyCounts(replies);
+      return res.json({ tweets: replies });
+    }
+
     const tweets = await prisma.tweet.findMany({
       where: { authorId: user.id, parentId: null },
       orderBy: { createdAt: 'desc' },
-      take: 20,
-      include: {
-        author: { select: { id: true, username: true, displayName: true, avatarUrl: true, isVerified: true } },
-        likes: req.user ? { where: { userId: req.user.id }, select: { id: true } } : false,
-        retweets: req.user ? { where: { userId: req.user.id }, select: { id: true } } : false,
-        _count: { select: { likes: true, retweets: true, replies: true } },
-      },
+      take: 30,
+      select: tweetSelect(viewerId),
     });
 
-    // Репосты пользователя
     const retweets = await prisma.retweet.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: 'desc' },
-      take: 20,
+      take: 30,
       include: {
-        tweet: {
-          include: {
-            author: { select: { id: true, username: true, displayName: true, avatarUrl: true, isVerified: true } },
-            likes: req.user ? { where: { userId: req.user.id }, select: { id: true } } : false,
-            retweets: req.user ? { where: { userId: req.user.id }, select: { id: true } } : false,
-            _count: { select: { likes: true, retweets: true, replies: true } },
-          },
-        },
+        tweet: { select: tweetSelect(viewerId) },
         user: { select: { username: true, displayName: true } },
       },
     });
 
-    // Помечаем репосты специальным флагом
     const retweetedTweets = retweets.map((rt) => ({
       ...rt.tweet,
       isRetweet: true,
@@ -252,16 +266,33 @@ const getUserTweets = async (req, res, next) => {
       retweetedAt: rt.createdAt,
     }));
 
-    // Объединяем и сортируем по дате
     const all = [...tweets, ...retweetedTweets].sort(
       (a, b) => new Date(b.retweetedAt || b.createdAt) - new Date(a.retweetedAt || a.createdAt)
     );
 
+    await withThreadReplyCounts(all);
     res.json({ tweets: all });
   } catch (error) {
     next(error);
   }
 };
+
+const deleteAccount = async (req, res, next) => {
+  try {
+    const { currentPassword } = req.body;
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
+
+    const valid = await bcrypt.compare(currentPassword || '', user.passwordHash);
+    if (!valid) return res.status(401).json({ error: 'Неверный текущий пароль' });
+
+    await prisma.user.delete({ where: { id: req.user.id } });
+    res.json({ message: 'Аккаунт удалён' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = { 
   getProfile, 
   updateProfile, 
@@ -271,5 +302,6 @@ module.exports = {
   updatePassword, 
   getUserTweets,
   getFollowers,
-  getFollowing
+  getFollowing,
+  deleteAccount
 };

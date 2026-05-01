@@ -2,7 +2,7 @@ const router = require('express').Router();
 const { 
   getProfile, updateProfile, followUser, searchUsers, 
   updateEmail, updatePassword, getUserTweets,
-  getFollowers, getFollowing
+  getFollowers, getFollowing, deleteAccount
 } = require('../controllers/user.controller');
 const { authenticate, optionalAuth } = require('../middleware/auth');
 const { uploadProfileMedia } = require('../config/cloudinary');
@@ -25,6 +25,7 @@ router.patch(
 
 router.patch('/me/email', authenticate, updateEmail);
 router.patch('/me/password', authenticate, updatePassword);
+router.delete('/me', authenticate, deleteAccount);
 router.post('/:id/follow', authenticate, followUser);
 
 module.exports = router;

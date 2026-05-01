@@ -92,12 +92,12 @@ export default function EditProfileModal({ user, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-      <div className="bg-black border border-x-border rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-x-bg/75 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="cosmic-panel rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
 
         {/* Шапка */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-x-border sticky top-0 bg-black z-10">
-          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-white/10 transition-colors">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-x-border sticky top-0 bg-x-bg/90 backdrop-blur-xl z-10">
+          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-cyan-300/10 transition-colors">
             <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
               <path d="M18.3 5.71a1 1 0 00-1.41 0L12 10.59 7.11 5.7A1 1 0 005.7 7.11L10.59 12 5.7 16.89a1 1 0 001.41 1.41L12 13.41l4.89 4.89a1 1 0 001.41-1.41L13.41 12l4.89-4.89a1 1 0 000-1.4z"/>
             </svg>
@@ -115,13 +115,13 @@ export default function EditProfileModal({ user, onClose }) {
         {/* Баннер */}
         <div className="relative">
           <div
-            className="h-36 bg-gradient-to-br from-x-accent/40 to-purple-900/40 cursor-pointer group relative overflow-hidden"
+            className="h-36 cosmic-banner cursor-pointer group relative overflow-hidden"
             onClick={() => bannerRef.current?.click()}
           >
             {bannerPreview && (
               <img src={bannerPreview} alt="banner" className="w-full h-full object-cover object-center" />
             )}
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+            <div className="absolute inset-0 bg-x-bg/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
               <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white">
                 <path d="M3 5.5C3 4.119 4.119 3 5.5 3h13C19.881 3 21 4.119 21 5.5v13c0 1.381-1.119 2.5-2.5 2.5h-13C4.119 21 3 19.881 3 18.5v-13zM5.5 5c-.276 0-.5.224-.5.5v9.086l3-3 3 3 5-5 3 3V5.5c0-.276-.224-.5-.5-.5h-13zM19 15.414l-3-3-5 5-3-3-3 3V18.5c0 .276.224.5.5.5h13c.276 0 .5-.224.5-.5v-3.086z"/>
               </svg>
@@ -134,7 +134,7 @@ export default function EditProfileModal({ user, onClose }) {
           {/* Аватарка */}
           <div className="absolute -bottom-10 left-4">
             <div
-              className="w-20 h-20 rounded-full border-4 border-black bg-x-surface overflow-hidden cursor-pointer group relative"
+              className="w-20 h-20 rounded-full border-4 border-x-bg cosmic-avatar cursor-pointer group relative"
               onClick={() => avatarRef.current?.click()}
             >
               {avatarPreview
@@ -143,7 +143,7 @@ export default function EditProfileModal({ user, onClose }) {
                     {user.displayName?.[0]?.toUpperCase()}
                   </div>
               }
-              <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <div className="absolute inset-0 bg-x-bg/70 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14v-4H8l4-4 4 4h-3v4h-2z"/>
                 </svg>
