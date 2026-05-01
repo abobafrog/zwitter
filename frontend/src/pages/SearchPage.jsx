@@ -49,6 +49,71 @@ function CommunityResult({ community }) {
   );
 }
 
+function PopularCard({ item, type }) {
+  const navigate = useNavigate();
+  const isCommunity = type === 'community';
+  const title = isCommunity ? item.displayName || item.name : item.displayName;
+  const handleClick = () => navigate(isCommunity ? `/community/${item.username || item.slug}` : `/${item.username}`);
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className="w-48 flex-none rounded-3xl border border-x-border/70 bg-x-panel/50 p-4 text-left transition hover:border-cyan-300/45 hover:bg-cyan-300/10"
+    >
+      <div className={`mb-3 h-14 w-14 cosmic-avatar ${isCommunity ? 'rounded-2xl' : 'rounded-full'}`}>
+        {item.avatarUrl ? (
+          <img src={item.avatarUrl} alt={title} className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-xl font-black">
+            {title?.[0]?.toUpperCase()}
+          </div>
+        )}
+      </div>
+      <p className="truncate font-black text-x-text">{title}</p>
+      <p className="truncate text-sm text-x-muted">@{item.username}</p>
+      <p className="mt-2 text-xs font-bold text-x-muted">
+        {isCommunity
+          ? `${item._count?.members || item._count?.followers || 0} участников`
+          : `${item._count?.followers || 0} подписчиков`}
+      </p>
+    </button>
+  );
+}
+
+function PopularSection({ users, communities }) {
+  if (!users.length && !communities.length) return null;
+
+  return (
+    <section className="border-b border-x-border/70 px-4 py-5 sm:px-5">
+      <div className="mb-3">
+        <p className="nebula-section-heading">рекомендации</p>
+        <h2 className="text-lg font-black text-x-text">Популярное</h2>
+      </div>
+      {communities.length > 0 && (
+        <div className="mb-4">
+          <h3 className="mb-2 text-sm font-black uppercase tracking-[0.12em] text-x-muted">Сообщества</h3>
+          <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 sm:-mx-5 sm:px-5">
+            {communities.map((community) => (
+              <PopularCard key={community.id} item={community} type="community" />
+            ))}
+          </div>
+        </div>
+      )}
+      {users.length > 0 && (
+        <div>
+          <h3 className="mb-2 text-sm font-black uppercase tracking-[0.12em] text-x-muted">Аккаунты</h3>
+          <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 sm:-mx-5 sm:px-5">
+            {users.map((user) => (
+              <PopularCard key={user.id} item={user} type="user" />
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
@@ -62,7 +127,7 @@ export default function SearchPage() {
 
   const usersQuery = useQuery({
     queryKey: ['page-search-users', query],
-    queryFn: () => api.get(`/users/search?q=${encodeURIComponent(query)}`).then((r) => r.data.users),
+    queryFn: () => api.get(`/users/search?q=${encodeURIComponent(query)}&includeSelf=1`).then((r) => r.data.users),
     enabled: hasQuery,
     staleTime: 5000,
   });
@@ -81,6 +146,12 @@ export default function SearchPage() {
     staleTime: 5000,
   });
 
+  const popularQuery = useQuery({
+    queryKey: ['search-popular'],
+    queryFn: () => api.get('/tweets/explore').then((r) => r.data),
+    staleTime: 30000,
+  });
+
   const submitSearch = (event) => {
     event.preventDefault();
     const next = draft.trim();
@@ -90,6 +161,8 @@ export default function SearchPage() {
   const users = usersQuery.data || [];
   const tweets = tweetsQuery.data || [];
   const communities = communitiesQuery.data || [];
+  const popularUsers = popularQuery.data?.users || [];
+  const popularCommunities = popularQuery.data?.communities || [];
   const isLoading = usersQuery.isLoading || tweetsQuery.isLoading || communitiesQuery.isLoading;
   const hasResults = users.length > 0 || tweets.length > 0 || communities.length > 0;
 
@@ -109,16 +182,18 @@ export default function SearchPage() {
             autoFocus
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder="Найти людей, звиты или сообщества"
+            placeholder="Найти пользователей, посты или сообщества"
             className="input-field py-4 pl-12 text-lg"
           />
         </form>
       </div>
 
+      <PopularSection users={popularUsers} communities={popularCommunities} />
+
       {!hasQuery ? (
-        <div className="px-8 py-16 text-center text-x-muted">
+        <div className="px-8 py-12 text-center text-x-muted">
           <p className="text-lg font-black text-x-text">Введите запрос</p>
-          <p className="mt-1 text-sm">Поиск покажет пользователей, сообщества и звиты.</p>
+          <p className="mt-1 text-sm">Поиск покажет пользователей, сообщества и посты.</p>
         </div>
       ) : isLoading ? (
         <div className="flex justify-center py-16">
@@ -146,7 +221,7 @@ export default function SearchPage() {
 
           {tweets.length > 0 && (
             <section>
-              <h2 className="mb-3 text-lg font-black">Звиты</h2>
+              <h2 className="mb-3 text-lg font-black">Посты</h2>
               <div className="-mx-4 sm:-mx-5">
                 {tweets.map((tweet) => <TweetCard key={tweet.id} tweet={tweet} queryKey={['page-search-tweets', query]} />)}
               </div>

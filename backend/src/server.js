@@ -28,6 +28,7 @@ const logsDir = path.join(__dirname, '../logs');
 if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
 
 const app = express();
+app.set('trust proxy', 1);
 const httpServer = http.createServer(app);
 const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:3000')
   .split(',')

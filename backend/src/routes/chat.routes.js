@@ -5,6 +5,10 @@ const {
   getChats,
   createOrGetChat,
   createGroupChat,
+  updateGroupChat,
+  addGroupParticipants,
+  removeGroupParticipant,
+  deleteGroupChat,
   getMessages,
   sendMessage,
   editMessage,
@@ -14,6 +18,7 @@ const {
 const { authenticate } = require('../middleware/auth');
 const { messageLimiter } = require('../middleware/rateLimiter');
 const { uploadMessageImage } = require('../config/cloudinary');
+const { uploadProfileMedia } = require('../config/cloudinary');
 const validate = require('../middleware/validate');
 
 router.use(authenticate);
@@ -31,11 +36,32 @@ router.post(
   '/groups',
   [
     body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Название группы 2-100 символов'),
-    body('participantIds').isArray({ min: 2 }).withMessage('Выберите минимум двух участников'),
+    body('participantIds').isArray({ min: 1 }).withMessage('Выберите минимум одного участника'),
   ],
   validate,
   createGroupChat
 );
+
+router.patch(
+  '/:chatId/group',
+  uploadProfileMedia.single('avatar'),
+  [
+    body('name').optional().trim().isLength({ min: 2, max: 100 }).withMessage('Название группы 2-100 символов'),
+    body('description').optional().trim().isLength({ max: 180 }).withMessage('Описание до 180 символов'),
+  ],
+  validate,
+  updateGroupChat
+);
+
+router.post(
+  '/:chatId/group/participants',
+  [body('participantIds').isArray({ min: 1 }).withMessage('Выберите минимум одного участника')],
+  validate,
+  addGroupParticipants
+);
+
+router.delete('/:chatId/group/participants/:userId', removeGroupParticipant);
+router.delete('/:chatId/group', deleteGroupChat);
 
 router.get('/:chatId/messages', getMessages);
 

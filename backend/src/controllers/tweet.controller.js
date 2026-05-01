@@ -480,16 +480,15 @@ const getBookmarks = async (req, res, next) => {
 
 const searchTweets = async (req, res, next) => {
   try {
-    const { q } = req.query;
-    if (!q?.trim()) return res.json({ tweets: [] });
+    const q = (req.query.q || '').toString().trim();
+    if (!q) return res.json({ tweets: [] });
 
     const userId = req.user?.id;
     const tweets = await prisma.tweet.findMany({
       where: {
-        content: { contains: q.trim(), mode: 'insensitive' },
-        parentId: null,
+        content: { contains: q, mode: 'insensitive' },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ viewsCount: 'desc' }, { createdAt: 'desc' }],
       take: 30,
       select: tweetSelect(userId),
     });

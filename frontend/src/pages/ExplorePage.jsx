@@ -6,8 +6,6 @@ import api from '../services/api';
 import TweetCard from '../components/chat/TweetCard';
 import NavIcon from '../components/layout/NavIcon';
 
-const topicList = ['Космос', 'Будущее', 'Наука', 'Искусство', 'Технологии'];
-
 function UserOrbitCard({ user, variant = 'user' }) {
   const navigate = useNavigate();
   const isCommunity = variant === 'community' || user.isCommunity;
@@ -113,9 +111,8 @@ function CreateCommunityModal({ onClose }) {
 
 export default function ExplorePage({ mode = 'explore' }) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
   const isCommunities = mode === 'communities';
-  const currentFilter = searchParams.get(isCommunities ? 'q' : 'topic') || '';
+  const currentFilter = searchParams.get('q') || '';
   const [draft, setDraft] = useState(currentFilter);
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -127,7 +124,7 @@ export default function ExplorePage({ mode = 'explore' }) {
       return `/communities${query ? `?${query}` : ''}`;
     }
     const params = new URLSearchParams();
-    if (currentFilter) params.set('topic', currentFilter);
+    if (currentFilter) params.set('q', currentFilter);
     const query = params.toString();
     return `/tweets/explore${query ? `?${query}` : ''}`;
   }, [currentFilter, isCommunities]);
@@ -144,7 +141,7 @@ export default function ExplorePage({ mode = 'explore' }) {
       setSearchParams({});
       return;
     }
-    setSearchParams(isCommunities ? { q: value } : { topic: value });
+    setSearchParams({ q: value });
   };
 
   const submitSearch = (event) => {
@@ -153,7 +150,7 @@ export default function ExplorePage({ mode = 'explore' }) {
   };
 
   const title = isCommunities ? 'Сообщества' : 'Обзор';
-  const subtitle = isCommunities ? 'паблики и клубы' : 'поиск и тренды';
+  const subtitle = isCommunities ? 'паблики и клубы' : 'поиск и рекомендации';
   const discoveryUsers = isCommunities ? (data?.communities || []) : (data?.users || []);
 
   return (
@@ -169,23 +166,11 @@ export default function ExplorePage({ mode = 'explore' }) {
             <input
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
-              placeholder={isCommunities ? 'Найти сообщество' : 'Найти тему'}
+              placeholder={isCommunities ? 'Найти сообщество' : 'Найти в обзоре'}
               className="input-field pl-10"
             />
           </form>
         </div>
-        {!isCommunities && (
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-            <button type="button" onClick={() => setFilter('')} className={`nebula-pill ${!currentFilter ? 'border-x-accent/70 text-x-text' : ''}`}>
-              Все
-            </button>
-            {topicList.map((topic) => (
-              <button key={topic} type="button" onClick={() => setFilter(topic)} className={`nebula-pill ${currentFilter === topic ? 'border-x-accent/70 text-x-text' : ''}`}>
-                {topic}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       {isLoading ? (
@@ -197,9 +182,11 @@ export default function ExplorePage({ mode = 'explore' }) {
           <section className="border-b border-x-border/80 bg-x-panel/25 p-4 sm:p-5">
             <div className="mb-3 flex items-center justify-between gap-3">
               <h2 className="text-lg font-black">{isCommunities ? (currentFilter ? 'Найденные сообщества' : 'Популярные сообщества') : 'Кого читать'}</h2>
-              <button type="button" onClick={() => isCommunities ? setCreateOpen(true) : navigate('/messages')} className="text-sm font-bold text-x-accent hover:text-x-accent-hover">
-                {isCommunities ? 'Создать' : 'Написать'}
-              </button>
+              {isCommunities && (
+                <button type="button" onClick={() => setCreateOpen(true)} className="text-sm font-bold text-x-accent hover:text-x-accent-hover">
+                  Создать
+                </button>
+              )}
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {discoveryUsers.slice(0, isCommunities ? 8 : 4).map((user) => (
@@ -215,34 +202,13 @@ export default function ExplorePage({ mode = 'explore' }) {
           </section>
 
           {!isCommunities && (
-            <section className="border-b border-x-border/80 bg-x-bg/25 p-4 sm:p-5">
-              <div className="grid gap-2 sm:grid-cols-2">
-                {(data?.trends || []).map((trend) => (
-                  <button
-                    key={trend.name}
-                    type="button"
-                    onClick={() => setFilter(trend.name)}
-                    className="flex items-center justify-between rounded-2xl border border-x-border/70 bg-x-panel/45 px-4 py-3 text-left transition hover:border-cyan-300/45 hover:bg-cyan-300/10"
-                  >
-                    <span>
-                      <span className="block font-black">{trend.name}</span>
-                      <span className="text-sm text-x-muted">{trend.label}</span>
-                    </span>
-                    <span className="text-x-muted">›</span>
-                  </button>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {!isCommunities && (
             <div className="py-4">
               {(data?.tweets || []).length > 0 ? (
                 data.tweets.map((tweet) => <TweetCard key={tweet.id} tweet={tweet} queryKey={['explore', currentFilter]} />)
             ) : (
               <div className="px-8 py-16 text-center text-x-muted">
                 <p className="text-lg font-black text-x-text">Пока ничего не найдено</p>
-                <p className="mt-1 text-sm">Попробуй другую тему или вернись ко всем трендам.</p>
+                <p className="mt-1 text-sm">Попробуй другой запрос или вернись ко всем постам.</p>
               </div>
             )}
             </div>

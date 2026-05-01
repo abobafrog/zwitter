@@ -15,6 +15,8 @@ export const useSocket = () => {
     setUserOnline,
     setUserOffline,
     incrementUnread,
+    updateChat,
+    removeChat,
     activeChat,
   } = useChatStore();
   const initialized = useRef(false);
@@ -52,6 +54,16 @@ export const useSocket = () => {
       if (chatId !== activeChat?.id) {
         incrementUnread(chatId);
       }
+    });
+
+    socket.on('chat:updated', ({ chat }) => {
+      updateChat(chat);
+      qc.invalidateQueries({ queryKey: ['chats'] });
+    });
+
+    socket.on('chat:deleted', ({ chatId }) => {
+      removeChat(chatId);
+      qc.invalidateQueries({ queryKey: ['chats'] });
     });
 
     socket.on('typing:start', ({ chatId, userId, user }) => {

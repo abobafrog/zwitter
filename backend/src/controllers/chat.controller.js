@@ -31,6 +31,70 @@ const emitMessageUpdated = (req, chatId, message) => {
   }
 };
 
+const chatParticipantInclude = {
+  participants: {
+    include: {
+      user: {
+        select: { id: true, username: true, displayName: true, avatarUrl: true, isVerified: true },
+      },
+    },
+  },
+  messages: {
+    orderBy: { createdAt: 'desc' },
+    take: 1,
+    include: { sender: { select: { id: true, username: true, displayName: true } } },
+  },
+};
+
+const formatChat = (chat, userId, unreadCount = 0) => ({
+  id: chat.id,
+  name: chat.name,
+  description: chat.description,
+  avatarUrl: chat.avatarUrl,
+  ownerId: chat.ownerId,
+  isGroup: chat.isGroup,
+  updatedAt: chat.updatedAt,
+  unreadCount,
+  lastMessage: chat.messages?.[0] || null,
+  participants: chat.participants.map((p) => p.user),
+  otherUser: chat.isGroup
+    ? null
+    : chat.participants.find((p) => p.userId !== userId)?.user || null,
+});
+
+const emitChatUpdated = (req, chat) => {
+  const io = req.app.get('io');
+  if (io) {
+    chat.participants.forEach((participant) => {
+      const participantUserId = participant.userId || participant.id;
+      io.to(`user:${participantUserId}`).emit('chat:updated', { chatId: chat.id, chat });
+    });
+  }
+};
+
+const assertGroupOwner = async (chatId, userId) => {
+  const chat = await prisma.chat.findUnique({
+    where: { id: chatId },
+    include: { participants: { orderBy: { joinedAt: 'asc' } } },
+  });
+
+  if (!chat || !chat.isGroup) return { error: 'Группа не найдена', status: 404 };
+  const isParticipant = chat.participants.some((participant) => participant.userId === userId);
+  if (!isParticipant) return { error: 'Нет доступа к этой группе', status: 403 };
+  const ownerId = chat.ownerId || chat.participants[0]?.userId;
+  if (ownerId !== userId) return { error: 'Управлять группой может только создатель', status: 403 };
+
+  return { chat, ownerId };
+};
+
+const getFormattedChat = async (chatId, userId) => {
+  const chat = await prisma.chat.findUnique({
+    where: { id: chatId },
+    include: chatParticipantInclude,
+  });
+  return chat ? formatChat(chat, userId) : null;
+};
+
 const getChats = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -63,18 +127,7 @@ const getChats = async (req, res, next) => {
       orderBy: { updatedAt: 'desc' },
     });
 
-    const formattedChats = chats.map((chat) => ({
-      id: chat.id,
-      name: chat.name,
-      isGroup: chat.isGroup,
-      updatedAt: chat.updatedAt,
-      unreadCount: chat._count.messages,
-      lastMessage: chat.messages[0] || null,
-      participants: chat.participants.map((p) => p.user),
-      otherUser: chat.isGroup
-        ? null
-        : chat.participants.find((p) => p.userId !== userId)?.user || null,
-    }));
+    const formattedChats = chats.map((chat) => formatChat(chat, userId, chat._count.messages));
 
     res.json({ chats: formattedChats });
   } catch (error) {
@@ -159,20 +212,28 @@ const createGroupChat = async (req, res, next) => {
     if (!name || name.length < 2) {
       return res.status(400).json({ error: 'Название группы минимум 2 символа' });
     }
-    if (participantIds.length < 3) {
-      return res.status(400).json({ error: 'Для группы нужно минимум 3 участника включая вас' });
+    if (participantIds.length < 2) {
+      return res.status(400).json({ error: 'Для группы нужен минимум 1 участник кроме вас' });
     }
 
-    const usersCount = await prisma.user.count({
+    const users = await prisma.user.findMany({
       where: { id: { in: participantIds }, isCommunity: false },
+      select: { id: true, username: true, displayName: true, blockGroupInvites: true },
     });
-    if (usersCount !== participantIds.length) {
+    if (users.length !== participantIds.length) {
       return res.status(400).json({ error: 'Один из участников не найден' });
+    }
+
+    const blockedUsers = users.filter((participant) => participant.id !== userId && participant.blockGroupInvites);
+    if (blockedUsers.length > 0) {
+      const names = blockedUsers.map((participant) => participant.displayName || `@${participant.username}`).join(', ');
+      return res.status(403).json({ error: `${names} запретил добавление в группы` });
     }
 
     const chat = await prisma.chat.create({
       data: {
         name,
+        ownerId: userId,
         isGroup: true,
         participants: {
           create: participantIds.map((participantId) => ({ userId: participantId })),
@@ -194,18 +255,113 @@ const createGroupChat = async (req, res, next) => {
 
     logger.info(`Group chat created by ${userId}: ${chat.id}`);
     res.status(201).json({
-      chat: {
-        id: chat.id,
-        name: chat.name,
-        isGroup: chat.isGroup,
-        updatedAt: chat.updatedAt,
-        unreadCount: 0,
-        lastMessage: chat.messages[0] || null,
-        participants: chat.participants.map((p) => p.user),
-        otherUser: null,
-      },
+      chat: formatChat(chat, userId),
       created: true,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateGroupChat = async (req, res, next) => {
+  try {
+    const { chatId } = req.params;
+    const userId = req.user.id;
+    const access = await assertGroupOwner(chatId, userId);
+    if (access.error) return res.status(access.status).json({ error: access.error });
+
+    const name = req.body.name?.trim();
+    const description = req.body.description?.trim();
+    const data = {};
+
+    if (name !== undefined) {
+      if (name.length < 2 || name.length > 100) {
+        return res.status(400).json({ error: 'Название группы 2-100 символов' });
+      }
+      data.name = name;
+    }
+    if (description !== undefined) data.description = description || null;
+    if (req.file?.path) data.avatarUrl = req.file.path;
+
+    await prisma.chat.update({ where: { id: chatId }, data });
+    const chat = await getFormattedChat(chatId, userId);
+    emitChatUpdated(req, chat);
+    res.json({ chat });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const addGroupParticipants = async (req, res, next) => {
+  try {
+    const { chatId } = req.params;
+    const userId = req.user.id;
+    const participantIds = [...new Set(req.body.participantIds || [])];
+    const access = await assertGroupOwner(chatId, userId);
+    if (access.error) return res.status(access.status).json({ error: access.error });
+    if (participantIds.length === 0) return res.status(400).json({ error: 'Выберите участников' });
+
+    const users = await prisma.user.findMany({
+      where: { id: { in: participantIds }, isCommunity: false },
+      select: { id: true, username: true, displayName: true, blockGroupInvites: true },
+    });
+    if (users.length !== participantIds.length) {
+      return res.status(400).json({ error: 'Один из пользователей не найден' });
+    }
+
+    const blockedUsers = users.filter((participant) => participant.blockGroupInvites);
+    if (blockedUsers.length > 0) {
+      const names = blockedUsers.map((participant) => participant.displayName || `@${participant.username}`).join(', ');
+      return res.status(403).json({ error: `${names} запретил добавление в группы` });
+    }
+
+    await prisma.chatParticipant.createMany({
+      data: participantIds.map((participantId) => ({ chatId, userId: participantId })),
+      skipDuplicates: true,
+    });
+
+    const chat = await getFormattedChat(chatId, userId);
+    emitChatUpdated(req, chat);
+    res.json({ chat });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const removeGroupParticipant = async (req, res, next) => {
+  try {
+    const { chatId, userId: targetUserId } = req.params;
+    const userId = req.user.id;
+    const access = await assertGroupOwner(chatId, userId);
+    if (access.error) return res.status(access.status).json({ error: access.error });
+    if (targetUserId === access.ownerId) {
+      return res.status(400).json({ error: 'Создателя группы нельзя удалить из участников' });
+    }
+
+    await prisma.chatParticipant.deleteMany({ where: { chatId, userId: targetUserId } });
+    const chat = await getFormattedChat(chatId, userId);
+    emitChatUpdated(req, chat);
+    res.json({ chat });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteGroupChat = async (req, res, next) => {
+  try {
+    const { chatId } = req.params;
+    const userId = req.user.id;
+    const access = await assertGroupOwner(chatId, userId);
+    if (access.error) return res.status(access.status).json({ error: access.error });
+
+    await prisma.chat.delete({ where: { id: chatId } });
+    const io = req.app.get('io');
+    if (io) {
+      access.chat.participants.forEach((participant) => {
+        io.to(`user:${participant.userId}`).emit('chat:deleted', { chatId });
+      });
+    }
+    res.json({ chatId });
   } catch (error) {
     next(error);
   }
@@ -420,6 +576,10 @@ module.exports = {
   getChats,
   createOrGetChat,
   createGroupChat,
+  updateGroupChat,
+  addGroupParticipants,
+  removeGroupParticipant,
+  deleteGroupChat,
   getMessages,
   sendMessage,
   editMessage,

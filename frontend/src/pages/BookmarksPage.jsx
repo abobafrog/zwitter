@@ -19,6 +19,7 @@ export default function BookmarksPage() {
           <NavIcon name="bookmark" className="h-5 w-5 text-x-accent" />
           Закладки
         </h1>
+        <p className="mt-2 text-sm text-x-muted">Здесь будут храниться все ваши избранные</p>
       </div>
 
       {isLoading ? (
@@ -34,8 +35,8 @@ export default function BookmarksPage() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-x-border bg-cyan-300/10 text-x-accent shadow-neon">
             <NavIcon name="bookmark" className="h-6 w-6" />
           </div>
-          <p className="text-xl font-black">Здесь будут сохранённые посты</p>
-          <p className="mt-2 text-sm text-x-muted">Нажимай на закладку под постом, и он появится в этой ленте.</p>
+          <p className="text-xl font-black">Пока нет избранного</p>
+          <p className="mt-2 text-sm text-x-muted">Добавляй звиты в закладки, чтобы быстро возвращаться к ним позже.</p>
         </div>
       )}
     </div>

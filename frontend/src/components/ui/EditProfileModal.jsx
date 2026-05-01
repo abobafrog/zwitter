@@ -97,11 +97,7 @@ export default function EditProfileModal({ user, onClose }) {
 
         {/* Шапка */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-x-border sticky top-0 bg-x-bg/90 backdrop-blur-xl z-10">
-          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-cyan-300/10 transition-colors">
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-              <path d="M18.3 5.71a1 1 0 00-1.41 0L12 10.59 7.11 5.7A1 1 0 005.7 7.11L10.59 12 5.7 16.89a1 1 0 001.41 1.41L12 13.41l4.89 4.89a1 1 0 001.41-1.41L13.41 12l4.89-4.89a1 1 0 000-1.4z"/>
-            </svg>
-          </button>
+          <div className="w-24" />
           <h2 className="font-bold text-lg">Редактировать профиль</h2>
           <button
             onClick={handleSave}

@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { formatDistanceToNow } from 'date-fns';
+import { format, isSameDay, isToday, isYesterday } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import api from '../services/api';
@@ -11,7 +11,96 @@ import useAuthStore from '../store/authStore';
 import useChatStore from '../store/chatStore';
 import PhotoViewer from '../components/ui/PhotoViewer';
 
-const BASIC_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '👏', '💯'];
+const QUICK_REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '👏', '💯'];
+
+const EMOJI_CATEGORIES = [
+  {
+    id: 'smiles',
+    icon: '😀',
+    title: 'Смайлы и люди',
+    emojis: [
+      '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣',
+      '🥲', '🥹', '😊', '🙂', '😇', '🙃', '😉', '😍',
+      '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝',
+      '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥳', '🙂‍↕️',
+      '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️',
+      '😣', '😖', '😫', '😩', '🥺', '😭', '😤', '😠',
+      '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨',
+      '😰', '😥', '😓', '🫣', '🤗', '🫡', '🤔', '🫢',
+      '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄',
+      '😮‍💨', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢',
+      '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈',
+      '👿', '👻', '💀', '☠️', '👽', '🤖', '🎃', '😺',
+    ],
+  },
+  {
+    id: 'gestures',
+    icon: '👍',
+    title: 'Жесты',
+    emojis: [
+      '👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏',
+      '✌️', '🤞', '🫰', '🤟', '🤘', '🤙', '👈', '👉',
+      '👆', '🖕', '👇', '☝️', '🫵', '👍', '👎', '✊',
+      '👊', '🤛', '🤜', '👏', '🙌', '🫶', '👐', '🤲',
+      '🤝', '🙏', '✍️', '💅', '💪', '🦾', '🦵', '🦶',
+      '👂', '👃', '🧠', '🫀', '🫁', '🦷', '👀', '👁️',
+    ],
+  },
+  {
+    id: 'hearts',
+    icon: '❤️',
+    title: 'Сердца и символы',
+    emojis: [
+      '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍',
+      '🤎', '🩷', '🩵', '🩶', '💔', '❤️‍🔥', '❤️‍🩹', '💕',
+      '💞', '💓', '💗', '💖', '💘', '💝', '💟', '❣️',
+      '💯', '💢', '💥', '💫', '💦', '💨', '🕳️', '💤',
+      '✨', '⭐', '🌟', '⚡', '🔥', '🎉', '🎊', '✅',
+      '☑️', '✔️', '❌', '⭕', '❗', '❓', '‼️', '⁉️',
+    ],
+  },
+  {
+    id: 'nature',
+    icon: '🌿',
+    title: 'Природа',
+    emojis: [
+      '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼',
+      '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔',
+      '🐧', '🐦', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗',
+      '🐴', '🦄', '🐝', '🪲', '🦋', '🐌', '🐞', '🐜',
+      '🌵', '🎄', '🌲', '🌳', '🌴', '🌱', '🌿', '☘️',
+      '🍀', '🎍', '🪴', '🍃', '🍂', '🍁', '🌾', '🌺',
+      '🌸', '🌼', '🌻', '🌹', '🥀', '🌷', '🌙', '☀️',
+    ],
+  },
+  {
+    id: 'food',
+    icon: '🍔',
+    title: 'Еда',
+    emojis: [
+      '🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇',
+      '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥',
+      '🥝', '🍅', '🥑', '🥦', '🥬', '🥒', '🌶️', '🫑',
+      '🌽', '🥕', '🧄', '🧅', '🥔', '🍠', '🥐', '🥯',
+      '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🥞', '🧇',
+      '🥓', '🍗', '🍖', '🌭', '🍔', '🍟', '🍕', '🥪',
+      '🌮', '🌯', '🫔', '🥗', '🍿', '🍩', '🍪', '🎂',
+    ],
+  },
+  {
+    id: 'activity',
+    icon: '⚽',
+    title: 'Активности',
+    emojis: [
+      '⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉',
+      '🥏', '🎱', '🪀', '🏓', '🏸', '🥅', '🏒', '🏑',
+      '🥍', '🏏', '🪃', '🥊', '🥋', '🎽', '🛹', '🛼',
+      '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂', '🪂', '🏋️',
+      '🤼', '🤸', '⛹️', '🤺', '🤾', '🏌️', '🏇', '🧘',
+      '🎮', '🕹️', '🎲', '♟️', '🎯', '🎳', '🎭', '🎨',
+    ],
+  },
+];
 
 function getReactionGroups(reactions = [], currentUserId) {
   return reactions.reduce((acc, reaction) => {
@@ -22,6 +111,37 @@ function getReactionGroups(reactions = [], currentUserId) {
     if (reaction.userId === currentUserId) acc[reaction.emoji].reacted = true;
     return acc;
   }, {});
+}
+
+const getMessageDate = (value) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const formatMessageTime = (value) => {
+  const date = getMessageDate(value);
+  return date ? format(date, 'HH:mm') : '';
+};
+
+const formatMessageDateLabel = (value) => {
+  const date = getMessageDate(value);
+  if (!date) return '';
+  if (isToday(date)) return 'Сегодня';
+  if (isYesterday(date)) return 'Вчера';
+  return format(date, 'd MMMM yyyy', { locale: ru });
+};
+
+function ChatDateSeparator({ date }) {
+  const label = formatMessageDateLabel(date);
+  if (!label) return null;
+
+  return (
+    <div className="my-4 flex items-center justify-center">
+      <span className="rounded-full border border-x-border/70 bg-x-panel/80 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-x-muted shadow-panel">
+        {label}
+      </span>
+    </div>
+  );
 }
 
 // ─── Chat List Item ──────────────────────────────────────────────────────────
@@ -35,7 +155,7 @@ function ChatItem({ chat, isActive, onClick }) {
     ? `${chat.participants?.length || 0} участников`
     : '@' + other?.username;
   const timeAgo = chat.lastMessage
-    ? formatDistanceToNow(new Date(chat.lastMessage.createdAt), { locale: ru, addSuffix: false })
+    ? formatMessageTime(chat.lastMessage.createdAt)
     : '';
 
   return (
@@ -45,7 +165,9 @@ function ChatItem({ chat, isActive, onClick }) {
     >
       <div className="relative flex-shrink-0">
         <div className={`w-12 h-12 cosmic-avatar ${chat.isGroup ? 'rounded-2xl' : 'rounded-full'}`}>
-          {chat.isGroup ? (
+          {chat.isGroup && chat.avatarUrl ? (
+            <img src={chat.avatarUrl} alt={title} className="h-full w-full object-cover" />
+          ) : chat.isGroup ? (
             <div className="flex h-full w-full items-center justify-center bg-cyan-300/10 font-black text-lg text-x-accent">
               {chat.name?.[0]?.toUpperCase() || 'G'}
             </div>
@@ -89,7 +211,7 @@ function MessageBubble({ message, isOwn, showSender, currentUserId, onReact, onE
   const [isEditing, setIsEditing] = useState(false);
   const [viewingImage, setViewingImage] = useState(null);
   const [draft, setDraft] = useState(message.content || '');
-  const timeStr = formatDistanceToNow(new Date(message.createdAt), { locale: ru, addSuffix: true });
+  const timeStr = formatMessageTime(message.createdAt);
   const reactionGroups = Object.values(getReactionGroups(message.reactions, currentUserId));
 
   const saveEdit = () => {
@@ -180,7 +302,7 @@ function MessageBubble({ message, isOwn, showSender, currentUserId, onReact, onE
               )}
               {showEmojiMenu && (
                 <div className={`absolute bottom-full z-20 mb-2 flex w-[232px] flex-wrap gap-1 rounded-2xl border border-x-border bg-x-panel/95 p-2 shadow-neon ${isOwn ? 'right-0' : 'left-0'}`}>
-                  {BASIC_EMOJIS.map((emoji) => (
+                  {QUICK_REACTION_EMOJIS.map((emoji) => (
                     <button
                       key={emoji}
                       type="button"
@@ -238,6 +360,7 @@ function NewChatModal({ onClose, onSelect, onCreateGroup }) {
     enabled: q.trim().length > 0,
   });
   const toggleSelected = (u) => {
+    if (u.blockGroupInvites) return;
     setSelected((current) =>
       current.some((item) => item.id === u.id)
         ? current.filter((item) => item.id !== u.id)
@@ -294,22 +417,36 @@ function NewChatModal({ onClose, onSelect, onCreateGroup }) {
         </div>
         <div className="max-h-64 overflow-y-auto">
           {isLoading && <div className="px-4 py-3 text-x-muted text-sm">Поиск...</div>}
-          {data?.map((u) => (
-            <button key={u.id} onClick={() => mode === 'direct' ? onSelect(u) : toggleSelected(u)} className="flex items-center gap-3 w-full px-4 py-3 cosmic-hover">
+          {data?.map((u) => {
+            const groupInviteBlocked = mode === 'group' && u.blockGroupInvites;
+            const selectedInGroup = mode === 'group' && selected.some((item) => item.id === u.id);
+
+            return (
+            <button
+              key={u.id}
+              type="button"
+              disabled={groupInviteBlocked}
+              onClick={() => mode === 'direct' ? onSelect(u) : toggleSelected(u)}
+              className={`flex items-center gap-3 w-full px-4 py-3 text-left ${groupInviteBlocked ? 'cursor-not-allowed opacity-55' : 'cosmic-hover'}`}
+            >
               <div className="w-10 h-10 rounded-full cosmic-avatar flex-shrink-0">
                 {u.avatarUrl ? <img src={u.avatarUrl} alt={u.displayName} className="w-full h-full object-cover" /> : (
                   <div className="w-full h-full flex items-center justify-center font-bold">{u.displayName?.[0]?.toUpperCase()}</div>
                 )}
               </div>
-              <div className="text-left">
+              <div className="min-w-0 flex-1">
                 <p className="font-bold text-sm">{u.displayName}</p>
                 <p className="text-x-muted text-sm">@{u.username}</p>
               </div>
-              {mode === 'group' && selected.some((item) => item.id === u.id) && (
+              {groupInviteBlocked && (
+                <span className="ml-auto rounded-full border border-x-border bg-x-bg/70 px-2 py-0.5 text-xs font-black text-x-muted">Запрещено</span>
+              )}
+              {selectedInGroup && (
                 <span className="ml-auto rounded-full bg-x-accent px-2 py-0.5 text-xs font-black text-slate-950">Выбран</span>
               )}
             </button>
-          ))}
+            );
+          })}
           {q && !isLoading && data?.length === 0 && (
             <p className="px-4 py-3 text-x-muted text-sm">Пользователи не найдены</p>
           )}
@@ -318,7 +455,7 @@ function NewChatModal({ onClose, onSelect, onCreateGroup }) {
           <div className="border-t border-x-border px-4 py-3">
             <button
               type="button"
-              disabled={groupName.trim().length < 2 || selected.length < 2}
+              disabled={groupName.trim().length < 2 || selected.length < 1}
               onClick={() => onCreateGroup({ name: groupName.trim(), participantIds: selected.map((u) => u.id) })}
               className="btn-accent w-full py-2 text-sm disabled:opacity-50"
             >
@@ -326,6 +463,172 @@ function NewChatModal({ onClose, onSelect, onCreateGroup }) {
             </button>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function GroupSettingsModal({ chat, currentUserId, onClose, onSave, onAddParticipants, onRemoveParticipant, onDeleteGroup, isSaving }) {
+  const [name, setName] = useState(chat.name || '');
+  const [description, setDescription] = useState(chat.description || '');
+  const [avatar, setAvatar] = useState(null);
+  const [q, setQ] = useState('');
+  const [selected, setSelected] = useState([]);
+  const ownerId = chat.ownerId || chat.participants?.[0]?.id;
+  const canManage = ownerId === currentUserId;
+  const participantIds = new Set((chat.participants || []).map((participant) => participant.id));
+  const { data, isLoading } = useQuery({
+    queryKey: ['group-add-users', chat.id, q],
+    queryFn: () => api.get(`/users/search?q=${q}`).then((r) => r.data.users),
+    enabled: canManage && q.trim().length > 0,
+  });
+  const avatarPreview = avatar ? URL.createObjectURL(avatar) : chat.avatarUrl;
+
+  const toggleSelected = (userItem) => {
+    if (userItem.blockGroupInvites || participantIds.has(userItem.id)) return;
+    setSelected((current) =>
+      current.some((item) => item.id === userItem.id)
+        ? current.filter((item) => item.id !== userItem.id)
+        : [...current, userItem]
+    );
+  };
+
+  const handleSave = () => {
+    const fd = new FormData();
+    fd.append('name', name.trim());
+    fd.append('description', description.trim());
+    if (avatar) fd.append('avatar', avatar);
+    onSave(fd);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-x-bg/75 p-4 backdrop-blur-md">
+      <div className="cosmic-panel max-h-[90vh] w-full max-w-lg overflow-hidden rounded-3xl">
+        <div className="flex items-center justify-between border-b border-x-border px-4 py-3">
+          <div>
+            <p className="nebula-section-heading">группа</p>
+            <h2 className="text-lg font-black">Настройки группы</h2>
+          </div>
+          <button type="button" onClick={onClose} className="panel-icon-button" aria-label="Закрыть">
+            <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current"><path d="M10.59 12L4.54 5.96l1.42-1.42L12 10.59l6.04-6.05 1.42 1.42L13.41 12l6.05 6.04-1.42 1.42L12 13.41l-6.04 6.05-1.42-1.42L10.59 12z"/></svg>
+          </button>
+        </div>
+
+        <div className="settings-emoji-scroll max-h-[calc(90vh-68px)] overflow-y-auto p-4">
+          <div className="flex items-center gap-4">
+            <label className={`relative flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-cyan-300/35 bg-cyan-300/10 text-2xl font-black text-x-accent ${canManage ? 'cursor-pointer' : ''}`}>
+              {avatarPreview ? <img src={avatarPreview} alt="" className="h-full w-full object-cover" /> : name?.[0]?.toUpperCase() || 'G'}
+              {canManage && <input type="file" accept="image/*" className="hidden" onChange={(event) => setAvatar(event.target.files?.[0] || null)} />}
+            </label>
+            <div className="min-w-0 flex-1">
+              <input
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                disabled={!canManage}
+                className="input-field"
+                placeholder="Название группы"
+                maxLength={100}
+              />
+              <textarea
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                disabled={!canManage}
+                className="input-field mt-3 min-h-20 resize-none"
+                placeholder="Описание группы"
+                maxLength={180}
+              />
+            </div>
+          </div>
+
+          {canManage && (
+            <button type="button" onClick={handleSave} disabled={isSaving || name.trim().length < 2} className="btn-accent mt-4 w-full py-2 text-sm disabled:opacity-50">
+              Сохранить группу
+            </button>
+          )}
+
+          <div className="mt-5">
+            <p className="nebula-section-heading">участники</p>
+            <div className="mt-3 grid gap-2">
+              {(chat.participants || []).map((participant) => (
+                <div key={participant.id} className="flex items-center gap-3 rounded-2xl border border-x-border bg-x-bg/45 px-3 py-2">
+                  <div className="h-10 w-10 overflow-hidden rounded-full cosmic-avatar">
+                    {participant.avatarUrl ? (
+                      <img src={participant.avatarUrl} alt={participant.displayName} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center font-black">{participant.displayName?.[0]?.toUpperCase()}</div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-black">{participant.displayName}</p>
+                    <p className="truncate text-xs text-x-muted">@{participant.username}</p>
+                  </div>
+                  {participant.id === ownerId && <span className="rounded-full border border-cyan-300/35 px-2 py-0.5 text-xs font-black text-x-accent">Создатель</span>}
+                  {canManage && participant.id !== ownerId && (
+                    <button type="button" onClick={() => onRemoveParticipant(participant.id)} className="rounded-full border border-red-400/30 px-3 py-1 text-xs font-black text-red-300 hover:bg-red-500/10">
+                      Удалить
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {canManage && (
+            <div className="mt-5">
+              <p className="nebula-section-heading">добавить</p>
+              <input value={q} onChange={(event) => setQ(event.target.value)} className="input-field mt-3" placeholder="Найти пользователей..." />
+              {selected.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {selected.map((item) => (
+                    <button key={item.id} type="button" onClick={() => toggleSelected(item)} className="rounded-full border border-x-border px-3 py-1 text-xs font-black">
+                      {item.displayName} ×
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="mt-3 max-h-52 overflow-y-auto">
+                {isLoading && <p className="px-2 py-3 text-sm text-x-muted">Поиск...</p>}
+                {data?.map((item) => {
+                  const blocked = item.blockGroupInvites;
+                  const alreadyInGroup = participantIds.has(item.id);
+                  const selectedUser = selected.some((selectedItem) => selectedItem.id === item.id);
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      disabled={blocked || alreadyInGroup}
+                      onClick={() => toggleSelected(item)}
+                      className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-left ${blocked || alreadyInGroup ? 'cursor-not-allowed opacity-55' : 'cosmic-hover'}`}
+                    >
+                      <div className="h-9 w-9 overflow-hidden rounded-full cosmic-avatar">
+                        {item.avatarUrl ? <img src={item.avatarUrl} alt={item.displayName} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center font-black">{item.displayName?.[0]?.toUpperCase()}</div>}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-black">{item.displayName}</p>
+                        <p className="truncate text-xs text-x-muted">@{item.username}</p>
+                      </div>
+                      <span className="text-xs font-black text-x-muted">{alreadyInGroup ? 'Уже в группе' : blocked ? 'Запрещено' : selectedUser ? 'Выбран' : ''}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                disabled={selected.length === 0 || isSaving}
+                onClick={() => onAddParticipants(selected.map((item) => item.id)).then(() => setSelected([]))}
+                className="btn-outline mt-3 w-full py-2 text-sm disabled:opacity-50"
+              >
+                Добавить участников
+              </button>
+            </div>
+          )}
+
+          {canManage && (
+            <button type="button" onClick={onDeleteGroup} className="mt-5 w-full rounded-2xl border border-red-400/35 bg-red-500/10 px-4 py-3 text-sm font-black text-red-300 hover:bg-red-500/15">
+              Удалить группу
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -346,6 +649,8 @@ export default function ChatsPage() {
     addMessage,
     updateMessage,
     removeMessage,
+    updateChat,
+    removeChat,
     clearUnread,
     setTyping,
     typingUsers,
@@ -354,6 +659,7 @@ export default function ChatsPage() {
 
   const [msgInput, setMsgInput] = useState('');
   const [showNewChat, setShowNewChat] = useState(false);
+  const [showGroupSettings, setShowGroupSettings] = useState(false);
   const [showInputEmoji, setShowInputEmoji] = useState(false);
   const [image, setImage] = useState(null);
   const messagesEndRef = useRef(null);
@@ -444,6 +750,48 @@ export default function ChatsPage() {
     onError: (err) => toast.error(err.response?.data?.error || 'Не удалось удалить сообщение'),
   });
 
+  const updateGroupMutation = useMutation({
+    mutationFn: (formData) => api.patch(`/chats/${chatId}/group`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+    onSuccess: ({ data }) => {
+      updateChat(data.chat);
+      qc.invalidateQueries({ queryKey: ['chats'] });
+      toast.success('Группа обновлена');
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Не удалось обновить группу'),
+  });
+
+  const addParticipantsMutation = useMutation({
+    mutationFn: (participantIds) => api.post(`/chats/${chatId}/group/participants`, { participantIds }),
+    onSuccess: ({ data }) => {
+      updateChat(data.chat);
+      qc.invalidateQueries({ queryKey: ['chats'] });
+      toast.success('Участники добавлены');
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Не удалось добавить участников'),
+  });
+
+  const removeParticipantMutation = useMutation({
+    mutationFn: (targetUserId) => api.delete(`/chats/${chatId}/group/participants/${targetUserId}`),
+    onSuccess: ({ data }) => {
+      updateChat(data.chat);
+      qc.invalidateQueries({ queryKey: ['chats'] });
+      toast.success('Участник удалён');
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Не удалось удалить участника'),
+  });
+
+  const deleteGroupMutation = useMutation({
+    mutationFn: () => api.delete(`/chats/${chatId}/group`),
+    onSuccess: ({ data }) => {
+      removeChat(data.chatId);
+      qc.invalidateQueries({ queryKey: ['chats'] });
+      setShowGroupSettings(false);
+      navigate('/messages');
+      toast.success('Группа удалена');
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Не удалось удалить группу'),
+  });
+
   const handleSend = () => {
     if (!msgInput.trim() && !image) return;
     sendMutation.mutate();
@@ -451,7 +799,6 @@ export default function ChatsPage() {
 
   const appendEmoji = (emoji) => {
     setMsgInput((current) => current + emoji);
-    setShowInputEmoji(false);
   };
 
   const handleKeyDown = (e) => {
@@ -545,7 +892,9 @@ export default function ChatsPage() {
               <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current"><path d="M20 11H7.414l4.293-4.293-1.414-1.414L3.586 12l6.707 6.707 1.414-1.414L7.414 13H20v-2z"/></svg>
             </button>
             <div className={`w-10 h-10 cosmic-avatar flex-shrink-0 ${activeChat?.isGroup ? 'rounded-2xl' : 'rounded-full'}`}>
-              {activeChat?.isGroup ? (
+              {activeChat?.isGroup && activeChat?.avatarUrl ? (
+                <img src={activeChat.avatarUrl} alt={activeChat.name} className="h-full w-full object-cover" />
+              ) : activeChat?.isGroup ? (
                 <div className="flex h-full w-full items-center justify-center bg-cyan-300/10 font-black text-x-accent">
                   {activeChat.name?.[0]?.toUpperCase() || 'G'}
                 </div>
@@ -558,9 +907,14 @@ export default function ChatsPage() {
             <div className="min-w-0">
               <p className="truncate font-bold leading-tight">{activeChat?.isGroup ? activeChat.name : activeChat?.otherUser?.displayName}</p>
               <p className="truncate text-x-muted text-sm">
-                {activeChat?.isGroup ? `${activeChat.participants?.length || 0} участников` : `@${activeChat?.otherUser?.username || ''}`}
+                {activeChat?.isGroup ? activeChat.description || `${activeChat.participants?.length || 0} участников` : `@${activeChat?.otherUser?.username || ''}`}
               </p>
             </div>
+            {activeChat?.isGroup && (
+              <button type="button" onClick={() => setShowGroupSettings(true)} className="panel-icon-button ml-auto" aria-label="Настройки группы">
+                <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current"><path d="M19.43 12.98c.04-.32.07-.65.07-.98s-.02-.66-.07-.98l2.11-1.65a.5.5 0 00.12-.64l-2-3.46a.5.5 0 00-.6-.22l-2.49 1a7.28 7.28 0 00-1.69-.98L14.5 2.42A.5.5 0 0014 2h-4a.5.5 0 00-.5.42L9.12 5.07c-.6.23-1.16.56-1.69.98l-2.49-1a.5.5 0 00-.6.22l-2 3.46a.5.5 0 00.12.64l2.11 1.65c-.04.32-.08.65-.08.98s.03.66.08.98l-2.11 1.65a.5.5 0 00-.12.64l2 3.46c.13.22.39.31.6.22l2.49-1c.53.41 1.09.74 1.69.98l.38 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.38-2.65c.6-.24 1.16-.57 1.69-.98l2.49 1c.22.08.47 0 .6-.22l2-3.46a.5.5 0 00-.12-.64l-2.11-1.65zM12 15.5A3.5 3.5 0 1112 8a3.5 3.5 0 010 7.5z"/></svg>
+              </button>
+            )}
           </div>
 
           {/* Messages */}
@@ -575,18 +929,27 @@ export default function ChatsPage() {
               </div>
             ) : (
               <div className="flex min-h-full flex-col justify-end gap-1">
-                {currentMessages.map((msg) => (
-                  <MessageBubble
-                    key={msg.id}
-                    message={msg}
-                    isOwn={msg.senderId === user?.id}
-                    showSender={activeChat?.isGroup}
-                    currentUserId={user?.id}
-                    onReact={(messageId, emoji) => reactMutation.mutate({ messageId, emoji })}
-                    onEdit={(messageId, content) => editMutation.mutate({ messageId, content })}
-                    onDelete={(messageId) => deleteMutation.mutate(messageId)}
-                  />
-                ))}
+                {currentMessages.map((msg, index) => {
+                  const previousMessage = currentMessages[index - 1];
+                  const currentDate = getMessageDate(msg.createdAt);
+                  const previousDate = previousMessage ? getMessageDate(previousMessage.createdAt) : null;
+                  const showDateSeparator = currentDate && (!previousDate || !isSameDay(currentDate, previousDate));
+
+                  return (
+                    <div key={msg.id} className="contents">
+                      {showDateSeparator && <ChatDateSeparator date={msg.createdAt} />}
+                      <MessageBubble
+                        message={msg}
+                        isOwn={msg.senderId === user?.id}
+                        showSender={activeChat?.isGroup}
+                        currentUserId={user?.id}
+                        onReact={(messageId, emoji) => reactMutation.mutate({ messageId, emoji })}
+                        onEdit={(messageId, content) => editMutation.mutate({ messageId, content })}
+                        onDelete={(messageId) => deleteMutation.mutate(messageId)}
+                      />
+                    </div>
+                  );
+                })}
                 {chatTyping.length > 0 && (
                   <div className="flex items-center gap-1 text-x-muted text-sm mt-2">
                     <div className="flex gap-0.5 items-center">
@@ -622,17 +985,41 @@ export default function ChatsPage() {
                   ☺
                 </button>
                 {showInputEmoji && (
-                  <div className="absolute bottom-full left-0 z-20 mb-3 flex w-[188px] flex-wrap gap-1 rounded-2xl border border-x-border bg-x-panel/95 p-2 shadow-neon">
-                    {BASIC_EMOJIS.map((emoji) => (
-                      <button
-                        key={emoji}
-                        type="button"
-                        onClick={() => appendEmoji(emoji)}
-                        className="flex h-10 w-10 flex-none items-center justify-center rounded-full text-xl leading-none hover:bg-cyan-300/10"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
+                  <div className="absolute bottom-full left-0 z-30 mb-3 flex max-h-[500px] w-[470px] max-w-[calc(100vw-48px)] flex-col overflow-hidden rounded-3xl border border-cyan-300/25 bg-slate-950/95 shadow-[0_0_44px_rgba(34,211,238,0.26)] backdrop-blur-xl">
+                    <div className="flex items-center gap-2 border-b border-x-border/80 bg-x-panel/70 px-3 py-2">
+                      {EMOJI_CATEGORIES.map((category) => (
+                        <a
+                          key={category.id}
+                          href={`#emoji-${category.id}`}
+                          className="flex h-9 w-9 items-center justify-center rounded-2xl text-xl transition hover:bg-cyan-300/10 focus:outline-none focus-visible:ring-0"
+                          onClick={(event) => event.stopPropagation()}
+                          aria-label={category.title}
+                        >
+                          {category.icon}
+                        </a>
+                      ))}
+                    </div>
+                    <div className="settings-emoji-scroll flex-1 overflow-y-auto px-4 py-3">
+                      {EMOJI_CATEGORIES.map((category) => (
+                        <section key={category.id} id={`emoji-${category.id}`} className="mb-5 scroll-mt-3 last:mb-0">
+                          <h3 className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-x-muted">
+                            {category.title}
+                          </h3>
+                          <div className="grid grid-cols-8 gap-1.5">
+                            {category.emojis.map((emoji) => (
+                              <button
+                                key={`${category.id}-${emoji}`}
+                                type="button"
+                                onClick={() => appendEmoji(emoji)}
+                                className="flex aspect-square min-h-11 items-center justify-center rounded-2xl text-[1.7rem] leading-none transition hover:bg-cyan-300/10 hover:shadow-neon"
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                        </section>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -677,6 +1064,27 @@ export default function ChatsPage() {
           onClose={() => setShowNewChat(false)}
           onSelect={(u) => createChatMutation.mutate(u.id)}
           onCreateGroup={(payload) => createGroupMutation.mutate(payload)}
+        />
+      )}
+      {showGroupSettings && activeChat?.isGroup && (
+        <GroupSettingsModal
+          chat={activeChat}
+          currentUserId={user?.id}
+          onClose={() => setShowGroupSettings(false)}
+          onSave={(formData) => updateGroupMutation.mutate(formData)}
+          onAddParticipants={(participantIds) => addParticipantsMutation.mutateAsync(participantIds)}
+          onRemoveParticipant={(targetUserId) => removeParticipantMutation.mutate(targetUserId)}
+          onDeleteGroup={() => {
+            if (window.confirm('Удалить группу вместе со всеми сообщениями?')) {
+              deleteGroupMutation.mutate();
+            }
+          }}
+          isSaving={
+            updateGroupMutation.isPending ||
+            addParticipantsMutation.isPending ||
+            removeParticipantMutation.isPending ||
+            deleteGroupMutation.isPending
+          }
         />
       )}
     </div>

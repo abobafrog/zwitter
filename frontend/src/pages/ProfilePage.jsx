@@ -62,7 +62,7 @@ export default function ProfilePage() {
 
   const isMe = me?.id === data.id;
   const isCommunity = data.isCommunity;
-  const joinDate = format(new Date(data.createdAt), 'MMMM yyyy', { locale: ru });
+  const joinDate = format(new Date(data.createdAt), 'LLLL yyyy', { locale: ru });
 
   // Парсим дату рождения из формата ДД.ММ.ГГГГ
   const formatBirthDate = (dateStr) => {
@@ -72,6 +72,57 @@ export default function ProfilePage() {
     const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
     return `${parseInt(match[1])} ${months[parseInt(match[2]) - 1]} ${match[3]}`;
   };
+
+  const avatarNode = (
+    <div className={`relative z-20 h-32 w-32 border-4 border-x-bg cosmic-avatar shadow-neon ${isCommunity ? 'rounded-3xl' : 'rounded-full'}`}>
+      {data.avatarUrl
+        ? <img src={data.avatarUrl} alt={data.displayName} className="h-full w-full object-cover" />
+        : <div className="flex h-full w-full items-center justify-center text-5xl font-black">
+            {data.displayName?.[0]?.toUpperCase()}
+          </div>
+      }
+    </div>
+  );
+
+  const profileActions = isMe ? (
+    <>
+      <button
+        onClick={() => setEditOpen(true)}
+        className="btn-outline text-sm px-4 py-1.5"
+      >
+        Редактировать
+      </button>
+      {editOpen && (
+        <EditProfileModal
+          user={data}
+          onClose={() => setEditOpen(false)}
+        />
+      )}
+    </>
+  ) : (
+    <div className="flex gap-2">
+      <button
+        onClick={() => startChatMutation.mutate()}
+        className="btn-outline text-sm px-4 py-1.5"
+        title="Написать"
+      >
+        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
+          <path d="M1.998 5.5c0-1.381 1.119-2.5 2.5-2.5h15c1.381 0 2.5 1.119 2.5 2.5v13c0 1.381-1.119 2.5-2.5 2.5h-15c-1.381 0-2.5-1.119-2.5-2.5v-13zm2.5-.5c-.276 0-.5.224-.5.5v2.764l8 3.638 8-3.638V5.5c0-.276-.224-.5-.5-.5h-15zm15.5 5.463l-7.5 3.41-7.5-3.41V18.5c0 .276.224.5.5.5h14c.276 0 .5-.224.5-.5v-8.037z"/>
+        </svg>
+      </button>
+      <button
+        onClick={() => followMutation.mutate()}
+        disabled={followMutation.isPending}
+        className={`text-sm px-4 py-1.5 rounded-full font-bold transition-colors ${
+          data.isFollowing
+            ? 'border border-x-border hover:border-x-danger hover:text-x-danger hover:bg-x-danger/10'
+            : 'btn-primary'
+        }`}
+      >
+        {followMutation.isPending ? '...' : data.isFollowing ? (isCommunity ? 'Выйти' : 'Отписаться') : (isCommunity ? 'Вступить' : 'Подписаться')}
+      </button>
+    </div>
+  );
 
   return (
     <div className="min-h-full">
@@ -84,73 +135,26 @@ export default function ProfilePage() {
         </button>
         <div>
           <h1 className="text-xl font-bold leading-tight">{data.displayName}</h1>
-          <p className="text-x-muted text-sm">{data._count?.tweets} {isCommunity ? 'записей' : 'звитов'}</p>
         </div>
       </div>
 
       {/* Banner */}
-      <div className="relative z-0 h-48 w-full overflow-hidden cosmic-banner sm:h-56">
-        {data.bannerUrl && (
-          <img src={data.bannerUrl} alt="banner" className="w-full h-full object-cover object-center" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-x-bg/80 via-transparent to-transparent" />
+      <div className="relative z-0 h-48 w-full cosmic-banner sm:h-56">
+        <div className="absolute inset-0 overflow-hidden">
+          {data.bannerUrl && (
+            <img src={data.bannerUrl} alt="banner" className="w-full h-full object-cover object-center" />
+          )}
+        </div>
+        <div className="absolute -bottom-14 left-4 z-20">
+          {avatarNode}
+        </div>
+        <div className="absolute -bottom-9 right-4 z-20 flex gap-2">
+          {profileActions}
+        </div>
       </div>
 
       {/* Profile info */}
-      <div className="relative z-10 border-b border-x-border/80 bg-x-panel/30 px-4 pb-4">
-        <div className="flex items-start justify-between -mt-16 mb-3">
-          <div className={`relative z-20 h-32 w-32 border-4 border-x-bg cosmic-avatar shadow-neon ${isCommunity ? 'rounded-3xl' : 'rounded-full'}`}>
-            {data.avatarUrl
-              ? <img src={data.avatarUrl} alt={data.displayName} className="w-full h-full object-cover" />
-              : <div className="w-full h-full flex items-center justify-center text-5xl font-black">
-                  {data.displayName?.[0]?.toUpperCase()}
-                </div>
-            }
-          </div>
-
-          <div className="flex gap-2 mt-16">
-            {isMe ? (
-              <>
-                <button
-                  onClick={() => setEditOpen(true)}
-                  className="btn-outline text-sm px-4 py-1.5"
-                >
-                  Редактировать
-                </button>
-                {editOpen && (
-                  <EditProfileModal
-                    user={data}
-                    onClose={() => setEditOpen(false)}
-                  />
-                )}
-              </>
-            ) : (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => startChatMutation.mutate()}
-                  className="btn-outline text-sm px-4 py-1.5"
-                  title="Написать"
-                >
-                  <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
-                    <path d="M1.998 5.5c0-1.381 1.119-2.5 2.5-2.5h15c1.381 0 2.5 1.119 2.5 2.5v13c0 1.381-1.119 2.5-2.5 2.5h-15c-1.381 0-2.5-1.119-2.5-2.5v-13zm2.5-.5c-.276 0-.5.224-.5.5v2.764l8 3.638 8-3.638V5.5c0-.276-.224-.5-.5-.5h-15zm15.5 5.463l-7.5 3.41-7.5-3.41V18.5c0 .276.224.5.5.5h14c.276 0 .5-.224.5-.5v-8.037z"/>
-                  </svg>
-                </button>
-                <button
-                  onClick={() => followMutation.mutate()}
-                  disabled={followMutation.isPending}
-                  className={`text-sm px-4 py-1.5 rounded-full font-bold transition-colors ${
-                    data.isFollowing
-                      ? 'border border-x-border hover:border-x-danger hover:text-x-danger hover:bg-x-danger/10'
-                      : 'btn-primary'
-                  }`}
-                >
-                  {followMutation.isPending ? '...' : data.isFollowing ? (isCommunity ? 'Выйти' : 'Отписаться') : (isCommunity ? 'Вступить' : 'Подписаться')}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
+      <div className="relative z-10 border-b border-x-border/80 bg-transparent px-4 pb-4 pt-20">
         <div className="mb-3">
           <div className="flex items-center gap-1">
             <h2 className="text-xl font-black">{data.displayName}</h2>
@@ -184,7 +188,7 @@ export default function ProfilePage() {
             <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
               <path d="M7 4V3h2v1h6V3h2v1h1.5C19.89 4 21 5.12 21 6.5v12c0 1.38-1.11 2.5-2.5 2.5h-13C4.12 21 3 19.88 3 18.5v-12C3 5.12 4.12 4 5.5 4H7zm0 2H5.5c-.27 0-.5.22-.5.5v12c0 .28.23.5.5.5h13c.28 0 .5-.22.5-.5v-12c0-.28-.22-.5-.5-.5H17v1h-2V6H9v1H7V6zm0 6h2v-2H7v2zm0 4h2v-2H7v2zm4-4h2v-2h-2v2zm0 4h2v-2h-2v2zm4-4h2v-2h-2v2z"/>
             </svg>
-            <span>Присоединился {joinDate}</span>
+            <span>Дата регистрации: {joinDate}</span>
           </div>
         </div>
 

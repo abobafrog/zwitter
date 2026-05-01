@@ -10,6 +10,18 @@ const useChatStore = create((set, get) => ({
 
   setChats: (chats) => set({ chats }),
 
+  updateChat: (chat) =>
+    set((state) => ({
+      chats: state.chats.map((item) => (item.id === chat.id ? { ...item, ...chat } : item)),
+      activeChat: state.activeChat?.id === chat.id ? { ...state.activeChat, ...chat } : state.activeChat,
+    })),
+
+  removeChat: (chatId) =>
+    set((state) => ({
+      chats: state.chats.filter((item) => item.id !== chatId),
+      activeChat: state.activeChat?.id === chatId ? null : state.activeChat,
+    })),
+
   addOrUpdateChat: (chat) =>
     set((state) => {
       const idx = state.chats.findIndex((c) => c.id === chat.id);

@@ -13,7 +13,7 @@ const getProfile = async (req, res, next) => {
       select: {
         id: true, username: true, displayName: true,
         bio: true, avatarUrl: true, bannerUrl: true,
-        birthDate: true, isVerified: true, isCommunity: true, createdAt: true,
+        birthDate: true, isVerified: true, isCommunity: true, blockGroupInvites: true, createdAt: true,
         _count: { select: { tweets: true, following: true, followers: true } },
         followers: viewerId ? { where: { followerId: viewerId }, select: { id: true } } : false,
       },
@@ -62,7 +62,7 @@ const followUser = async (req, res, next) => {
 
 const updateProfile = async (req, res, next) => {
   try {
-    const { displayName, bio, username, birthDate } = req.body;
+    const { displayName, bio, username, birthDate, blockGroupInvites } = req.body;
     const avatarUrl = req.files?.avatar?.[0]?.path;
     const bannerUrl = req.files?.banner?.[0]?.path;
 
@@ -70,6 +70,7 @@ const updateProfile = async (req, res, next) => {
     if (displayName !== undefined) data.displayName = displayName;
     if (bio !== undefined) data.bio = bio;
     if (birthDate !== undefined) data.birthDate = birthDate;
+    if (blockGroupInvites !== undefined) data.blockGroupInvites = Boolean(blockGroupInvites);
     if (avatarUrl) data.avatarUrl = avatarUrl;
     if (bannerUrl) data.bannerUrl = bannerUrl;
 
@@ -87,7 +88,7 @@ const updateProfile = async (req, res, next) => {
       select: {
         id: true, username: true, displayName: true,
         bio: true, avatarUrl: true, bannerUrl: true,
-        birthDate: true, isVerified: true, isCommunity: true,
+        birthDate: true, isVerified: true, isCommunity: true, blockGroupInvites: true,
       },
     });
 
@@ -99,21 +100,25 @@ const updateProfile = async (req, res, next) => {
 
 const searchUsers = async (req, res, next) => {
   try {
-    const { q } = req.query;
-    if (!q || q.trim().length < 1) return res.json({ users: [] });
+    const q = (req.query.q || '').toString().trim();
+    const includeSelf = ['1', 'true', 'yes'].includes((req.query.includeSelf || '').toString().toLowerCase());
+    if (!q) return res.json({ users: [] });
 
     const users = await prisma.user.findMany({
       where: {
         OR: [
-          { username: { contains: q.toLowerCase(), mode: 'insensitive' } },
+          { username: { contains: q, mode: 'insensitive' } },
           { displayName: { contains: q, mode: 'insensitive' } },
+          { bio: { contains: q, mode: 'insensitive' } },
         ],
         isCommunity: false,
-        NOT: { id: req.user.id },
+        ...(includeSelf ? {} : { NOT: { id: req.user.id } }),
       },
       select: {
-        id: true, username: true, displayName: true, avatarUrl: true, isVerified: true, isCommunity: true,
+        id: true, username: true, displayName: true, bio: true, avatarUrl: true, isVerified: true, isCommunity: true, blockGroupInvites: true,
+        _count: { select: { followers: true, tweets: true } },
       },
+      orderBy: [{ followers: { _count: 'desc' } }, { createdAt: 'desc' }],
       take: 10,
     });
 

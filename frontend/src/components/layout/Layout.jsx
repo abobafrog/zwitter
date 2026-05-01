@@ -1,10 +1,41 @@
 // src/components/layout/Layout.jsx
-import { useEffect, useRef, useState } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import NavIcon from './NavIcon';
 import useAuthStore from '../../store/authStore';
 import useChatStore from '../../store/chatStore';
+import BackgroundMusicPlayer from '../music/BackgroundMusicPlayer';
+
+const SKY_OBJECT_VARIANTS = [
+  'comet-variant-01',
+  'comet-variant-02',
+  'comet-variant-03',
+  'comet-variant-04',
+  'comet-variant-05',
+  'comet-variant-06',
+  'comet-variant-07',
+  'comet-variant-08',
+  'comet-variant-09',
+  'comet-variant-10',
+  'comet-variant-11',
+  'comet-variant-12',
+  'asteroid-type-01',
+  'asteroid-type-02',
+  'asteroid-type-03',
+  'ufo-detailed',
+];
+
+const pickSkyObjects = () => {
+  const pool = [...SKY_OBJECT_VARIANTS];
+  return Array.from({ length: 6 }, () => {
+    const index = Math.floor(Math.random() * pool.length);
+    return pool.splice(index, 1)[0];
+  });
+};
+
+const getScrollRestorationKey = (location) => `${location.pathname}${location.search}`;
+const scrollStorageKey = (key) => `zwiteer-scroll:${key}`;
 
 function MobileNav() {
   const navigate = useNavigate();
@@ -16,6 +47,7 @@ function MobileNav() {
     { to: '/home', icon: 'home', label: 'Главная' },
     { to: '/messages', icon: 'messages', label: 'Чаты', badge: totalUnread },
     { action: () => navigate('/home'), icon: 'plus', label: 'Создать', primary: true },
+    { to: '/services', icon: 'services', label: 'Сервисы' },
     { to: '/notifications', icon: 'bell', label: 'Уведомления' },
     { to: user ? `/${user.username}` : '/login', icon: 'user', label: 'Профиль' },
   ];
@@ -67,20 +99,61 @@ function MobileNav() {
 
 export default function Layout() {
   const location = useLocation();
+  const navigationType = useNavigationType();
   const mainRef = useRef(null);
   const scrollFadeRef = useRef(null);
+  const scrollPositionsRef = useRef(new Map());
+  const activeScrollKeyRef = useRef(getScrollRestorationKey(location));
   const [leftPanelOpen, setLeftPanelOpen] = useState(true);
   const [scrollStars, setScrollStars] = useState(0);
+  const [skyObjects, setSkyObjects] = useState(() => pickSkyObjects());
 
-  useEffect(() => {
-    mainRef.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  const getSavedScrollTop = (key) => {
+    if (scrollPositionsRef.current.has(key)) {
+      return scrollPositionsRef.current.get(key);
+    }
+
+    const stored = window.sessionStorage.getItem(scrollStorageKey(key));
+    const parsed = stored ? Number(stored) : 0;
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const rememberScrollTop = (key, scrollTop, preserveSavedPosition = false) => {
+    const savedScrollTop = getSavedScrollTop(key);
+    if (preserveSavedPosition && scrollTop === 0 && savedScrollTop > 0) return;
+
+    scrollPositionsRef.current.set(key, scrollTop);
+    window.sessionStorage.setItem(scrollStorageKey(key), String(scrollTop));
+  };
+
+  useLayoutEffect(() => {
+    const main = mainRef.current;
+    const nextKey = getScrollRestorationKey(location);
+
+    activeScrollKeyRef.current = nextKey;
+    const savedScrollTop = navigationType === 'POP' ? getSavedScrollTop(nextKey) : 0;
+    main?.scrollTo({ top: savedScrollTop, left: 0, behavior: 'auto' });
+    if (main) main.dataset.lastScrollTop = String(savedScrollTop);
     setScrollStars(0);
+    setSkyObjects(pickSkyObjects());
     if (scrollFadeRef.current) window.clearInterval(scrollFadeRef.current);
-  }, [location.pathname]);
+
+    return () => {
+      if (mainRef.current) {
+        rememberScrollTop(nextKey, mainRef.current.scrollTop, true);
+      }
+    };
+  }, [location.pathname, location.search, navigationType]);
+
+  useEffect(() => () => {
+    if (scrollFadeRef.current) window.clearInterval(scrollFadeRef.current);
+  }, []);
 
   const handleMainScroll = (event) => {
-    const movement = Math.abs(event.currentTarget.scrollTop - (event.currentTarget.dataset.lastScrollTop || 0));
+    const lastScrollTop = Number(event.currentTarget.dataset.lastScrollTop || 0);
+    const movement = Math.abs(event.currentTarget.scrollTop - lastScrollTop);
     event.currentTarget.dataset.lastScrollTop = event.currentTarget.scrollTop;
+    rememberScrollTop(activeScrollKeyRef.current, event.currentTarget.scrollTop);
     const spark = Math.min(1, 0.18 + movement / 140);
     setScrollStars((current) => Math.min(1, current + spark * 0.34));
 
@@ -105,6 +178,12 @@ export default function Layout() {
   return (
     <div className="cosmic-shell" style={{ '--scroll-stars': scrollStars }}>
       <div className="space-backdrop" aria-hidden="true">
+        <span className="milky-way-band" />
+        <span className="nebula-cloud nebula-cloud-one" />
+        <span className="nebula-cloud nebula-cloud-two" />
+        <span className="nebula-cloud nebula-cloud-three" />
+        <span className="star-dust star-dust-deep" />
+        <span className="star-dust star-dust-near" />
         <span className="spark-star spark-one" />
         <span className="spark-star spark-two" />
         <span className="spark-star spark-three spark-muted" />
@@ -125,15 +204,15 @@ export default function Layout() {
         <span className="spark-star scroll-spark scroll-spark-eight" />
         <span className="spark-star scroll-spark scroll-spark-nine" />
         <span className="spark-star scroll-spark scroll-spark-ten" />
-        <span className="meteor meteor-one" />
-        <span className="meteor meteor-two" />
-        <span className="meteor meteor-three" />
-        <span className="meteor meteor-reverse meteor-four" />
-        <span className="meteor meteor-reverse meteor-five" />
-        <span className="meteor meteor-six" />
-        <span className="meteor meteor-reverse meteor-seven" />
-        <span className="ufo ufo-one" />
-        <span className="ufo ufo-two" />
+        <span className="bright-star bright-star-one" />
+        <span className="bright-star bright-star-two" />
+        <span className="bright-star bright-star-three" />
+        {skyObjects.map((objectClass, index) => (
+          <span
+            key={`${location.key}-${objectClass}-${index}`}
+            className={`sky-object sky-object-${index + 1} ${objectClass}`}
+          />
+        ))}
       </div>
 
       {!leftPanelOpen && (
@@ -162,6 +241,7 @@ export default function Layout() {
           </main>
         </div>
       </div>
+      <BackgroundMusicPlayer />
       <MobileNav />
     </div>
   );

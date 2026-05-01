@@ -1,18 +1,27 @@
 // src/pages/SettingsPage.jsx
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import useAuthStore from '../store/authStore';
+import NavIcon from '../components/layout/NavIcon';
 
 const settingsSections = [
-  ['profile', 'Профиль'],
-  ['username', 'Никнейм'],
-  ['email', 'Email'],
-  ['password', 'Пароль'],
-  ['security', 'Безопасность'],
-  ['subscription', 'Подписка'],
-  ['danger', 'Удаление'],
+  ['profile', 'Профиль', 'Профиль', 'user'],
+  ['username', 'Никнейм', 'Профиль', 'user'],
+  ['privacy', 'Приватность', 'Аккаунт', 'settings'],
+  ['email', 'Email', 'Аккаунт', 'messages'],
+  ['password', 'Пароль', 'Аккаунт', 'settings'],
+  ['security', 'Безопасность', 'Аккаунт', 'settings'],
+  ['subscription', 'Подписка', 'Plus', 'plus'],
+  ['danger', 'Удаление', 'Опасная зона', 'close'],
+];
+
+const settingsGroups = [
+  ['Профиль', settingsSections.filter(([, , group]) => group === 'Профиль')],
+  ['Аккаунт', settingsSections.filter(([, , group]) => group === 'Аккаунт')],
+  ['Plus', settingsSections.filter(([, , group]) => group === 'Plus')],
+  ['Опасная зона', settingsSections.filter(([, , group]) => group === 'Опасная зона')],
 ];
 
 const subscriptionFeatures = [
@@ -44,64 +53,85 @@ const subscriptionFeatures = [
 ];
 
 const Section = ({ id, title, description, children }) => (
-  <section id={id} className="border-b border-x-border/70 bg-x-bg/20 px-4 py-5 sm:px-6">
-    <div className="mb-5 max-w-xl">
-      <h2 className="text-lg font-black text-x-text">{title}</h2>
-      {description && <p className="mt-1 text-sm text-x-muted">{description}</p>}
+  <section data-settings-section={id} className="settings-section">
+    <div className="settings-section-head">
+      <h2>{title}</h2>
+      {description && <p>{description}</p>}
     </div>
-    <div className="max-w-xl">{children}</div>
+    <div className="settings-section-body">{children}</div>
   </section>
 );
 
 const Field = ({ label, type = 'text', value, onChange, placeholder, hint, maxLength }) => (
   <label className="mb-4 block">
-    <span className="mb-1.5 block text-sm font-semibold text-x-muted">{label}</span>
+    <span className="settings-label">{label}</span>
     <input
       type={type}
       value={value}
       onChange={onChange}
       placeholder={placeholder}
       maxLength={maxLength}
-      className="input-field"
+      className="settings-input"
     />
-    {hint && <span className="mt-1.5 block text-xs text-x-muted">{hint}</span>}
+    {hint && <span className="settings-hint">{hint}</span>}
   </label>
 );
 
 const TextAreaField = ({ label, value, onChange, placeholder, hint, maxLength }) => (
   <label className="mb-4 block">
-    <span className="mb-1.5 block text-sm font-semibold text-x-muted">{label}</span>
+    <span className="settings-label">{label}</span>
     <textarea
       value={value}
       onChange={onChange}
       placeholder={placeholder}
       maxLength={maxLength}
       rows={4}
-      className="input-field resize-none"
+      className="settings-input settings-textarea"
     />
-    {hint && <span className="mt-1.5 block text-xs text-x-muted">{hint}</span>}
+    {hint && <span className="settings-hint">{hint}</span>}
   </label>
 );
 
 const SecurityRow = ({ title, description, children }) => (
-  <div className="flex flex-col gap-3 border-b border-x-border/60 py-4 last:border-0 sm:flex-row sm:items-center sm:justify-between">
+  <div className="settings-row">
     <div className="min-w-0">
-      <h3 className="font-bold text-x-text">{title}</h3>
-      <p className="mt-1 text-sm text-x-muted">{description}</p>
+      <h3>{title}</h3>
+      <p>{description}</p>
     </div>
     <div className="flex-shrink-0">{children}</div>
   </div>
 );
 
 const FutureBadge = ({ children = 'Скоро' }) => (
-  <span className="inline-flex items-center rounded-full border border-cyan-300/35 bg-cyan-300/10 px-3 py-1 text-xs font-black uppercase tracking-normal text-x-accent">
+  <span className="settings-badge">
     {children}
   </span>
+);
+
+const ToggleButton = ({ enabled, onClick, label, disabled }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    className={`flex min-w-32 items-center justify-between gap-3 rounded-xl border px-2 py-1.5 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+      enabled
+        ? 'border-cyan-300/60 bg-cyan-300/12 text-x-accent shadow-neon'
+        : 'border-x-border bg-x-bg/70 text-x-muted hover:border-cyan-300/45 hover:text-x-text'
+    }`}
+    aria-label={label}
+    aria-pressed={enabled}
+  >
+    <span className="px-2">{enabled ? 'Вкл' : 'Выкл'}</span>
+    <span className={`h-7 w-12 rounded-full border p-0.5 transition ${enabled ? 'border-cyan-300/45 bg-cyan-300/20' : 'border-x-border bg-slate-950'}`}>
+      <span className={`block h-5 w-5 rounded-full transition ${enabled ? 'translate-x-5 bg-x-accent' : 'bg-x-muted/70'}`} />
+    </span>
+  </button>
 );
 
 export default function SettingsPage() {
   const { user, updateUser, logout } = useAuthStore();
   const navigate = useNavigate();
+  const settingsBodyRef = useRef(null);
 
   const [profile, setProfile] = useState({
     displayName: user?.displayName || '',
@@ -116,16 +146,25 @@ export default function SettingsPage() {
   });
   const [deleteData, setDeleteData] = useState({ currentPassword: '', confirm: '' });
   const [billing, setBilling] = useState('month');
+  const [activeSection, setActiveSection] = useState('profile');
   const [loading, setLoading] = useState({
     profile: false,
     username: false,
     email: false,
     password: false,
     delete: false,
+    privacy: false,
   });
 
   const activeEmail = useMemo(() => user?.email || 'email не указан', [user?.email]);
   const setLoad = (key, val) => setLoading((l) => ({ ...l, [key]: val }));
+  const closeSettings = () => {
+    if (window.history.state?.idx > 0) {
+      navigate(-1);
+      return;
+    }
+    navigate('/home');
+  };
 
   const saveProfile = async () => {
     if (!profile.displayName.trim()) {
@@ -224,6 +263,19 @@ export default function SettingsPage() {
     }
   };
 
+  const saveGroupInvitePrivacy = async (blockGroupInvites) => {
+    setLoad('privacy', true);
+    try {
+      const { data } = await api.patch('/users/me/profile', { blockGroupInvites });
+      updateUser(data.user);
+      toast.success(blockGroupInvites ? 'Добавление в группы запрещено' : 'Добавление в группы разрешено');
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Не удалось сохранить настройку');
+    } finally {
+      setLoad('privacy', false);
+    }
+  };
+
   const deleteAccount = async () => {
     if (deleteData.confirm !== user?.username) {
       toast.error('Введи свой никнейм для подтверждения');
@@ -256,42 +308,99 @@ export default function SettingsPage() {
 
   const subscriptionPrice = billing === 'year' ? '2 990 ₽ / год' : '299 ₽ / месяц';
 
+  const showSettingsSection = (id) => {
+    setActiveSection(id);
+    window.requestAnimationFrame(() => {
+      settingsBodyRef.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    });
+  };
+
   return (
-    <div className="min-h-full bg-x-bg/10">
-      <div className="cosmic-header px-4 py-3 sm:px-5">
-        <div className="flex items-center gap-4">
+    <div className="settings-stage">
+      <div className="settings-window">
+        <aside className="settings-sidebar">
+          <div className="settings-sidebar-header">
+            <button
+              type="button"
+              onClick={closeSettings}
+              className="settings-square-button"
+              aria-label="Назад"
+            >
+              <NavIcon name="settings" className="h-5 w-5" />
+            </button>
+            <div className="min-w-0">
+              <p className="settings-kicker">Zwiteer</p>
+              <h1>Настройки</h1>
+            </div>
+            <button
+              type="button"
+              className="settings-square-button"
+              aria-label="Поиск настроек"
+              onClick={() => toast('Поиск по настройкам скоро появится')}
+            >
+              <NavIcon name="search" className="h-4 w-4" />
+            </button>
+          </div>
+
+          <nav className="settings-sidebar-nav" aria-label="Разделы настроек">
+            {settingsGroups.map(([group, items]) => (
+              <div key={group} className="settings-sidebar-group">
+                <p className="settings-sidebar-title">{group}</p>
+                <div className="settings-sidebar-links">
+                  {items.map(([id, label, , icon]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => showSettingsSection(id)}
+                      aria-current={id === activeSection ? 'page' : undefined}
+                      className={[
+                        'settings-sidebar-link',
+                        id === activeSection ? 'settings-sidebar-link-active' : '',
+                        id === 'danger' ? 'settings-sidebar-link-danger' : '',
+                      ].filter(Boolean).join(' ')}
+                    >
+                      <NavIcon name={icon} className="h-4 w-4" />
+                      <span>{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </nav>
+
           <button
             type="button"
-            onClick={() => navigate(-1)}
-            className="panel-icon-button h-10 w-10 flex-shrink-0"
-            aria-label="Назад"
+            onClick={closeSettings}
+            className="settings-sidebar-exit"
           >
-            <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current">
-              <path d="M20 11H7.414l4.293-4.293-1.414-1.414L3.586 12l6.707 6.707 1.414-1.414L7.414 13H20v-2z" />
-            </svg>
+            <NavIcon name="close" className="h-4 w-4" />
+            Закрыть
           </button>
-          <div className="min-w-0">
-            <p className="nebula-section-heading">Account Control</p>
-            <h1 className="text-xl font-black tracking-normal">Настройки</h1>
+        </aside>
+
+        <main className="settings-main">
+          <div className="settings-main-header">
+            <div>
+              <p>Account Control</p>
+              <h2>Настройки аккаунта</h2>
+            </div>
+            <button
+              type="button"
+              onClick={closeSettings}
+              className="settings-close-button"
+              aria-label="Закрыть настройки"
+            >
+              <NavIcon name="close" className="h-5 w-5" />
+            </button>
           </div>
-        </div>
-      </div>
 
-      <div className="border-b border-x-border/70 bg-x-panel/20 px-4 py-4 sm:px-6">
-        <div className="flex flex-wrap gap-2">
-          {settingsSections.map(([id, label]) => (
-            <a key={id} href={`#${id}`} className="nebula-pill">
-              {label}
-            </a>
-          ))}
-        </div>
-      </div>
-
-      <Section
-        id="profile"
-        title="Информация профиля"
-        description="Имя и описание видны другим пользователям в профиле и ленте."
-      >
+          <div ref={settingsBodyRef} className="settings-main-body">
+            {activeSection === 'profile' && (
+            <Section
+              id="profile"
+              title="Информация профиля"
+              description="Имя и описание видны другим пользователям в профиле и ленте."
+            >
         <Field
           label="Отображаемое имя"
           value={profile.displayName}
@@ -307,11 +416,13 @@ export default function SettingsPage() {
           hint={`${profile.bio.length}/160 символов`}
           maxLength={160}
         />
-        <button onClick={saveProfile} disabled={loading.profile} className="btn-accent px-5 py-2 text-sm">
+        <button type="button" onClick={saveProfile} disabled={loading.profile} className="btn-accent px-5 py-2 text-sm">
           {loading.profile ? 'Сохраняем...' : 'Сохранить профиль'}
         </button>
       </Section>
+            )}
 
+      {activeSection === 'username' && (
       <Section
         id="username"
         title="Никнейм"
@@ -325,6 +436,7 @@ export default function SettingsPage() {
           hint="Только латиница, цифры и _ (мин. 3 символа)"
         />
         <button
+          type="button"
           onClick={saveUsername}
           disabled={loading.username || username === user?.username}
           className="btn-accent px-5 py-2 text-sm"
@@ -332,7 +444,31 @@ export default function SettingsPage() {
           {loading.username ? 'Меняем...' : 'Изменить никнейм'}
         </button>
       </Section>
+      )}
 
+      {activeSection === 'privacy' && (
+      <Section
+        id="privacy"
+        title="Приватность"
+        description="Управляй тем, как другие пользователи могут добавлять тебя в групповые чаты."
+      >
+        <div className="rounded-2xl border border-x-border/75 bg-x-panel/55 px-4 shadow-panel">
+          <SecurityRow
+            title="Не добавлять меня в группы"
+            description="Если включено, другие пользователи не смогут выбрать тебя при создании группового чата."
+          >
+            <ToggleButton
+              enabled={Boolean(user?.blockGroupInvites)}
+              onClick={() => saveGroupInvitePrivacy(!user?.blockGroupInvites)}
+              disabled={loading.privacy}
+              label="Запретить добавление в группы"
+            />
+          </SecurityRow>
+        </div>
+      </Section>
+      )}
+
+      {activeSection === 'email' && (
       <Section
         id="email"
         title="Email"
@@ -352,11 +488,13 @@ export default function SettingsPage() {
           onChange={(e) => setEmailData((d) => ({ ...d, currentPassword: e.target.value }))}
           placeholder="Пароль для подтверждения"
         />
-        <button onClick={saveEmail} disabled={loading.email} className="btn-accent px-5 py-2 text-sm">
+        <button type="button" onClick={saveEmail} disabled={loading.email} className="btn-accent px-5 py-2 text-sm">
           {loading.email ? 'Меняем...' : 'Изменить email'}
         </button>
       </Section>
+      )}
 
+      {activeSection === 'password' && (
       <Section
         id="password"
         title="Пароль"
@@ -384,32 +522,24 @@ export default function SettingsPage() {
           onChange={(e) => setPasswordData((d) => ({ ...d, confirmPassword: e.target.value }))}
           placeholder="Повторите пароль"
         />
-        <button onClick={savePassword} disabled={loading.password} className="btn-accent px-5 py-2 text-sm">
+        <button type="button" onClick={savePassword} disabled={loading.password} className="btn-accent px-5 py-2 text-sm">
           {loading.password ? 'Меняем...' : 'Изменить пароль'}
         </button>
       </Section>
+      )}
 
+      {activeSection === 'security' && (
       <Section
         id="security"
         title="Безопасность аккаунта"
         description="Настройки входа, подтверждения почты и восстановления доступа."
       >
-        <div className="rounded-3xl border border-x-border/75 bg-x-panel/50 px-4 shadow-panel">
+        <div className="rounded-2xl border border-x-border/75 bg-x-panel/55 px-4 shadow-panel">
           <SecurityRow
             title="Двухфакторная аутентификация"
             description="Дополнительный код при входе. Пока это только место под будущую настройку, реальная защита ещё не активируется."
           >
-            <button
-              type="button"
-              onClick={showTwoFactorNotice}
-              className="flex min-w-32 items-center justify-between gap-3 rounded-full border border-x-border bg-x-bg/70 px-2 py-1.5 text-sm font-bold text-x-muted transition hover:border-cyan-300/45 hover:text-x-text"
-              aria-label="Двухфакторная аутентификация скоро появится"
-            >
-              <span className="px-2">Выкл</span>
-              <span className="h-7 w-12 rounded-full border border-x-border bg-slate-950 p-0.5">
-                <span className="block h-5 w-5 rounded-full bg-x-muted/70" />
-              </span>
-            </button>
+            <ToggleButton enabled={false} onClick={showTwoFactorNotice} label="Двухфакторная аутентификация скоро появится" />
           </SecurityRow>
 
           <SecurityRow
@@ -426,41 +556,43 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={() => navigate('/forgot-password')}
-              className="rounded-full border border-cyan-300/45 px-4 py-2 text-sm font-black uppercase tracking-wide text-x-accent transition hover:bg-cyan-300/10"
+              className="rounded-xl border border-cyan-300/45 bg-cyan-300/10 px-4 py-2 text-sm font-black uppercase tracking-wide text-x-accent transition hover:bg-cyan-300/15"
             >
               Сбросить
             </button>
           </SecurityRow>
         </div>
       </Section>
+      )}
 
+      {activeSection === 'subscription' && (
       <Section
         id="subscription"
         title="Подписка Zwiteer Plus"
         description="Здесь будет покупка подписки. Возможности будут расширяться постепенно, поэтому блок сразу сделан как сравнение тарифов."
       >
-        <div className="overflow-hidden rounded-3xl border border-cyan-300/25 bg-x-panel/60 shadow-panel">
+        <div className="overflow-hidden rounded-2xl border border-cyan-300/25 bg-x-panel/60 shadow-panel">
           <div className="border-b border-x-border/70 bg-gradient-to-r from-cyan-300/12 via-x-panel to-blue-500/15 p-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="nebula-section-heading">Zwiteer Plus</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.14em] text-x-accent">Zwiteer Plus</p>
                 <h3 className="mt-2 text-2xl font-black text-x-text">{subscriptionPrice}</h3>
                 <p className="mt-1 text-sm text-x-muted">
                   Будущие расширенные возможности аккаунта в одном тарифе.
                 </p>
               </div>
-              <div className="flex rounded-full border border-x-border bg-x-bg/60 p-1">
+              <div className="flex rounded-xl border border-x-border bg-x-bg/60 p-1">
                 <button
                   type="button"
                   onClick={() => setBilling('month')}
-                  className={`rounded-full px-3 py-1.5 text-sm font-bold transition ${billing === 'month' ? 'bg-x-accent text-slate-950 shadow-neon' : 'text-x-muted hover:text-x-text'}`}
+                  className={`rounded-lg px-3 py-1.5 text-sm font-bold transition ${billing === 'month' ? 'bg-x-accent text-slate-950 shadow-neon' : 'text-x-muted hover:text-x-text'}`}
                 >
                   Месяц
                 </button>
                 <button
                   type="button"
                   onClick={() => setBilling('year')}
-                  className={`rounded-full px-3 py-1.5 text-sm font-bold transition ${billing === 'year' ? 'bg-x-accent text-slate-950 shadow-neon' : 'text-x-muted hover:text-x-text'}`}
+                  className={`rounded-lg px-3 py-1.5 text-sm font-bold transition ${billing === 'year' ? 'bg-x-accent text-slate-950 shadow-neon' : 'text-x-muted hover:text-x-text'}`}
                 >
                   Год
                 </button>
@@ -473,7 +605,7 @@ export default function SettingsPage() {
 
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-left text-sm">
-              <thead className="border-b border-x-border/70 text-xs uppercase tracking-[0.16em] text-x-muted">
+              <thead className="border-b border-x-border/70 bg-x-bg/35 text-xs uppercase tracking-[0.12em] text-x-muted">
                 <tr>
                   <th className="px-4 py-3 font-black">Возможность</th>
                   <th className="px-4 py-3 font-black">Обычный пользователь</th>
@@ -493,7 +625,9 @@ export default function SettingsPage() {
           </div>
         </div>
       </Section>
+      )}
 
+      {activeSection === 'danger' && (
       <Section
         id="danger"
         title="Удалить аккаунт"
@@ -513,13 +647,18 @@ export default function SettingsPage() {
           placeholder={user?.username || 'username'}
         />
         <button
+          type="button"
           onClick={deleteAccount}
           disabled={loading.delete}
-          className="rounded-full border border-x-danger/45 bg-x-danger/10 px-5 py-2 text-sm font-black text-x-danger transition hover:bg-x-danger/15"
+          className="rounded-xl border border-x-danger/45 bg-x-danger/10 px-5 py-2 text-sm font-black text-x-danger transition hover:bg-x-danger/15"
         >
           {loading.delete ? 'Удаляем...' : 'Удалить аккаунт'}
         </button>
-      </Section>
+            </Section>
+      )}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

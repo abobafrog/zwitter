@@ -67,6 +67,7 @@ const getPublicUser = async (userId) => prisma.user.findUnique({
     avatarUrl: true,
     isVerified: true,
     isCommunity: true,
+    blockGroupInvites: true,
     createdAt: true,
   },
 });
@@ -187,6 +188,7 @@ const register = async (req, res, next) => {
         avatarUrl: true,
         isVerified: true,
         isCommunity: true,
+        blockGroupInvites: true,
         createdAt: true,
       },
     });

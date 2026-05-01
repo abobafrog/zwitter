@@ -33,6 +33,17 @@ const normalizeCommunity = ({ members, _count, ...community }, userId) => ({
   },
 });
 
+const assertCommunityOwner = async (slug, userId) => {
+  const community = await prisma.community.findUnique({
+    where: { slug: slug.toLowerCase() },
+    select: { id: true, slug: true, ownerId: true },
+  });
+
+  if (!community) return { error: 'Сообщество не найдено', status: 404 };
+  if (community.ownerId !== userId) return { error: 'Управлять сообществом может только владелец', status: 403 };
+  return { community };
+};
+
 const listCommunities = async (req, res, next) => {
   try {
     const userId = req.user?.id;
@@ -41,7 +52,11 @@ const listCommunities = async (req, res, next) => {
     const communities = await prisma.community.findMany({
       where: q
         ? {
-            name: { contains: q, mode: 'insensitive' },
+            OR: [
+              { name: { contains: q, mode: 'insensitive' } },
+              { slug: { contains: q, mode: 'insensitive' } },
+              { bio: { contains: q, mode: 'insensitive' } },
+            ],
           }
         : {},
       orderBy: [{ members: { _count: 'desc' } }, { createdAt: 'desc' }],
@@ -173,6 +188,130 @@ const toggleCommunityMembership = async (req, res, next) => {
   }
 };
 
+const listCommunityMembers = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { slug } = req.params;
+    const access = await assertCommunityOwner(slug, userId);
+    if (access.error) return res.status(access.status).json({ error: access.error });
+
+    const members = await prisma.communityMember.findMany({
+      where: { communityId: access.community.id },
+      orderBy: [{ role: 'desc' }, { createdAt: 'asc' }],
+      include: {
+        user: { select: { id: true, username: true, displayName: true, avatarUrl: true, isVerified: true } },
+      },
+    });
+
+    res.json({ members: members.map((member) => ({ ...member.user, role: member.role, joinedAt: member.createdAt })) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateCommunity = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { slug } = req.params;
+    const access = await assertCommunityOwner(slug, userId);
+    if (access.error) return res.status(access.status).json({ error: access.error });
+
+    const name = req.body.name?.trim();
+    const bio = req.body.bio?.trim();
+    const data = {};
+
+    if (name !== undefined) {
+      if (name.length < 2 || name.length > 100) {
+        return res.status(400).json({ error: 'Название: 2-100 символов' });
+      }
+      data.name = name;
+    }
+    if (bio !== undefined) data.bio = bio || null;
+    if (req.files?.avatar?.[0]?.path) data.avatarUrl = req.files.avatar[0].path;
+    if (req.files?.banner?.[0]?.path) data.bannerUrl = req.files.banner[0].path;
+
+    const community = await prisma.community.update({
+      where: { id: access.community.id },
+      data,
+      select: communitySelect(userId),
+    });
+
+    res.json({ community: normalizeCommunity(community, userId) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const addCommunityMembers = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { slug } = req.params;
+    const userIds = [...new Set(req.body.userIds || [])];
+    const access = await assertCommunityOwner(slug, userId);
+    if (access.error) return res.status(access.status).json({ error: access.error });
+    if (userIds.length === 0) return res.status(400).json({ error: 'Выберите пользователей' });
+
+    const users = await prisma.user.findMany({
+      where: { id: { in: userIds }, isCommunity: false },
+      select: { id: true },
+    });
+    if (users.length !== userIds.length) {
+      return res.status(400).json({ error: 'Один из пользователей не найден' });
+    }
+
+    await prisma.communityMember.createMany({
+      data: userIds.map((memberUserId) => ({ communityId: access.community.id, userId: memberUserId })),
+      skipDuplicates: true,
+    });
+
+    const community = await prisma.community.findUnique({
+      where: { id: access.community.id },
+      select: communitySelect(userId),
+    });
+    res.json({ community: normalizeCommunity(community, userId) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const removeCommunityMember = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { slug, userId: targetUserId } = req.params;
+    const access = await assertCommunityOwner(slug, userId);
+    if (access.error) return res.status(access.status).json({ error: access.error });
+    if (targetUserId === userId) {
+      return res.status(400).json({ error: 'Владелец не может удалить себя из сообщества' });
+    }
+
+    await prisma.communityMember.deleteMany({
+      where: { communityId: access.community.id, userId: targetUserId },
+    });
+
+    const community = await prisma.community.findUnique({
+      where: { id: access.community.id },
+      select: communitySelect(userId),
+    });
+    res.json({ community: normalizeCommunity(community, userId) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteCommunity = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { slug } = req.params;
+    const access = await assertCommunityOwner(slug, userId);
+    if (access.error) return res.status(access.status).json({ error: access.error });
+
+    await prisma.community.delete({ where: { id: access.community.id } });
+    res.json({ slug: access.community.slug });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   listCommunities,
   listMyCommunities,
@@ -180,4 +319,9 @@ module.exports = {
   getCommunity,
   getCommunityTweets,
   toggleCommunityMembership,
+  listCommunityMembers,
+  updateCommunity,
+  addCommunityMembers,
+  removeCommunityMember,
+  deleteCommunity,
 };

@@ -15,10 +15,10 @@
     font-family: "ZwiteerChirp", "Segoe UI", system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     background:
-      radial-gradient(circle at 14% 8%, rgba(34, 211, 238, 0.18), transparent 18%),
-      radial-gradient(circle at 84% 24%, rgba(139, 92, 246, 0.22), transparent 23%),
-      radial-gradient(circle at 74% 92%, rgba(37, 99, 235, 0.2), transparent 28%),
-      linear-gradient(180deg, #020617 0%, #071326 48%, #030712 100%);
+      radial-gradient(ellipse at 48% 118%, rgba(29, 78, 216, 0.18), transparent 42%),
+      radial-gradient(ellipse at 82% 6%, rgba(88, 28, 135, 0.24), transparent 38%),
+      radial-gradient(ellipse at 12% 72%, rgba(30, 64, 175, 0.2), transparent 36%),
+      linear-gradient(180deg, #02030b 0%, #03071a 46%, #01030a 100%);
     overflow: hidden;
   }
 
@@ -33,31 +33,27 @@
   body::before {
     z-index: 0;
     background-image:
-      radial-gradient(circle, rgba(240, 249, 255, 0.98) 0 1px, transparent 1.6px),
-      radial-gradient(circle, rgba(125, 211, 252, 0.82) 0 1.2px, transparent 2px),
-      radial-gradient(circle, rgba(196, 181, 253, 0.74) 0 1px, transparent 1.9px),
-      radial-gradient(circle, rgba(34, 211, 238, 0.48) 0 2px, transparent 5px),
-      radial-gradient(circle, rgba(255, 255, 255, 0.62) 0 1px, transparent 2.2px);
-    background-position: 12px 18px, 48px 62px, 84px 120px, 140px 40px, 210px 94px;
-    background-size: 96px 96px, 139px 139px, 183px 183px, 311px 311px, 421px 421px;
-    opacity: 0.74;
-    animation: starDrift 42s linear infinite;
+      radial-gradient(circle, rgba(255, 255, 255, 0.98) 0 0.85px, transparent 1.6px),
+      radial-gradient(circle, rgba(219, 234, 254, 0.84) 0 0.75px, transparent 1.5px),
+      radial-gradient(circle, rgba(255, 255, 255, 0.52) 0 0.65px, transparent 1.4px),
+      radial-gradient(circle, rgba(196, 181, 253, 0.36) 0 0.85px, transparent 1.8px),
+      radial-gradient(circle, rgba(147, 197, 253, 0.24) 0 1.1px, transparent 2.6px);
+    background-position: 12px 18px, 72px 116px, 138px 44px, 218px 156px, 320px 92px;
+    background-size: 82px 82px, 127px 127px, 191px 191px, 293px 293px, 487px 487px;
+    opacity: 0.84;
+    animation: starDrift 110s linear infinite;
   }
 
   body::after {
     z-index: 0;
     background:
-      radial-gradient(circle at 9% 18%, rgba(186, 230, 253, 1) 0 1.5px, rgba(34, 211, 238, 0.48) 2px, transparent 10px),
-      radial-gradient(circle at 18% 72%, rgba(255, 255, 255, 0.9) 0 1.4px, rgba(34, 211, 238, 0.36) 2px, transparent 11px),
-      radial-gradient(circle at 31% 28%, rgba(224, 242, 254, 0.92) 0 1.2px, rgba(59, 130, 246, 0.34) 2px, transparent 9px),
-      radial-gradient(circle at 47% 66%, rgba(255, 255, 255, 0.86) 0 1px, rgba(167, 139, 250, 0.36) 2px, transparent 10px),
-      radial-gradient(circle at 64% 35%, rgba(186, 230, 253, 0.92) 0 1.4px, rgba(34, 211, 238, 0.4) 2px, transparent 12px),
-      radial-gradient(circle at 82% 12%, rgba(255, 255, 255, 0.95) 0 1.5px, rgba(167, 139, 250, 0.5) 2px, transparent 13px),
-      radial-gradient(circle at 90% 64%, rgba(224, 242, 254, 0.9) 0 1.2px, rgba(59, 130, 246, 0.42) 2px, transparent 11px),
-      linear-gradient(115deg, transparent 0%, rgba(34, 211, 238, 0.14) 34%, transparent 58%),
-      linear-gradient(245deg, transparent 7%, rgba(37, 99, 235, 0.18) 46%, transparent 76%);
+      radial-gradient(ellipse at 23% 70%, rgba(37, 99, 235, 0.28), transparent 31%),
+      radial-gradient(ellipse at 72% 20%, rgba(147, 51, 234, 0.3), transparent 34%),
+      linear-gradient(118deg, transparent 0 22%, rgba(96, 165, 250, 0.08) 34%, rgba(59, 130, 246, 0.14) 45%, rgba(168, 85, 247, 0.12) 56%, transparent 74%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 30%, rgba(2, 6, 23, 0.3) 100%);
     mix-blend-mode: screen;
-    animation: starTwinkle 4.8s ease-in-out infinite alternate;
+    animation: starTwinkle 10s ease-in-out infinite alternate;
+    opacity: 0.78;
   }
 
   #root {
@@ -77,25 +73,25 @@
 
   @keyframes starDrift {
     from {
-      background-position: 12px 18px, 48px 62px, 84px 120px, 140px 40px, 210px 94px;
+      background-position: 12px 18px, 72px 116px, 138px 44px, 218px 156px, 320px 92px;
     }
     to {
-      background-position: 138px 144px, 235px 249px, 335px 371px, 529px 429px, 631px 515px;
+      background-position: 94px 100px, 199px 243px, 329px 235px, 511px 449px, 807px 579px;
     }
   }
 
   @keyframes starTwinkle {
     from {
-      filter: brightness(0.98) drop-shadow(0 0 4px rgba(34, 211, 238, 0.18));
-      opacity: 0.68;
+      filter: brightness(0.94) saturate(0.9);
+      opacity: 0.7;
     }
     48% {
-      filter: brightness(1.55) drop-shadow(0 0 14px rgba(34, 211, 238, 0.42));
-      opacity: 0.96;
+      filter: brightness(1.12) saturate(1.05);
+      opacity: 0.88;
     }
     to {
-      filter: brightness(1.18) drop-shadow(0 0 18px rgba(167, 139, 250, 0.3));
-      opacity: 0.82;
+      filter: brightness(1.02) saturate(0.96);
+      opacity: 0.78;
     }
   }
 
@@ -143,6 +139,79 @@
     }
   }
 
+  @keyframes quietShootingStar {
+    0%, 62% {
+      opacity: 0;
+      transform: translate3d(-8vw, 0, 0) rotate(-43deg);
+    }
+    66%, 72% {
+      opacity: 0.82;
+    }
+    82%, 100% {
+      opacity: 0;
+      transform: translate3d(32vw, 21vh, 0) rotate(-43deg);
+    }
+  }
+
+  @keyframes skyObjectFly {
+    0%, 8% {
+      opacity: 0;
+      transform: translate3d(var(--from-x, -28vw), 0, 0) rotate(var(--angle, -12deg)) scale(var(--object-scale, 1));
+    }
+    15%, 62% {
+      opacity: var(--object-opacity, 0.88);
+    }
+    100% {
+      opacity: 0;
+      transform: translate3d(var(--to-x, 132vw), var(--fly-y, 26vh), 0) rotate(var(--angle, -12deg)) scale(var(--object-scale, 1));
+    }
+  }
+
+  @keyframes skyObjectFlyReverse {
+    0%, 10% {
+      opacity: 0;
+      transform: translate3d(var(--from-x, 28vw), 0, 0) rotate(var(--angle, 12deg)) scale(var(--object-scale, 1));
+    }
+    18%, 64% {
+      opacity: var(--object-opacity, 0.84);
+    }
+    100% {
+      opacity: 0;
+      transform: translate3d(var(--to-x, -132vw), var(--fly-y, 22vh), 0) rotate(var(--angle, 12deg)) scale(var(--object-scale, 1));
+    }
+  }
+
+  @keyframes asteroidFly {
+    0%, 8% {
+      opacity: 0;
+      transform: translate3d(var(--from-x, -26vw), 0, 0) rotate(0deg) scale(var(--object-scale, 1));
+    }
+    18%, 70% {
+      opacity: var(--object-opacity, 0.74);
+    }
+    100% {
+      opacity: 0;
+      transform: translate3d(var(--to-x, 132vw), var(--fly-y, 22vh), 0) rotate(var(--spin, 420deg)) scale(var(--object-scale, 1));
+    }
+  }
+
+  @keyframes ufoPatrol {
+    0%, 8% {
+      opacity: 0;
+      transform: translate3d(var(--from-x, -24vw), 0, 0) rotate(-3deg) scale(var(--object-scale, 1));
+    }
+    18%, 76% {
+      opacity: var(--object-opacity, 0.9);
+    }
+    44% {
+      transform: translate3d(52vw, var(--mid-y, 4vh), 0) rotate(2deg) scale(var(--object-scale, 1));
+    }
+    100% {
+      opacity: 0;
+      transform: translate3d(var(--to-x, 132vw), var(--fly-y, 12vh), 0) rotate(4deg) scale(var(--object-scale, 1));
+    }
+  }
+
   @keyframes starGlimmer {
     0%, 100% {
       opacity: var(--star-low, 0.28);
@@ -161,17 +230,6 @@
     }
   }
 
-  @keyframes ufoCruise {
-    0% {
-      opacity: 0;
-      transform: translate3d(-18vw, 0, 0) scale(0.74) rotate(-4deg);
-    }
-    12%, 74% { opacity: 0.82; }
-    100% {
-      opacity: 0;
-      transform: translate3d(126vw, var(--float-y), 0) scale(1) rotate(3deg);
-    }
-  }
 }
 
 @layer components {
@@ -225,45 +283,167 @@
 
   .space-backdrop::before {
     background-image:
-      radial-gradient(circle, rgba(255, 255, 255, 0.98) 0 1px, transparent 1.8px),
-      radial-gradient(circle, rgba(186, 230, 253, 0.88) 0 1.2px, transparent 2.4px),
-      radial-gradient(circle, rgba(125, 211, 252, 0.72) 0 1.5px, transparent 3px),
-      radial-gradient(circle, rgba(216, 180, 254, 0.7) 0 1.2px, transparent 2.8px),
-      radial-gradient(circle, rgba(34, 211, 238, 0.48) 0 2px, transparent 7px),
-      radial-gradient(circle, rgba(255, 255, 255, 0.2) 0 1px, transparent 2px),
-      radial-gradient(circle, rgba(125, 211, 252, 0.18) 0 1.3px, transparent 3px);
-    background-position: 18px 22px, 76px 118px, 140px 52px, 236px 174px, 320px 90px, 28px 138px, 180px 28px;
-    background-size: 74px 74px, 121px 121px, 167px 167px, 233px 233px, 389px 389px, 96px 96px, 311px 311px;
-    animation: starPulse 5.2s ease-in-out infinite alternate;
-    filter: brightness(calc(1 + var(--scroll-stars) * 0.72)) drop-shadow(0 0 calc(var(--scroll-stars) * 18px) rgba(125, 211, 252, 0.34));
+      radial-gradient(circle, rgba(255, 255, 255, 0.98) 0 0.85px, transparent 1.6px),
+      radial-gradient(circle, rgba(219, 234, 254, 0.82) 0 0.85px, transparent 1.7px),
+      radial-gradient(circle, rgba(226, 232, 240, 0.58) 0 0.65px, transparent 1.4px),
+      radial-gradient(circle, rgba(125, 211, 252, 0.38) 0 1.2px, transparent 3.6px),
+      radial-gradient(circle, rgba(255, 255, 255, 0.3) 0 0.7px, transparent 1.5px),
+      radial-gradient(circle, rgba(196, 181, 253, 0.28) 0 1px, transparent 2.6px),
+      radial-gradient(circle, rgba(255, 255, 255, 0.18) 0 0.55px, transparent 1.2px);
+    background-position: 18px 22px, 76px 118px, 140px 52px, 276px 174px, 28px 138px, 180px 28px, 364px 211px;
+    background-size: 64px 64px, 103px 103px, 151px 151px, 259px 259px, 83px 83px, 353px 353px, 491px 491px;
+    animation: starPulse 7.8s ease-in-out infinite alternate;
+    filter: brightness(calc(1 + var(--scroll-stars) * 0.58)) drop-shadow(0 0 calc(var(--scroll-stars) * 14px) rgba(125, 211, 252, 0.32));
     mix-blend-mode: screen;
-    opacity: calc(0.58 + var(--scroll-stars) * 0.34);
+    opacity: calc(0.72 + var(--scroll-stars) * 0.24);
     transition: filter 180ms ease, opacity 180ms ease;
+    z-index: 3;
   }
 
   .space-backdrop::after {
     background:
-      radial-gradient(ellipse at 12% 82%, rgba(34, 211, 238, 0.16), transparent 32%),
-      radial-gradient(ellipse at 84% 18%, rgba(139, 92, 246, 0.18), transparent 34%),
-      radial-gradient(ellipse at 50% 110%, rgba(37, 99, 235, 0.16), transparent 42%),
-      linear-gradient(115deg, transparent 10%, rgba(34, 211, 238, 0.08) 42%, transparent 70%);
-    animation: nebulaFloat 20s ease-in-out infinite alternate;
-    opacity: calc(0.82 + var(--scroll-stars) * 0.12);
+      radial-gradient(ellipse at 13% 53%, rgba(37, 99, 235, 0.34), transparent 30%),
+      radial-gradient(ellipse at 58% 18%, rgba(147, 51, 234, 0.26), transparent 33%),
+      radial-gradient(ellipse at 86% 28%, rgba(59, 130, 246, 0.34), transparent 34%),
+      linear-gradient(113deg, transparent 0 22%, rgba(37, 99, 235, 0.16) 33%, rgba(96, 165, 250, 0.18) 44%, rgba(168, 85, 247, 0.16) 57%, transparent 77%),
+      radial-gradient(ellipse at 48% 112%, rgba(1, 3, 10, 0.76), transparent 46%);
+    animation: nebulaFloat 38s ease-in-out infinite alternate;
+    filter: blur(2px) saturate(1.24);
+    opacity: calc(0.82 + var(--scroll-stars) * 0.08);
+    z-index: 1;
+  }
+
+  .milky-way-band {
+    position: absolute;
+    inset: -24% -18%;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse at 31% 48%, rgba(226, 232, 240, 0.16), transparent 18%),
+      radial-gradient(ellipse at 50% 47%, rgba(96, 165, 250, 0.22), transparent 23%),
+      radial-gradient(ellipse at 66% 45%, rgba(168, 85, 247, 0.13), transparent 22%),
+      linear-gradient(106deg, transparent 0 23%, rgba(15, 23, 42, 0.3) 29%, rgba(147, 197, 253, 0.12) 39%, rgba(125, 211, 252, 0.18) 48%, rgba(196, 181, 253, 0.14) 58%, rgba(15, 23, 42, 0.2) 67%, transparent 76%);
+    filter: blur(1.4px) saturate(1.3);
+    mask-image: linear-gradient(107deg, transparent 0 20%, black 34% 62%, transparent 78%);
+    mix-blend-mode: screen;
+    opacity: calc(0.62 + var(--scroll-stars) * 0.08);
+    transform: rotate(-4deg);
+    animation: nebulaFloat 58s ease-in-out infinite alternate;
+  }
+
+  .star-dust {
+    position: absolute;
+    inset: -10%;
+    z-index: 3;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    background-repeat: repeat;
+  }
+
+  .star-dust-deep {
+    background-image:
+      radial-gradient(circle, rgba(255, 255, 255, 0.74) 0 0.55px, transparent 1.1px),
+      radial-gradient(circle, rgba(147, 197, 253, 0.48) 0 0.62px, transparent 1.2px),
+      radial-gradient(circle, rgba(226, 232, 240, 0.3) 0 0.5px, transparent 1px),
+      radial-gradient(circle, rgba(196, 181, 253, 0.28) 0 0.6px, transparent 1.25px);
+    background-position: 4px 10px, 39px 27px, 86px 64px, 144px 22px;
+    background-size: 29px 29px, 43px 43px, 67px 67px, 97px 97px;
+    opacity: calc(0.48 + var(--scroll-stars) * 0.16);
+    mask-image: linear-gradient(105deg, transparent 0 16%, black 27% 72%, transparent 88%);
+    transform: rotate(-5deg) scale(1.08);
+    animation: starDrift 160s linear infinite;
+  }
+
+  .star-dust-near {
+    background-image:
+      radial-gradient(circle, rgba(255, 255, 255, 0.96) 0 0.7px, transparent 1.35px),
+      radial-gradient(circle, rgba(219, 234, 254, 0.76) 0 0.8px, transparent 1.6px),
+      radial-gradient(circle, rgba(255, 255, 255, 0.42) 0 0.55px, transparent 1.1px);
+    background-position: 14px 17px, 58px 39px, 93px 74px;
+    background-size: 53px 53px, 89px 89px, 131px 131px;
+    opacity: calc(0.34 + var(--scroll-stars) * 0.18);
+    mask-image: linear-gradient(105deg, transparent 0 21%, black 34% 68%, transparent 84%);
+    transform: rotate(-5deg) scale(1.04);
+    animation: starDrift 118s linear infinite reverse;
+  }
+
+  .nebula-cloud {
+    position: absolute;
+    z-index: 2;
+    border-radius: 999px;
+    mix-blend-mode: screen;
+    pointer-events: none;
+    filter: blur(18px) saturate(1.45);
+    opacity: calc(var(--cloud-opacity, 0.7) + var(--scroll-stars) * 0.08);
+    animation: nebulaFloat var(--cloud-duration, 42s) ease-in-out infinite alternate;
+  }
+
+  .nebula-cloud-one {
+    --cloud-opacity: 0.74;
+    --cloud-duration: 46s;
+    left: 22%;
+    top: -12%;
+    width: 88vw;
+    height: 44vw;
+    min-height: 360px;
+    transform: rotate(-9deg);
+    background:
+      radial-gradient(ellipse at 12% 52%, rgba(37, 99, 235, 0.38), transparent 26%),
+      radial-gradient(ellipse at 32% 38%, rgba(96, 165, 250, 0.26), transparent 24%),
+      radial-gradient(ellipse at 52% 24%, rgba(168, 85, 247, 0.36), transparent 23%),
+      radial-gradient(ellipse at 78% 50%, rgba(59, 130, 246, 0.42), transparent 28%),
+      conic-gradient(from 214deg at 54% 45%, transparent 0 14%, rgba(96, 165, 250, 0.28) 22%, transparent 36%, rgba(168, 85, 247, 0.22) 51%, transparent 68%, rgba(59, 130, 246, 0.24) 82%, transparent 100%);
+    mask-image: radial-gradient(ellipse at center, black 0 54%, transparent 76%);
+  }
+
+  .nebula-cloud-two {
+    --cloud-opacity: 0.54;
+    --cloud-duration: 52s;
+    left: -20%;
+    top: 18%;
+    width: 74vw;
+    height: 38vw;
+    min-height: 310px;
+    transform: rotate(11deg);
+    background:
+      radial-gradient(ellipse at 18% 42%, rgba(59, 130, 246, 0.34), transparent 28%),
+      radial-gradient(ellipse at 44% 58%, rgba(147, 51, 234, 0.2), transparent 30%),
+      radial-gradient(ellipse at 76% 34%, rgba(37, 99, 235, 0.28), transparent 34%),
+      conic-gradient(from 34deg at 43% 47%, transparent 0 12%, rgba(96, 165, 250, 0.24) 22%, transparent 38%, rgba(168, 85, 247, 0.16) 50%, transparent 72%, rgba(59, 130, 246, 0.18) 84%, transparent 100%);
+    mask-image: radial-gradient(ellipse at center, black 0 48%, transparent 76%);
+  }
+
+  .nebula-cloud-three {
+    --cloud-opacity: 0.44;
+    --cloud-duration: 58s;
+    right: -26%;
+    bottom: -18%;
+    width: 78vw;
+    height: 42vw;
+    min-height: 340px;
+    transform: rotate(-17deg);
+    background:
+      radial-gradient(ellipse at 20% 40%, rgba(37, 99, 235, 0.32), transparent 28%),
+      radial-gradient(ellipse at 52% 52%, rgba(79, 70, 229, 0.26), transparent 32%),
+      radial-gradient(ellipse at 78% 36%, rgba(168, 85, 247, 0.2), transparent 28%),
+      conic-gradient(from 142deg at 48% 45%, transparent 0 12%, rgba(59, 130, 246, 0.22) 24%, transparent 42%, rgba(147, 51, 234, 0.16) 58%, transparent 78%, rgba(96, 165, 250, 0.16) 90%, transparent 100%);
+    mask-image: radial-gradient(ellipse at center, black 0 50%, transparent 75%);
   }
 
   .spark-star {
-    --star-size: 4px;
-    --star-low: 0.24;
-    --star-mid: 0.46;
-    --star-high: 0.92;
+    --star-size: 2px;
+    --star-low: 0.18;
+    --star-mid: 0.34;
+    --star-high: 0.78;
     position: absolute;
+    z-index: 4;
     left: var(--star-left);
     top: var(--star-top);
     width: var(--star-size);
     height: var(--star-size);
     border-radius: 999px;
     background: var(--star-color, #ffffff);
-    box-shadow: 0 0 var(--star-glow, 16px) var(--star-color, rgba(186, 230, 253, 0.88));
+    box-shadow: 0 0 var(--star-glow, 10px) var(--star-color, rgba(186, 230, 253, 0.68));
     opacity: var(--star-low);
     animation: starGlimmer var(--star-duration, 4.6s) ease-in-out infinite;
     animation-delay: var(--star-delay, 0s);
@@ -271,9 +451,9 @@
   }
 
   .spark-soft {
-    --star-high: 0.58;
-    --star-mid: 0.34;
-    --star-glow: 9px;
+    --star-high: 0.48;
+    --star-mid: 0.28;
+    --star-glow: 6px;
   }
 
   .spark-muted {
@@ -284,24 +464,24 @@
     animation-duration: 8s;
   }
 
-  .spark-one { --star-left: 8%; --star-top: 18%; --star-size: 5px; --star-color: rgba(240, 249, 255, 0.98); --star-glow: 22px; --star-delay: -1.2s; }
-  .spark-two { --star-left: 17%; --star-top: 67%; --star-size: 3px; --star-color: rgba(125, 211, 252, 0.9); --star-delay: -3.4s; }
-  .spark-three { --star-left: 27%; --star-top: 32%; --star-size: 2px; --star-color: rgba(255, 255, 255, 0.7); --star-delay: -5.1s; }
-  .spark-four { --star-left: 38%; --star-top: 83%; --star-size: 6px; --star-color: rgba(186, 230, 253, 0.96); --star-glow: 26px; --star-duration: 5.7s; --star-delay: -2.6s; }
-  .spark-five { --star-left: 49%; --star-top: 21%; --star-size: 3px; --star-color: rgba(216, 180, 254, 0.82); --star-duration: 6.5s; --star-delay: -4s; }
-  .spark-six { --star-left: 61%; --star-top: 58%; --star-size: 4px; --star-color: rgba(34, 211, 238, 0.92); --star-glow: 20px; --star-delay: -0.8s; }
-  .spark-seven { --star-left: 72%; --star-top: 35%; --star-size: 2px; --star-color: rgba(125, 211, 252, 0.55); --star-delay: -6.8s; }
-  .spark-eight { --star-left: 83%; --star-top: 74%; --star-size: 5px; --star-color: rgba(255, 255, 255, 0.95); --star-glow: 24px; --star-duration: 4.2s; --star-delay: -2.1s; }
-  .spark-nine { --star-left: 92%; --star-top: 24%; --star-size: 3px; --star-color: rgba(147, 197, 253, 0.72); --star-delay: -3.9s; }
-  .spark-ten { --star-left: 95%; --star-top: 88%; --star-size: 4px; --star-color: rgba(34, 211, 238, 0.86); --star-glow: 18px; --star-duration: 7.1s; --star-delay: -5.5s; }
+  .spark-one { --star-left: 8%; --star-top: 18%; --star-size: 3px; --star-color: rgba(240, 249, 255, 0.9); --star-glow: 14px; --star-delay: -1.2s; }
+  .spark-two { --star-left: 17%; --star-top: 67%; --star-size: 2px; --star-color: rgba(191, 219, 254, 0.78); --star-delay: -3.4s; }
+  .spark-three { --star-left: 27%; --star-top: 32%; --star-size: 1.5px; --star-color: rgba(255, 255, 255, 0.62); --star-delay: -5.1s; }
+  .spark-four { --star-left: 38%; --star-top: 83%; --star-size: 3.5px; --star-color: rgba(226, 232, 240, 0.86); --star-glow: 16px; --star-duration: 5.7s; --star-delay: -2.6s; }
+  .spark-five { --star-left: 49%; --star-top: 21%; --star-size: 2px; --star-color: rgba(196, 181, 253, 0.62); --star-duration: 6.5s; --star-delay: -4s; }
+  .spark-six { --star-left: 61%; --star-top: 58%; --star-size: 2.5px; --star-color: rgba(125, 211, 252, 0.76); --star-glow: 12px; --star-delay: -0.8s; }
+  .spark-seven { --star-left: 72%; --star-top: 35%; --star-size: 1.5px; --star-color: rgba(147, 197, 253, 0.5); --star-delay: -6.8s; }
+  .spark-eight { --star-left: 83%; --star-top: 74%; --star-size: 3px; --star-color: rgba(255, 255, 255, 0.88); --star-glow: 15px; --star-duration: 4.2s; --star-delay: -2.1s; }
+  .spark-nine { --star-left: 92%; --star-top: 24%; --star-size: 2px; --star-color: rgba(147, 197, 253, 0.64); --star-delay: -3.9s; }
+  .spark-ten { --star-left: 95%; --star-top: 88%; --star-size: 2.5px; --star-color: rgba(125, 211, 252, 0.66); --star-glow: 10px; --star-duration: 7.1s; --star-delay: -5.5s; }
 
   .scroll-spark {
-    --star-low: calc(0.02 + var(--scroll-stars) * 0.22);
-    --star-mid: calc(0.08 + var(--scroll-stars) * 0.48);
-    --star-high: calc(0.18 + var(--scroll-stars) * 0.82);
-    --star-glow: calc(4px + var(--scroll-stars) * 24px);
-    opacity: calc(var(--scroll-stars) * 0.92);
-    transform: scale(calc(0.72 + var(--scroll-stars) * 0.46));
+    --star-low: calc(0.02 + var(--scroll-stars) * 0.18);
+    --star-mid: calc(0.08 + var(--scroll-stars) * 0.42);
+    --star-high: calc(0.18 + var(--scroll-stars) * 0.72);
+    --star-glow: calc(3px + var(--scroll-stars) * 18px);
+    opacity: calc(var(--scroll-stars) * 0.82);
+    transform: scale(calc(0.72 + var(--scroll-stars) * 0.36));
     transition: opacity 180ms ease, transform 180ms ease, box-shadow 180ms ease;
   }
 
@@ -316,17 +496,249 @@
   .scroll-spark-nine { --star-left: 90%; --star-top: 63%; --star-size: 2px; --star-color: rgba(125, 211, 252, 0.76); --star-delay: -6.4s; }
   .scroll-spark-ten { --star-left: 5%; --star-top: 73%; --star-size: 5px; --star-color: rgba(34, 211, 238, 0.72); --star-delay: -3.8s; }
 
+  .bright-star {
+    --star-cross: 46px;
+    position: absolute;
+    z-index: 5;
+    left: var(--bright-left);
+    top: var(--bright-top);
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow:
+      0 0 10px rgba(255, 255, 255, 0.95),
+      0 0 24px rgba(147, 197, 253, 0.7),
+      0 0 46px rgba(59, 130, 246, 0.42);
+    opacity: calc(var(--bright-opacity, 0.78) + var(--scroll-stars) * 0.14);
+    transform: translate(-50%, -50%);
+    animation: starGlimmer var(--bright-duration, 6.4s) ease-in-out infinite;
+    animation-delay: var(--bright-delay, 0s);
+    mix-blend-mode: screen;
+  }
+
+  .bright-star::before,
+  .bright-star::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--star-cross);
+    height: 1px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+    transform: translate(-50%, -50%);
+  }
+
+  .bright-star::after {
+    width: 1px;
+    height: var(--star-cross);
+    background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.82), transparent);
+  }
+
+  .bright-star-one { --bright-left: 25%; --bright-top: 32%; --star-cross: 58px; --bright-opacity: 0.82; --bright-delay: -1.4s; }
+  .bright-star-two { --bright-left: 67%; --bright-top: 62%; --star-cross: 44px; --bright-opacity: 0.68; --bright-duration: 7.6s; --bright-delay: -4.1s; }
+  .bright-star-three { --bright-left: 84%; --bright-top: 18%; --star-cross: 34px; --bright-opacity: 0.5; --bright-duration: 8.2s; --bright-delay: -2.7s; }
+
+  .shooting-star {
+    position: absolute;
+    z-index: 6;
+    left: 37%;
+    top: 16%;
+    width: 128px;
+    height: 1px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.92), rgba(191, 219, 254, 0.68), transparent);
+    filter: drop-shadow(0 0 8px rgba(147, 197, 253, 0.54));
+    opacity: 0;
+    transform-origin: center;
+    animation: quietShootingStar 16s ease-in-out infinite;
+    mix-blend-mode: screen;
+  }
+
+  .shooting-star-one {
+    animation-delay: -5s;
+  }
+
+  .sky-object {
+    position: absolute;
+    z-index: 7;
+    left: 0;
+    top: var(--object-top, 28%);
+    pointer-events: none;
+    opacity: 0;
+    mix-blend-mode: screen;
+    will-change: transform, opacity;
+    animation-delay: calc(var(--object-delay, 0s) + var(--slot-delay, 0s));
+  }
+
+  .sky-object-1 { --slot-delay: -3.6s; }
+  .sky-object-2 { --slot-delay: -10.4s; }
+  .sky-object-3 { --slot-delay: -17.2s; }
+  .sky-object-4 { --slot-delay: -24.8s; }
+  .sky-object-5 { --slot-delay: -31.3s; }
+  .sky-object-6 { --slot-delay: -39.7s; }
+
+  .sky-object[class*="comet-variant"] {
+    width: var(--comet-width, 180px);
+    height: var(--comet-height, 2px);
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent 0%, var(--comet-tail, rgba(96, 165, 250, 0.26)) 24%, var(--comet-core, rgba(255, 255, 255, 0.96)) 78%, transparent 100%);
+    filter: drop-shadow(0 0 var(--comet-glow, 12px) var(--comet-haze, rgba(96, 165, 250, 0.36)));
+    animation: skyObjectFly var(--object-duration, 19s) linear infinite;
+  }
+
+  .sky-object[class*="comet-variant"]::before {
+    content: "";
+    position: absolute;
+    right: 20px;
+    top: calc((var(--head-size, 6px) - var(--comet-height, 2px)) / -2);
+    width: var(--head-size, 6px);
+    height: var(--head-size, 6px);
+    border-radius: 999px;
+    background: var(--comet-core, rgba(255, 255, 255, 0.96));
+    box-shadow:
+      0 0 12px rgba(255, 255, 255, 0.82),
+      0 0 var(--head-glow, 26px) var(--comet-haze, rgba(96, 165, 250, 0.36));
+  }
+
+  .comet-variant-03,
+  .comet-variant-06,
+  .comet-variant-09,
+  .comet-variant-12 {
+    background: linear-gradient(270deg, transparent 0%, var(--comet-tail, rgba(96, 165, 250, 0.26)) 24%, var(--comet-core, rgba(255, 255, 255, 0.96)) 78%, transparent 100%);
+    animation-name: skyObjectFlyReverse;
+  }
+
+  .comet-variant-03::before,
+  .comet-variant-06::before,
+  .comet-variant-09::before,
+  .comet-variant-12::before {
+    left: 20px;
+    right: auto;
+  }
+
+  .comet-variant-01 { --object-top: -6%; --from-x: -34vw; --to-x: 136vw; --angle: -18deg; --fly-y: 34vh; --comet-width: 230px; --comet-height: 3px; --head-size: 8px; --object-duration: 17s; --object-opacity: 0.92; --comet-tail: rgba(56, 189, 248, 0.48); --comet-haze: rgba(56, 189, 248, 0.42); --object-delay: -2s; }
+  .comet-variant-02 { --object-top: 108%; --from-x: -20vw; --to-x: 118vw; --angle: -7deg; --fly-y: -52vh; --comet-width: 145px; --comet-height: 1.5px; --head-size: 5px; --object-duration: 23s; --object-opacity: 0.58; --comet-tail: rgba(196, 181, 253, 0.4); --comet-haze: rgba(168, 85, 247, 0.28); --object-delay: -9s; }
+  .comet-variant-03 { --object-top: 5%; --from-x: 124vw; --to-x: -136vw; --angle: 14deg; --fly-y: 42vh; --comet-width: 190px; --comet-height: 2px; --head-size: 6px; --object-duration: 21s; --object-opacity: 0.72; --comet-tail: rgba(147, 197, 253, 0.45); --comet-haze: rgba(96, 165, 250, 0.36); --object-delay: -6s; }
+  .comet-variant-04 { --object-top: -12%; --from-x: 18vw; --to-x: 92vw; --angle: -26deg; --fly-y: 118vh; --comet-width: 118px; --comet-height: 1px; --head-size: 4px; --object-duration: 18s; --object-opacity: 0.46; --comet-tail: rgba(255, 255, 255, 0.32); --comet-haze: rgba(219, 234, 254, 0.2); --object-delay: -12s; }
+  .comet-variant-05 { --object-top: 116%; --from-x: 8vw; --to-x: 106vw; --angle: -12deg; --fly-y: -76vh; --comet-width: 270px; --comet-height: 3px; --head-size: 9px; --object-duration: 26s; --object-opacity: 0.86; --comet-tail: rgba(125, 211, 252, 0.54); --comet-haze: rgba(14, 165, 233, 0.38); --object-delay: -15s; }
+  .comet-variant-06 { --object-top: 72%; --from-x: 126vw; --to-x: -120vw; --angle: 8deg; --fly-y: -28vh; --comet-width: 92px; --comet-height: 1px; --head-size: 3px; --object-duration: 16s; --object-opacity: 0.42; --comet-tail: rgba(216, 180, 254, 0.36); --comet-haze: rgba(168, 85, 247, 0.2); --object-delay: -5s; }
+  .comet-variant-07 { --object-top: 24%; --from-x: -38vw; --to-x: 122vw; --angle: -4deg; --fly-y: -18vh; --comet-width: 165px; --comet-height: 2px; --head-size: 6px; --object-duration: 20s; --object-opacity: 0.62; --comet-tail: rgba(191, 219, 254, 0.46); --comet-haze: rgba(147, 197, 253, 0.3); --object-delay: -10s; }
+  .comet-variant-08 { --object-top: -18%; --from-x: 72vw; --to-x: 10vw; --angle: -34deg; --fly-y: 128vh; --comet-width: 210px; --comet-height: 2px; --head-size: 7px; --object-duration: 24s; --object-opacity: 0.68; --comet-tail: rgba(59, 130, 246, 0.5); --comet-haze: rgba(37, 99, 235, 0.34); --object-delay: -7s; }
+  .comet-variant-09 { --object-top: -4%; --from-x: 132vw; --to-x: -116vw; --angle: 23deg; --fly-y: 54vh; --comet-width: 132px; --comet-height: 1.5px; --head-size: 4px; --object-duration: 19s; --object-opacity: 0.52; --comet-tail: rgba(255, 255, 255, 0.4); --comet-haze: rgba(219, 234, 254, 0.24); --object-delay: -14s; }
+  .comet-variant-10 { --object-top: 58%; --from-x: -18vw; --to-x: 126vw; --angle: -10deg; --fly-y: -42vh; --comet-width: 108px; --comet-height: 1px; --head-size: 3px; --object-duration: 15s; --object-opacity: 0.38; --comet-tail: rgba(147, 197, 253, 0.34); --comet-haze: rgba(147, 197, 253, 0.18); --object-delay: -4s; }
+  .comet-variant-11 { --object-top: 112%; --from-x: -24vw; --to-x: 138vw; --angle: -20deg; --fly-y: -72vh; --comet-width: 245px; --comet-height: 2.5px; --head-size: 8px; --object-duration: 29s; --object-opacity: 0.78; --comet-tail: rgba(34, 211, 238, 0.5); --comet-haze: rgba(8, 145, 178, 0.34); --object-delay: -18s; }
+  .comet-variant-12 { --object-top: 92%; --from-x: 122vw; --to-x: -128vw; --angle: 18deg; --fly-y: -64vh; --comet-width: 154px; --comet-height: 2px; --head-size: 5px; --object-duration: 22s; --object-opacity: 0.58; --comet-tail: rgba(196, 181, 253, 0.42); --comet-haze: rgba(126, 34, 206, 0.26); --object-delay: -11s; }
+
+  .sky-object[class*="asteroid-type"] {
+    width: var(--asteroid-size, 34px);
+    height: var(--asteroid-size, 34px);
+    background:
+      radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.22), transparent 0 12%, transparent 13%),
+      radial-gradient(circle at 64% 58%, rgba(15, 23, 42, 0.34), transparent 0 13%, transparent 14%),
+      linear-gradient(135deg, var(--asteroid-light, #b7a28f), var(--asteroid-mid, #746153) 48%, var(--asteroid-dark, #2f2a27));
+    border: 1px solid rgba(226, 232, 240, 0.22);
+    border-radius: var(--asteroid-radius, 47% 55% 43% 61%);
+    box-shadow:
+      inset -8px -8px 14px rgba(2, 6, 23, 0.42),
+      inset 5px 4px 12px rgba(255, 255, 255, 0.12),
+      0 0 18px rgba(147, 197, 253, 0.14);
+    animation: asteroidFly var(--object-duration, 28s) linear infinite;
+  }
+
+  .sky-object[class*="asteroid-type"]::before,
+  .sky-object[class*="asteroid-type"]::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.32);
+    box-shadow: inset 1px 1px 3px rgba(255, 255, 255, 0.12);
+  }
+
+  .sky-object[class*="asteroid-type"]::before {
+    left: 18%;
+    top: 42%;
+    width: 26%;
+    height: 22%;
+  }
+
+  .sky-object[class*="asteroid-type"]::after {
+    right: 17%;
+    top: 24%;
+    width: 18%;
+    height: 18%;
+  }
+
+  .asteroid-type-01 { --object-top: -8%; --from-x: -22vw; --to-x: 118vw; --fly-y: 86vh; --asteroid-size: 34px; --object-duration: 31s; --object-opacity: 0.74; --object-scale: 1; --spin: 560deg; --object-delay: -6s; }
+  .asteroid-type-02 { --object-top: 104%; --from-x: 118vw; --to-x: -112vw; --fly-y: -68vh; --asteroid-size: 24px; --object-duration: 24s; --object-opacity: 0.58; --object-scale: 0.86; --spin: -480deg; --asteroid-radius: 62% 38% 58% 42%; --asteroid-light: #9ca3af; --asteroid-mid: #64748b; --asteroid-dark: #1e293b; --object-delay: -12s; }
+  .asteroid-type-03 { --object-top: 46%; --from-x: 128vw; --to-x: -120vw; --fly-y: 18vh; --asteroid-size: 48px; --object-duration: 38s; --object-opacity: 0.68; --object-scale: 1.08; --spin: 390deg; --asteroid-radius: 44% 61% 53% 49%; --asteroid-light: #c4a484; --asteroid-mid: #7c5f46; --asteroid-dark: #2f241d; --object-delay: -19s; }
+
+  .ufo-detailed {
+    --object-top: 78%;
+    --from-x: 120vw;
+    --to-x: -110vw;
+    --fly-y: -52vh;
+    --mid-y: -20vh;
+    --object-duration: 34s;
+    --object-opacity: 0.86;
+    --object-scale: 0.92;
+    width: 92px;
+    height: 34px;
+    border-radius: 999px 999px 62% 62%;
+    background:
+      radial-gradient(circle at 24% 66%, rgba(34, 211, 238, 0.95) 0 3px, transparent 3.5px),
+      radial-gradient(circle at 49% 73%, rgba(186, 230, 253, 0.9) 0 3px, transparent 3.5px),
+      radial-gradient(circle at 74% 66%, rgba(34, 211, 238, 0.95) 0 3px, transparent 3.5px),
+      linear-gradient(180deg, rgba(241, 245, 249, 0.96), rgba(125, 211, 252, 0.5) 44%, rgba(15, 23, 42, 0.88) 48%, rgba(37, 99, 235, 0.58));
+    border: 1px solid rgba(186, 230, 253, 0.62);
+    box-shadow:
+      inset 0 3px 9px rgba(255, 255, 255, 0.34),
+      inset 0 -8px 14px rgba(2, 6, 23, 0.58),
+      0 0 22px rgba(34, 211, 238, 0.44),
+      0 0 48px rgba(59, 130, 246, 0.24);
+    animation: ufoPatrol var(--object-duration) ease-in-out infinite;
+  }
+
+  .ufo-detailed::before {
+    content: "";
+    position: absolute;
+    left: 27px;
+    top: -20px;
+    width: 39px;
+    height: 27px;
+    border-radius: 999px 999px 16px 16px;
+    background:
+      radial-gradient(circle at 31% 28%, rgba(255, 255, 255, 0.86), transparent 0 12%, transparent 13%),
+      linear-gradient(135deg, rgba(224, 242, 254, 0.92), rgba(56, 189, 248, 0.3) 54%, rgba(30, 41, 59, 0.74));
+    border: 1px solid rgba(191, 219, 254, 0.58);
+    box-shadow: inset -5px -5px 12px rgba(15, 23, 42, 0.28);
+  }
+
+  .ufo-detailed::after {
+    content: "";
+    position: absolute;
+    left: 17px;
+    top: 27px;
+    width: 58px;
+    height: 70px;
+    background: linear-gradient(180deg, rgba(34, 211, 238, 0.2), rgba(59, 130, 246, 0.08) 44%, transparent 78%);
+    clip-path: polygon(36% 0, 64% 0, 100% 100%, 0 100%);
+    filter: blur(1px);
+    opacity: 0.66;
+  }
+
   .meteor {
     --angle: -17deg;
     --travel-y: 30vh;
-    --meteor-opacity: 0.86;
-    --meteor-width: 190px;
+    --meteor-opacity: 0.54;
+    --meteor-width: 140px;
     --meteor-height: 2px;
     --head-size: 7px;
     --head-offset: 34px;
     --meteor-core: rgba(255, 255, 255, 0.98);
-    --meteor-tail: rgba(34, 211, 238, 0.74);
-    --meteor-haze: rgba(34, 211, 238, 0.48);
+    --meteor-tail: rgba(191, 219, 254, 0.38);
+    --meteor-haze: rgba(125, 211, 252, 0.24);
     position: absolute;
     left: 0;
     top: 12%;
@@ -364,60 +776,23 @@
     right: auto;
   }
 
-  .meteor-one { top: 11%; --travel-y: 24vh; --duration: 11.5s; --meteor-width: 260px; --meteor-height: 3px; --head-size: 9px; --meteor-opacity: 0.96; --meteor-glow: 18px; --head-glow: 44px; animation-delay: -1.8s; }
-  .meteor-two { top: 28%; --angle: -8deg; --travel-y: 13vh; --duration: 16.5s; --meteor-width: 118px; --meteor-height: 1px; --head-size: 4px; --meteor-opacity: 0.34; --meteor-glow: 5px; animation-delay: -7.5s; }
-  .meteor-three { top: 69%; --angle: -22deg; --travel-y: 34vh; --duration: 18s; --meteor-width: 190px; --meteor-height: 2px; --head-size: 6px; --meteor-opacity: 0.72; animation-delay: -11s; }
-  .meteor-four { top: 18%; --angle: 13deg; --travel-y: 20vh; --duration: 13.5s; --meteor-width: 155px; --meteor-height: 1.5px; --head-size: 5px; --meteor-opacity: 0.68; --meteor-tail: rgba(167, 139, 250, 0.62); --meteor-haze: rgba(167, 139, 250, 0.36); animation-delay: -4.3s; }
-  .meteor-five { top: 77%; --angle: 7deg; --travel-y: -18vh; --duration: 21s; --meteor-width: 285px; --meteor-height: 3px; --head-size: 8px; --meteor-opacity: 0.9; --meteor-tail: rgba(125, 211, 252, 0.78); --meteor-haze: rgba(59, 130, 246, 0.42); animation-delay: -13.2s; }
-  .meteor-six { top: 88%; --angle: -4deg; --travel-y: -10vh; --duration: 19s; --meteor-width: 82px; --meteor-height: 1px; --head-size: 3px; --meteor-opacity: 0.26; --meteor-glow: 3px; animation-delay: -2.9s; }
-  .meteor-seven { top: 46%; --angle: 20deg; --travel-y: 30vh; --duration: 24s; --meteor-width: 112px; --meteor-height: 1px; --head-size: 4px; --meteor-opacity: 0.42; --meteor-tail: rgba(255, 255, 255, 0.42); --meteor-haze: rgba(125, 211, 252, 0.24); animation-delay: -18.6s; }
-
-  .ufo {
-    --float-y: 16vh;
-    position: absolute;
-    left: 0;
-    width: 66px;
-    height: 22px;
-    border-radius: 999px 999px 60% 60%;
-    background: linear-gradient(180deg, rgba(224, 242, 254, 0.88), rgba(34, 211, 238, 0.46) 48%, rgba(15, 23, 42, 0.82) 50%, rgba(59, 130, 246, 0.6));
-    box-shadow: 0 0 18px rgba(34, 211, 238, 0.48), 0 0 42px rgba(59, 130, 246, 0.24);
-    opacity: 0;
-    animation: ufoCruise var(--duration, 31s) ease-in-out infinite;
-  }
-
-  .ufo::before {
-    content: "";
-    position: absolute;
-    left: 19px;
-    top: -13px;
-    width: 29px;
-    height: 19px;
-    border-radius: 999px 999px 14px 14px;
-    background: linear-gradient(135deg, rgba(240, 249, 255, 0.92), rgba(34, 211, 238, 0.28));
-    border: 1px solid rgba(186, 230, 253, 0.42);
-  }
-
-  .ufo::after {
-    content: "";
-    position: absolute;
-    left: 13px;
-    top: 19px;
-    width: 42px;
-    height: 46px;
-    background: linear-gradient(180deg, rgba(34, 211, 238, 0.18), transparent 76%);
-    clip-path: polygon(32% 0, 68% 0, 100% 100%, 0 100%);
-    opacity: 0.6;
-  }
-
-  .ufo-one { top: 28%; --float-y: 18vh; --duration: 34s; animation-delay: -9s; }
-  .ufo-two { top: 62%; --float-y: -12vh; --duration: 42s; animation-delay: -24s; transform: scale(0.72); }
+  .meteor-one { top: 11%; --travel-y: 24vh; --duration: 22s; --meteor-width: 170px; --meteor-height: 2px; --head-size: 5px; --meteor-opacity: 0.58; --meteor-glow: 10px; --head-glow: 22px; animation-delay: -3.8s; }
+  .meteor-two { top: 28%; --angle: -8deg; --travel-y: 13vh; --duration: 31s; --meteor-width: 92px; --meteor-height: 1px; --head-size: 3px; --meteor-opacity: 0.24; --meteor-glow: 4px; animation-delay: -12.5s; }
+  .meteor-three { top: 69%; --angle: -22deg; --travel-y: 34vh; --duration: 36s; --meteor-width: 132px; --meteor-height: 1.5px; --head-size: 4px; --meteor-opacity: 0.42; animation-delay: -19s; }
+  .meteor-four { top: 18%; --angle: 13deg; --travel-y: 20vh; --duration: 28s; --meteor-width: 108px; --meteor-height: 1px; --head-size: 3px; --meteor-opacity: 0.36; --meteor-tail: rgba(196, 181, 253, 0.34); --meteor-haze: rgba(167, 139, 250, 0.18); animation-delay: -8.3s; }
+  .meteor-five { top: 77%; --angle: 7deg; --travel-y: -18vh; --duration: 42s; --meteor-width: 190px; --meteor-height: 2px; --head-size: 5px; --meteor-opacity: 0.5; --meteor-tail: rgba(191, 219, 254, 0.42); --meteor-haze: rgba(59, 130, 246, 0.24); animation-delay: -24.2s; }
+  .meteor-six { top: 88%; --angle: -4deg; --travel-y: -10vh; --duration: 37s; --meteor-width: 64px; --meteor-height: 1px; --head-size: 2.5px; --meteor-opacity: 0.18; --meteor-glow: 2px; animation-delay: -5.9s; }
+  .meteor-seven { top: 46%; --angle: 20deg; --travel-y: 30vh; --duration: 48s; --meteor-width: 84px; --meteor-height: 1px; --head-size: 3px; --meteor-opacity: 0.26; --meteor-tail: rgba(255, 255, 255, 0.3); --meteor-haze: rgba(125, 211, 252, 0.16); animation-delay: -30.6s; }
 
   @media (prefers-reduced-motion: reduce) {
     .space-backdrop::before,
     .space-backdrop::after,
+    .milky-way-band,
+    .star-dust,
     .spark-star,
-    .meteor,
-    .ufo {
+    .shooting-star,
+    .sky-object,
+    .meteor {
       animation: none;
     }
   }
@@ -461,10 +836,10 @@
 
   .cosmic-banner {
     background:
-      linear-gradient(135deg, rgba(34, 211, 238, 0.32), rgba(37, 99, 235, 0.26) 48%, rgba(139, 92, 246, 0.22)),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-      linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-    background-size: auto, 48px 48px, 48px 48px;
+      radial-gradient(ellipse at 16% 28%, rgba(34, 211, 238, 0.28), transparent 34%),
+      radial-gradient(ellipse at 82% 18%, rgba(139, 92, 246, 0.24), transparent 38%),
+      linear-gradient(135deg, rgba(8, 78, 112, 0.7), rgba(30, 64, 175, 0.52) 48%, rgba(49, 46, 129, 0.58));
+    background-size: auto;
   }
 
   .nebula-page {
@@ -510,12 +885,474 @@
     overscroll-behavior: contain;
   }
 
+  .nebula-main-column:has(.settings-stage) {
+    overflow: hidden;
+  }
+
   .nebula-card {
     @apply border border-x-border/75 bg-x-panel/70 shadow-panel backdrop-blur-xl;
   }
 
   .nebula-pill {
     @apply rounded-full border border-x-border/70 bg-x-surface/80 px-3 py-1.5 text-sm text-x-muted transition hover:border-x-accent/70 hover:text-x-text;
+  }
+
+  .settings-stage {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    padding: 18px;
+    color: #eff8ff;
+    background:
+      radial-gradient(circle at 4% 28%, rgba(34, 211, 238, 0.1), transparent 32%),
+      radial-gradient(circle at 94% 16%, rgba(139, 92, 246, 0.14), transparent 36%),
+      rgba(2, 6, 23, 0.18);
+  }
+
+  .settings-window {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    width: min(1080px, 100%);
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    margin: 0 auto;
+    overflow: hidden;
+    border: 1px solid rgba(34, 211, 238, 0.22);
+    border-radius: 24px;
+    background:
+      radial-gradient(circle at 0% 20%, rgba(34, 211, 238, 0.1), transparent 34%),
+      radial-gradient(circle at 100% 12%, rgba(96, 165, 250, 0.1), transparent 34%),
+      linear-gradient(135deg, rgba(3, 7, 18, 0.92), rgba(8, 18, 36, 0.9) 42%, rgba(8, 10, 28, 0.94));
+    box-shadow: 0 26px 80px rgba(2, 6, 23, 0.58), 0 0 44px rgba(34, 211, 238, 0.08);
+    backdrop-filter: blur(18px);
+  }
+
+  .settings-sidebar {
+    display: flex;
+    min-height: 0;
+    overflow: hidden;
+    flex-direction: column;
+    border-right: 1px solid rgba(34, 211, 238, 0.18);
+    background:
+      radial-gradient(circle at 0% 28%, rgba(34, 211, 238, 0.12), transparent 36%),
+      linear-gradient(180deg, rgba(8, 18, 36, 0.92), rgba(3, 7, 18, 0.94));
+    padding: 18px;
+  }
+
+  .settings-sidebar-header {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) 40px;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .settings-sidebar-header h1 {
+    font-size: 20px;
+    font-weight: 900;
+    line-height: 1.1;
+    color: #eff8ff;
+  }
+
+  .settings-kicker {
+    margin-bottom: 3px;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #8eb1d8;
+  }
+
+  .settings-square-button,
+  .settings-close-button {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(34, 211, 238, 0.22);
+    background: rgba(5, 15, 30, 0.72);
+    color: #9bb8d8;
+    transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+  }
+
+  .settings-square-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .settings-close-button {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+  }
+
+  .settings-square-button:hover,
+  .settings-close-button:hover {
+    border-color: rgba(34, 211, 238, 0.65);
+    background: rgba(34, 211, 238, 0.12);
+    color: #22d3ee;
+    box-shadow: 0 0 18px rgba(34, 211, 238, 0.14);
+  }
+
+  .settings-sidebar-nav {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 22px;
+    overflow-y: auto;
+    padding-right: 2px;
+  }
+
+  .settings-sidebar-title {
+    margin-bottom: 8px;
+    padding-left: 10px;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: #6f8daf;
+  }
+
+  .settings-sidebar-links {
+    display: grid;
+    gap: 4px;
+  }
+
+  .settings-sidebar-link {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    width: 100%;
+    min-height: 42px;
+    align-items: center;
+    gap: 10px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    padding: 0 11px;
+    color: #9bb8d8;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+    transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .settings-sidebar-link:hover {
+    background: rgba(34, 211, 238, 0.1);
+    color: #eff8ff;
+    box-shadow: inset 3px 0 0 #22d3ee;
+  }
+
+  .settings-sidebar-link-active {
+    background: rgba(34, 211, 238, 0.14);
+    color: #eff8ff;
+    box-shadow: inset 3px 0 0 #22d3ee, 0 0 18px rgba(34, 211, 238, 0.08);
+  }
+
+  .settings-sidebar-link-danger {
+    color: #f87171;
+  }
+
+  .settings-sidebar-link-danger.settings-sidebar-link-active {
+    background: rgba(248, 113, 113, 0.12);
+    color: #fca5a5;
+    box-shadow: inset 3px 0 0 #f87171, 0 0 18px rgba(248, 113, 113, 0.08);
+  }
+
+  .settings-sidebar-exit {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 24px;
+    border-radius: 12px;
+    padding: 11px 12px;
+    color: #f87171;
+    font-size: 14px;
+    font-weight: 800;
+    transition: background 160ms ease;
+  }
+
+  .settings-sidebar-exit:hover {
+    background: rgba(248, 113, 113, 0.1);
+  }
+
+  .settings-main {
+    display: flex;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    flex-direction: column;
+    background:
+      radial-gradient(circle at 12% 10%, rgba(34, 211, 238, 0.08), transparent 28%),
+      radial-gradient(circle at 88% 0%, rgba(99, 102, 241, 0.08), transparent 32%),
+      rgba(3, 7, 18, 0.42);
+  }
+
+  .settings-main-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(34, 211, 238, 0.18);
+    background: rgba(3, 7, 18, 0.78);
+    padding: 18px 22px;
+    backdrop-filter: blur(14px);
+  }
+
+  .settings-main-header p {
+    margin-bottom: 4px;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #8eb1d8;
+  }
+
+  .settings-main-header h2 {
+    font-size: 22px;
+    font-weight: 900;
+    line-height: 1.1;
+    color: #eff8ff;
+  }
+
+  .settings-main-body {
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 24px 32px;
+    overscroll-behavior: contain;
+  }
+
+  .settings-section {
+    border-bottom: 1px solid rgba(34, 211, 238, 0.15);
+    padding: 24px 0;
+    scroll-margin-top: 82px;
+  }
+
+  .settings-section:first-child {
+    padding-top: 0;
+  }
+
+  .settings-section:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .settings-section-head {
+    margin-bottom: 18px;
+    max-width: 620px;
+  }
+
+  .settings-section-head h2 {
+    font-size: 18px;
+    font-weight: 900;
+    color: #eff8ff;
+  }
+
+  .settings-section-head p {
+    margin-top: 6px;
+    color: #8eb1d8;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .settings-section-body {
+    max-width: 680px;
+  }
+
+  .settings-label {
+    display: block;
+    margin-bottom: 7px;
+    color: #8eb1d8;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .settings-input {
+    width: 100%;
+    border: 1px solid rgba(34, 211, 238, 0.28);
+    border-radius: 12px;
+    background: rgba(3, 12, 24, 0.72);
+    padding: 11px 13px;
+    color: #eff8ff;
+    font-size: 15px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .settings-input::placeholder {
+    color: rgba(142, 177, 216, 0.72);
+  }
+
+  .settings-input:focus {
+    outline: none;
+    border-color: rgba(34, 211, 238, 0.75);
+    box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.13), 0 0 22px rgba(34, 211, 238, 0.08);
+  }
+
+  .settings-textarea {
+    min-height: 124px;
+    resize: vertical;
+  }
+
+  .settings-hint {
+    display: block;
+    margin-top: 7px;
+    color: #8eb1d8;
+    font-size: 12px;
+  }
+
+  .settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    border-bottom: 1px solid rgba(34, 211, 238, 0.14);
+    padding: 16px 0;
+  }
+
+  .settings-row:last-child {
+    border-bottom: 0;
+  }
+
+  .settings-row h3 {
+    font-weight: 900;
+    color: #eff8ff;
+  }
+
+  .settings-row p {
+    margin-top: 4px;
+    color: #8eb1d8;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .settings-badge {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(34, 211, 238, 0.35);
+    border-radius: 999px;
+    background: rgba(34, 211, 238, 0.1);
+    padding: 7px 11px;
+    color: #22d3ee;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .settings-window .btn-accent,
+  .settings-window .btn-primary {
+    position: relative;
+    z-index: 2;
+    min-height: 42px;
+    border: 1px solid rgba(34, 211, 238, 0.35);
+    border-radius: 12px;
+    background: linear-gradient(135deg, #22d3ee, #3b82f6);
+    color: #020617;
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.24);
+  }
+
+  .settings-window .btn-accent:hover,
+  .settings-window .btn-primary:hover {
+    background: linear-gradient(135deg, #67e8f9, #60a5fa);
+  }
+
+  .settings-window .btn-outline {
+    border-color: rgba(34, 211, 238, 0.28);
+    border-radius: 12px;
+    background: rgba(3, 12, 24, 0.72);
+    color: #9bb8d8;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  .settings-window .btn-outline:hover {
+    border-color: rgba(34, 211, 238, 0.65);
+    background: rgba(34, 211, 238, 0.1);
+    color: #eff8ff;
+  }
+
+  .settings-window .text-x-text {
+    color: #eff8ff;
+  }
+
+  .settings-window .text-x-muted {
+    color: #8eb1d8;
+  }
+
+  .settings-window .text-x-accent {
+    color: #22d3ee;
+  }
+
+  @media (max-width: 900px) {
+    .settings-stage {
+      height: 100%;
+      padding: 10px;
+    }
+
+    .settings-window {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
+      height: 100%;
+      min-height: 0;
+      max-height: 100%;
+      border-radius: 18px;
+    }
+
+    .settings-sidebar {
+      border-right: 0;
+      border-bottom: 1px solid rgba(34, 211, 238, 0.18);
+      padding: 14px;
+    }
+
+    .settings-sidebar-nav {
+      flex-direction: row;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .settings-sidebar-group {
+      display: contents;
+    }
+
+    .settings-sidebar-title,
+    .settings-sidebar-exit {
+      display: none;
+    }
+
+    .settings-sidebar-links {
+      display: flex;
+      gap: 8px;
+    }
+
+    .settings-sidebar-link {
+      min-width: max-content;
+      border: 1px solid rgba(34, 211, 238, 0.2);
+      background: rgba(3, 12, 24, 0.7);
+    }
+
+    .settings-main-body {
+      padding: 18px 18px 104px;
+    }
+
+    .settings-row {
+      align-items: flex-start;
+      flex-direction: column;
+    }
   }
 
   .panel-icon-button {
@@ -542,6 +1379,24 @@
 
   .nebula-mobile-action-active {
     @apply bg-cyan-300/15 text-x-accent shadow-neon;
+  }
+
+  .background-music-player {
+    position: fixed;
+    z-index: 60;
+    right: 18px;
+    bottom: 92px;
+    width: min(360px, calc(100vw - 32px));
+  }
+
+  .background-music-player-compact {
+    width: auto;
+  }
+
+  @media (min-width: 768px) {
+    .background-music-player {
+      bottom: 24px;
+    }
   }
 
   .nebula-section-heading {

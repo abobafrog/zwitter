@@ -11,6 +11,7 @@ const staticItems = [
   { label: 'Уведомления', icon: 'bell', to: '/notifications', badge: 'notifications' },
   { label: 'Сообщества', icon: 'community', to: '/communities' },
   { label: 'Закладки', icon: 'bookmark', to: '/bookmarks' },
+  { label: 'Мини-сервисы', icon: 'services', to: '/services' },
 ];
 
 function BrandMark() {

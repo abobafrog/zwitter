@@ -19,6 +19,7 @@ import CommunityPage from './pages/CommunityPage';
 import SearchPage from './pages/SearchPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
+import ServicesPage from './pages/ServicesPage';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, hasCheckedAuth } = useAuthStore();
@@ -83,6 +84,7 @@ function App() {
           <Route path="/community/:slug" element={<CommunityPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/bookmarks" element={<BookmarksPage />} />
+          <Route path="/services" element={<ServicesPage />} />
           <Route path="/tweet/:id" element={<TweetPage />} />
           <Route path="/messages" element={<ChatsPage />} />
           <Route path="/messages/:chatId" element={<ChatsPage />} />
