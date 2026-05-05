@@ -173,6 +173,10 @@ useEffect(() => {
     const result = await register(form);
     if (result.success) {
       toast.success(result.message || 'Аккаунт создан. Проверь почту с кодом.');
+      if (result.emailAutoVerified) {
+        navigate('/login', { replace: true, state: { login: form.username } });
+        return;
+      }
       navigate('/verify-email', {
         replace: true,
         state: {

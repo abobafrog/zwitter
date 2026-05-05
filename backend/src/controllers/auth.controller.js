@@ -68,6 +68,12 @@ const getPublicUser = async (userId) => prisma.user.findUnique({
     isVerified: true,
     isCommunity: true,
     blockGroupInvites: true,
+    messagePrivacy: true,
+    notifyLikes: true,
+    notifyReplies: true,
+    notifyRetweets: true,
+    notifyFollows: true,
+    notifyMessages: true,
     createdAt: true,
   },
 });
@@ -189,6 +195,12 @@ const register = async (req, res, next) => {
         isVerified: true,
         isCommunity: true,
         blockGroupInvites: true,
+        messagePrivacy: true,
+        notifyLikes: true,
+        notifyReplies: true,
+        notifyRetweets: true,
+        notifyFollows: true,
+        notifyMessages: true,
         createdAt: true,
       },
     });
@@ -321,6 +333,39 @@ const logout = async (req, res, next) => {
   }
 };
 
+const listSessions = async (req, res, next) => {
+  try {
+    const currentToken = getCookie(req, REFRESH_COOKIE);
+    const currentHash = currentToken ? hashToken(currentToken) : null;
+    const sessions = await prisma.refreshToken.findMany({
+      where: { userId: req.user.id, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, token: true, createdAt: true, expiresAt: true },
+    });
+
+    res.json({
+      sessions: sessions.map(({ token, ...session }) => ({
+        ...session,
+        current: currentHash === token,
+      })),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const revokeSession = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const result = await prisma.refreshToken.deleteMany({
+      where: { id, userId: req.user.id },
+    });
+    res.json({ revoked: result.count > 0 });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const me = async (req, res) => {
   res.json({ user: req.user });
 };
@@ -417,7 +462,9 @@ module.exports = {
   login,
   refresh,
   logout,
+  listSessions,
   me,
+  revokeSession,
   verifyEmail,
   resendVerification,
   forgotPassword,

@@ -7,6 +7,8 @@ const useChatStore = create((set, get) => ({
   messages: {}, // chatId -> messages[]
   typingUsers: {}, // chatId -> userId[]
   onlineUsers: new Set(),
+  activeCall: null,
+  incomingCall: null,
 
   setChats: (chats) => set({ chats }),
 
@@ -116,6 +118,11 @@ const useChatStore = create((set, get) => ({
     set((state) => ({
       chats: state.chats.map((c) => (c.id === chatId ? { ...c, unreadCount: 0 } : c)),
     })),
+
+  setIncomingCall: (payload) => set({ incomingCall: payload }),
+  clearIncomingCall: () => set({ incomingCall: null }),
+  setActiveCall: (payload) => set({ activeCall: payload, incomingCall: null }),
+  clearActiveCall: () => set({ activeCall: null }),
 }));
 
 export default useChatStore;

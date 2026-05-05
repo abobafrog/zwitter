@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -6,14 +6,33 @@ import api from '../services/api';
 import NavIcon from '../components/layout/NavIcon';
 import TweetCard from '../components/chat/TweetCard';
 import TweetComposer from '../components/chat/TweetComposer';
+import useAuthStore from '../store/authStore';
+import { hasPlusAccess } from '../utils/plus';
 
-function CommunitySettingsModal({ community, members, onClose, onSave, onAddMembers, onRemoveMember, onDelete, isSaving }) {
+function CommunitySettingsModal({ community, members, onClose, onSave, onAddMembers, onRemoveMember, onRoleChange, onDelete, isSaving }) {
+  const { user } = useAuthStore();
   const [name, setName] = useState(community.name || '');
   const [bio, setBio] = useState(community.bio || '');
   const [avatar, setAvatar] = useState(null);
   const [banner, setBanner] = useState(null);
   const [q, setQ] = useState('');
   const [selected, setSelected] = useState([]);
+  const [advanced, setAdvanced] = useState(() => {
+    try {
+      return {
+        joinMode: 'open',
+        postingMode: 'owner',
+        channelLayout: 'feed',
+        highlight: '',
+        tags: '',
+        rules: '',
+        ...JSON.parse(localStorage.getItem(`zwitter-community-settings-${community.id}`) || '{}'),
+      };
+    } catch {
+      return { joinMode: 'open', postingMode: 'owner', highlight: '', rules: '' };
+    }
+  });
+  const plusActive = hasPlusAccess(user);
   const memberIds = new Set((members || []).map((member) => member.id));
   const { data, isLoading } = useQuery({
     queryKey: ['community-add-users', community.slug, q],
@@ -38,8 +57,13 @@ function CommunitySettingsModal({ community, members, onClose, onSave, onAddMemb
     fd.append('bio', bio.trim());
     if (avatar) fd.append('avatar', avatar);
     if (banner) fd.append('banner', banner);
+    localStorage.setItem(`zwitter-community-settings-${community.id}`, JSON.stringify(advanced));
     onSave(fd);
   };
+
+  useEffect(() => {
+    localStorage.setItem(`zwitter-community-settings-${community.id}`, JSON.stringify(advanced));
+  }, [advanced, community.id]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-x-bg/75 p-4 backdrop-blur-md">
@@ -69,6 +93,62 @@ function CommunitySettingsModal({ community, members, onClose, onSave, onAddMemb
 
           <input value={name} onChange={(event) => setName(event.target.value)} className="input-field mt-4" placeholder="Название" maxLength={100} />
           <textarea value={bio} onChange={(event) => setBio(event.target.value)} className="input-field mt-3 min-h-24 resize-none" placeholder="Описание" maxLength={180} />
+          <div className="mt-4 rounded-3xl border border-x-border bg-x-bg/45 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="nebula-section-heading">расширенные настройки</p>
+              <span className="rounded-full border border-fuchsia-300/30 bg-fuchsia-300/10 px-2 py-0.5 text-[10px] font-black uppercase text-fuchsia-100">
+                часть функций Plus
+              </span>
+            </div>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <label className="block">
+                <span className="settings-label">Вступление</span>
+                <select value={advanced.joinMode} onChange={(event) => setAdvanced((current) => ({ ...current, joinMode: event.target.value }))} className="input-field">
+                  <option value="open">Открытое</option>
+                  <option value="request" disabled={!plusActive}>По заявке Plus</option>
+                  <option value="invite" disabled={!plusActive}>По приглашению Plus</option>
+                </select>
+              </label>
+              <label className="block">
+                <span className="settings-label">Публикации</span>
+                <select value={advanced.postingMode} onChange={(event) => setAdvanced((current) => ({ ...current, postingMode: event.target.value }))} className="input-field">
+                  <option value="owner">Владелец и админы</option>
+                  <option value="members">Все участники</option>
+                  <option value="moderated" disabled={!plusActive}>Через модерацию Plus</option>
+                </select>
+              </label>
+              <label className="block">
+                <span className="settings-label">Формат канала</span>
+                <select value={advanced.channelLayout} onChange={(event) => setAdvanced((current) => ({ ...current, channelLayout: event.target.value }))} className="input-field">
+                  <option value="feed">Лента</option>
+                  <option value="announcements" disabled={!plusActive}>Объявления Plus</option>
+                  <option value="forum" disabled={!plusActive}>Форум с тегами Plus</option>
+                </select>
+              </label>
+            </div>
+            <input
+              value={advanced.highlight}
+              onChange={(event) => setAdvanced((current) => ({ ...current, highlight: event.target.value }))}
+              className="input-field mt-3"
+              placeholder="Закреплённая тема недели"
+              maxLength={120}
+            />
+            <input
+              value={advanced.tags}
+              onChange={(event) => setAdvanced((current) => ({ ...current, tags: event.target.value }))}
+              className="input-field mt-3"
+              placeholder="Теги форума: новости, вопросы, идеи"
+              maxLength={120}
+              disabled={!plusActive}
+            />
+            <textarea
+              value={advanced.rules}
+              onChange={(event) => setAdvanced((current) => ({ ...current, rules: event.target.value }))}
+              className="input-field mt-3 min-h-24 resize-none"
+              placeholder="Правила сообщества: что приветствуется, что удаляется, какой тон общения"
+              maxLength={500}
+            />
+          </div>
           <button type="button" onClick={handleSave} disabled={isSaving || name.trim().length < 2} className="btn-accent mt-4 w-full py-2 text-sm disabled:opacity-50">
             Сохранить сообщество
           </button>
@@ -88,9 +168,18 @@ function CommunitySettingsModal({ community, members, onClose, onSave, onAddMemb
                   {member.role === 'owner' ? (
                     <span className="rounded-full border border-cyan-300/35 px-2 py-0.5 text-xs font-black text-x-accent">Владелец</span>
                   ) : (
-                    <button type="button" onClick={() => onRemoveMember(member.id)} className="rounded-full border border-red-400/30 px-3 py-1 text-xs font-black text-red-300 hover:bg-red-500/10">
-                      Удалить
-                    </button>
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onRoleChange(member.id, member.role === 'admin' ? 'member' : 'admin')}
+                        className="rounded-full border border-cyan-300/30 px-3 py-1 text-xs font-black text-x-accent hover:bg-cyan-300/10"
+                      >
+                        {member.role === 'admin' ? 'Снять админа' : 'Сделать админом'}
+                      </button>
+                      <button type="button" onClick={() => onRemoveMember(member.id)} className="rounded-full border border-red-400/30 px-3 py-1 text-xs font-black text-red-300 hover:bg-red-500/10">
+                        Удалить
+                      </button>
+                    </div>
                   )}
                 </div>
               ))}
@@ -216,6 +305,16 @@ export default function CommunityPage() {
     onError: (err) => toast.error(err.response?.data?.error || 'Не удалось удалить участника'),
   });
 
+  const roleMutation = useMutation({
+    mutationFn: ({ targetUserId, role }) => api.patch(`/communities/${slug}/members/${targetUserId}/role`, { role }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['community-members', slug] });
+      qc.invalidateQueries({ queryKey: ['my-communities'] });
+      toast.success('Права участника обновлены');
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Не удалось изменить права'),
+  });
+
   const deleteCommunityMutation = useMutation({
     mutationFn: () => api.delete(`/communities/${slug}`),
     onSuccess: () => {
@@ -331,6 +430,7 @@ export default function CommunityPage() {
           onSave={(formData) => updateCommunityMutation.mutate(formData)}
           onAddMembers={(userIds) => addMembersMutation.mutateAsync(userIds)}
           onRemoveMember={(targetUserId) => removeMemberMutation.mutate(targetUserId)}
+          onRoleChange={(targetUserId, role) => roleMutation.mutate({ targetUserId, role })}
           onDelete={() => {
             if (window.confirm('Удалить сообщество вместе со всеми записями?')) {
               deleteCommunityMutation.mutate();
@@ -340,6 +440,7 @@ export default function CommunityPage() {
             updateCommunityMutation.isPending ||
             addMembersMutation.isPending ||
             removeMemberMutation.isPending ||
+            roleMutation.isPending ||
             deleteCommunityMutation.isPending
           }
         />

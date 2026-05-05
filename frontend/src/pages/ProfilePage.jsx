@@ -10,6 +10,7 @@ import useAuthStore from '../store/authStore';
 import TweetCard from '../components/chat/TweetCard';
 import EditProfileModal from '../components/ui/EditProfileModal';
 import FollowModal from '../components/ui/FollowModal';
+import { isPlusUser } from '../utils/plus';
 
 export default function ProfilePage() {
   const { username } = useParams();
@@ -126,17 +127,6 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-full">
-      {/* Header */}
-      <div className="cosmic-header px-4 py-3 flex items-center gap-6">
-        <button onClick={() => navigate(-1)} className="p-1 rounded-full hover:bg-cyan-300/10">
-          <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-            <path d="M20 11H7.414l4.293-4.293-1.414-1.414L3.586 12l6.707 6.707 1.414-1.414L7.414 13H20v-2z"/>
-          </svg>
-        </button>
-        <div>
-          <h1 className="text-xl font-bold leading-tight">{data.displayName}</h1>
-        </div>
-      </div>
 
       {/* Banner */}
       <div className="relative z-0 h-48 w-full cosmic-banner sm:h-56">
@@ -161,6 +151,11 @@ export default function ProfilePage() {
             {isCommunity && (
               <span className="rounded-full border border-cyan-300/35 bg-cyan-300/10 px-2 py-0.5 text-xs font-black uppercase tracking-normal text-x-accent">
                 Сообщество
+              </span>
+            )}
+            {isPlusUser(data) && (
+              <span className="rounded-full border border-amber-300/35 bg-amber-300/15 px-2 py-0.5 text-xs font-black uppercase tracking-normal text-amber-200">
+                Plus
               </span>
             )}
             {data.isVerified && (

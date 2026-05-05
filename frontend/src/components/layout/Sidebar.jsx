@@ -5,11 +5,11 @@ import api from '../../services/api';
 import useAuthStore from '../../store/authStore';
 import useChatStore from '../../store/chatStore';
 import NavIcon from './NavIcon';
+import { isPlusUser } from '../../utils/plus';
 
 const staticItems = [
   { label: 'Обзор', icon: 'compass', to: '/explore' },
   { label: 'Уведомления', icon: 'bell', to: '/notifications', badge: 'notifications' },
-  { label: 'Сообщества', icon: 'community', to: '/communities' },
   { label: 'Закладки', icon: 'bookmark', to: '/bookmarks' },
   { label: 'Мини-сервисы', icon: 'services', to: '/services' },
 ];
@@ -58,7 +58,7 @@ export default function Sidebar({ onHideSidebar }) {
 
   return (
     <>
-      <aside className="relative hidden h-full min-h-0 flex-col overflow-y-auto border-r border-x-border/80 bg-x-bg/45 px-3 py-5 backdrop-blur-xl lg:flex">
+      <aside className="nebula-sidebar-shell relative hidden h-full min-h-0 flex-col overflow-y-auto border-r border-x-border/80 bg-x-bg/45 px-3 py-5 backdrop-blur-xl lg:flex">
         <div className="flex items-center justify-between gap-2">
           <BrandMark />
           <button
@@ -125,17 +125,26 @@ export default function Sidebar({ onHideSidebar }) {
           </NavLink>
         </div>
 
-        <button
-          type="button"
-          onClick={() => navigate('/home')}
-          className="mt-5 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-x-accent to-blue-500 px-4 py-3 text-sm font-black text-slate-950 shadow-neon transition hover:brightness-110"
-        >
-          <NavIcon name="plus" className="h-4 w-4" />
-          <span>Создать пост</span>
-        </button>
+        <div className="mt-5 grid gap-2">
+          <button
+            type="button"
+            onClick={() => navigate('/home')}
+            className="nebula-sidebar-compose flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-x-accent to-blue-500 px-4 py-3 text-sm font-black text-slate-950 shadow-neon transition hover:brightness-110"
+          >
+            <NavIcon name="plus" className="h-4 w-4" />
+            <span>Создать звит</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/explore?createCommunity=1')}
+            className="nebula-sidebar-secondary rounded-2xl border border-x-border/80 bg-x-panel/45 px-4 py-2.5 text-sm font-bold text-x-text transition hover:border-cyan-300/40 hover:bg-cyan-300/10"
+          >
+            Создать группу
+          </button>
+        </div>
 
         {user && (
-          <div className="mt-auto rounded-3xl border border-x-border/80 bg-x-panel/70 p-3 shadow-panel">
+          <div className="nebula-sidebar-profile-card mt-auto rounded-3xl border border-x-border/80 bg-x-panel/70 p-3 shadow-panel">
             <button
               type="button"
               onClick={() => navigate(`/${user.username}`)}
@@ -152,7 +161,14 @@ export default function Sidebar({ onHideSidebar }) {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-bold">{user.displayName}</p>
-                <p className="truncate text-xs text-x-muted">@{user.username}</p>
+                <div className="flex items-center gap-2">
+                  <p className="truncate text-xs text-x-muted">@{user.username}</p>
+                  {isPlusUser(user) && (
+                    <span className="rounded-full border border-amber-300/35 bg-amber-300/15 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-[0.08em] text-amber-200">
+                      Plus
+                    </span>
+                  )}
+                </div>
               </div>
             </button>
             <button

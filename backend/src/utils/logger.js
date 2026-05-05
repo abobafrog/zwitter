@@ -27,10 +27,10 @@ const logger = winston.createLogger({
   ],
 });
 
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== 'production' || process.env.LOG_TO_STDOUT !== 'false') {
   logger.add(
     new winston.transports.Console({
-      format: combine(colorize(), simple()),
+      format: process.env.NODE_ENV === 'production' ? combine(timestamp(), errors({ stack: true }), json()) : combine(colorize(), simple()),
     })
   );
 }

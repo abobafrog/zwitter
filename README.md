@@ -7,11 +7,10 @@
 | Слой | Технологии |
 |------|-----------|
 | **Frontend** | React 18, Vite, TailwindCSS, Zustand, React Query, Socket.IO Client |
-| **Backend** | Node.js, Express.js, Socket.IO |
-| **База данных** | PostgreSQL + Prisma ORM |
-| **Хранилище файлов** | Cloudinary |
-| **Безопасность** | JWT (access + refresh tokens), bcrypt, helmet, rate-limiting |
-| **Логирование** | Winston |
+| **Backend** | Python, FastAPI, python-socketio, SQLAlchemy |
+| **База данных** | PostgreSQL |
+| **Хранилище файлов** | Локальные загрузки `/uploads` |
+| **Безопасность** | JWT (access + refresh tokens), bcrypt |
 | **Деплой** | Docker, Vercel (фронт), Railway/Render/Fly.io (бэк) |
 
 ## 📋 Функциональность
@@ -45,8 +44,7 @@ docker compose up --build
 
 # 4. Перейти
 # Frontend: http://localhost:3000
-# Backend API: http://localhost:5000
-# Prisma Studio: npm run db:studio (в папке backend)
+# Backend API: http://localhost:5001
 ```
 
 ### Вариант 2: Ручной запуск
@@ -67,21 +65,16 @@ docker run -d \
 cd backend
 
 # Установить зависимости
-npm install
+python -m venv .venv
+. .venv/bin/activate
+pip install -r requirements.txt
 
 # Создать .env (скопировать из .env.example и заполнить)
 cp .env.example .env
 # Отредактируйте .env файл!
 
-# Применить миграции и сгенерировать Prisma client
-npm run db:push
-npm run db:generate
-
-# Заполнить тестовыми данными (опционально)
-npm run db:seed
-
 # Запустить dev сервер
-npm run dev
+uvicorn app.main:socket_app --host 0.0.0.0 --port 5000 --reload
 ```
 
 #### 3. Frontend
@@ -121,14 +114,7 @@ DATABASE_URL=<из Railway PostgreSQL>
 JWT_SECRET=<случайная строка 32+ символов>
 JWT_REFRESH_SECRET=<другая случайная строка>
 FRONTEND_URL=https://your-app.vercel.app
-CLOUDINARY_CLOUD_NAME=xxx
-CLOUDINARY_API_KEY=xxx
-CLOUDINARY_API_SECRET=xxx
-NODE_ENV=production
 PORT=5000
-
-# 5. После деплоя выполнить:
-railway run npx prisma migrate deploy
 ```
 
 ### Backend: Render
@@ -137,8 +123,8 @@ railway run npx prisma migrate deploy
 # 1. render.com → New Web Service
 # 2. Connect GitHub repo
 # 3. Root Directory: backend
-# 4. Build Command: npm install && npx prisma generate
-# 5. Start Command: npx prisma migrate deploy && node src/server.js
+# 4. Build Command: pip install -r requirements.txt
+# 5. Start Command: uvicorn app.main:socket_app --host 0.0.0.0 --port $PORT
 # 6. Добавить PostgreSQL (Render → New PostgreSQL)
 # 7. Заполнить Environment Variables
 ```
@@ -274,19 +260,13 @@ docker compose -f docker-compose.yml up -d --build
 ```
 twitter-clone/
 ├── backend/
-│   ├── prisma/
-│   │   ├── schema.prisma      # Схема БД
-│   │   └── seed.js            # Тестовые данные
-│   ├── src/
-│   │   ├── config/            # Prisma, Cloudinary конфиги
-│   │   ├── controllers/       # Логика обработчиков
-│   │   ├── middleware/        # Auth, validate, rate-limit, errors
-│   │   ├── routes/            # Express роуты
-│   │   ├── services/          # Socket.IO сервис
-│   │   ├── utils/             # Logger
-│   │   └── server.js          # Точка входа
+│   ├── app/
+│   │   ├── main.py            # FastAPI + Socket.IO точка входа
+│   │   └── schema.sql         # PostgreSQL схема
+│   ├── prisma/                # Legacy-схема старого Node-бэкенда
+│   ├── src/                   # Legacy Node-бэкенд, Docker его не запускает
 │   ├── Dockerfile
-│   └── package.json
+│   └── requirements.txt
 ├── frontend/
 │   ├── src/
 │   │   ├── components/

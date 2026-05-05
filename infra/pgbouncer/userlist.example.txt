@@ -1,0 +1,4 @@
+"zwitter_app" "SCRAM-SHA-256$4096:replace-with-generated-salt$replace-with-stored-key:replace-with-server-key"
+
+# Generate a real SCRAM entry with the managed PostgreSQL provider tooling
+# or create the user in Postgres and copy the SCRAM secret from pg_authid.

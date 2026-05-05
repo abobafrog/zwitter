@@ -1,8 +1,10 @@
 // src/controllers/chat.controller.js
 const prisma = require('../config/prisma');
 const logger = require('../utils/logger');
+const { enqueue } = require('../queues');
 
 const BASIC_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '👏', '💯'];
+const isCallSystemMessage = (message) => message?.content?.startsWith('Звонок начался');
 
 const messageInclude = {
   sender: {
@@ -24,6 +26,23 @@ const assertParticipant = async (chatId, userId) => {
   return Boolean(participant);
 };
 
+const canSendDirectMessage = async (senderId, recipientId) => {
+  if (!senderId || !recipientId || senderId === recipientId) return true;
+  const recipient = await prisma.user.findUnique({
+    where: { id: recipientId },
+    select: { messagePrivacy: true },
+  });
+  if (!recipient) return false;
+  if (recipient.messagePrivacy === 'none') return false;
+  if (recipient.messagePrivacy === 'following') {
+    const followsSender = await prisma.follow.findUnique({
+      where: { followerId_followingId: { followerId: recipientId, followingId: senderId } },
+    });
+    return Boolean(followsSender);
+  }
+  return true;
+};
+
 const emitMessageUpdated = (req, chatId, message) => {
   const io = req.app.get('io');
   if (io) {
@@ -33,6 +52,7 @@ const emitMessageUpdated = (req, chatId, message) => {
 
 const chatParticipantInclude = {
   participants: {
+    orderBy: { joinedAt: 'asc' },
     include: {
       user: {
         select: { id: true, username: true, displayName: true, avatarUrl: true, isVerified: true },
@@ -56,10 +76,16 @@ const formatChat = (chat, userId, unreadCount = 0) => ({
   updatedAt: chat.updatedAt,
   unreadCount,
   lastMessage: chat.messages?.[0] || null,
-  participants: chat.participants.map((p) => p.user),
+  participants: chat.participants.map((p) => ({
+    ...p.user,
+    role: p.userId === chat.ownerId ? 'owner' : p.role || 'member',
+  })),
   otherUser: chat.isGroup
     ? null
-    : chat.participants.find((p) => p.userId !== userId)?.user || null,
+    : (() => {
+        const other = chat.participants.find((p) => p.userId !== userId);
+        return other ? { ...other.user, role: other.userId === chat.ownerId ? 'owner' : other.role || 'member' } : null;
+      })(),
 });
 
 const emitChatUpdated = (req, chat) => {
@@ -70,6 +96,12 @@ const emitChatUpdated = (req, chat) => {
       io.to(`user:${participantUserId}`).emit('chat:updated', { chatId: chat.id, chat });
     });
   }
+};
+
+const getParticipantRole = (chat, userId) => {
+  const ownerId = chat.ownerId || chat.participants[0]?.userId;
+  if (ownerId === userId) return 'owner';
+  return chat.participants.find((participant) => participant.userId === userId)?.role || null;
 };
 
 const assertGroupOwner = async (chatId, userId) => {
@@ -85,6 +117,22 @@ const assertGroupOwner = async (chatId, userId) => {
   if (ownerId !== userId) return { error: 'Управлять группой может только создатель', status: 403 };
 
   return { chat, ownerId };
+};
+
+const assertGroupManager = async (chatId, userId) => {
+  const chat = await prisma.chat.findUnique({
+    where: { id: chatId },
+    include: { participants: { orderBy: { joinedAt: 'asc' } } },
+  });
+
+  if (!chat || !chat.isGroup) return { error: 'Группа не найдена', status: 404 };
+  const role = getParticipantRole(chat, userId);
+  if (!role) return { error: 'Нет доступа к этой группе', status: 403 };
+  if (!['owner', 'admin'].includes(role)) {
+    return { error: 'Нужны права администратора группы', status: 403 };
+  }
+
+  return { chat, ownerId: chat.ownerId || chat.participants[0]?.userId, role };
 };
 
 const getFormattedChat = async (chatId, userId) => {
@@ -146,11 +194,14 @@ const createOrGetChat = async (req, res, next) => {
 
     const targetUser = await prisma.user.findUnique({
       where: { id: targetUserId },
-      select: { id: true, username: true, displayName: true, avatarUrl: true },
+      select: { id: true, username: true, displayName: true, avatarUrl: true, messagePrivacy: true },
     });
 
     if (!targetUser) {
       return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+    if (!(await canSendDirectMessage(userId, targetUserId))) {
+      return res.status(403).json({ error: 'Пользователь ограничил входящие сообщения' });
     }
 
     // Check if direct chat already exists
@@ -236,7 +287,10 @@ const createGroupChat = async (req, res, next) => {
         ownerId: userId,
         isGroup: true,
         participants: {
-          create: participantIds.map((participantId) => ({ userId: participantId })),
+          create: participantIds.map((participantId) => ({
+            userId: participantId,
+            role: participantId === userId ? 'owner' : 'member',
+          })),
         },
       },
       include: {
@@ -267,7 +321,7 @@ const updateGroupChat = async (req, res, next) => {
   try {
     const { chatId } = req.params;
     const userId = req.user.id;
-    const access = await assertGroupOwner(chatId, userId);
+    const access = await assertGroupManager(chatId, userId);
     if (access.error) return res.status(access.status).json({ error: access.error });
 
     const name = req.body.name?.trim();
@@ -297,7 +351,7 @@ const addGroupParticipants = async (req, res, next) => {
     const { chatId } = req.params;
     const userId = req.user.id;
     const participantIds = [...new Set(req.body.participantIds || [])];
-    const access = await assertGroupOwner(chatId, userId);
+    const access = await assertGroupManager(chatId, userId);
     if (access.error) return res.status(access.status).json({ error: access.error });
     if (participantIds.length === 0) return res.status(400).json({ error: 'Выберите участников' });
 
@@ -332,14 +386,48 @@ const removeGroupParticipant = async (req, res, next) => {
   try {
     const { chatId, userId: targetUserId } = req.params;
     const userId = req.user.id;
-    const access = await assertGroupOwner(chatId, userId);
+    const access = await assertGroupManager(chatId, userId);
     if (access.error) return res.status(access.status).json({ error: access.error });
     if (targetUserId === access.ownerId) {
       return res.status(400).json({ error: 'Создателя группы нельзя удалить из участников' });
     }
+    const targetParticipant = access.chat.participants.find((participant) => participant.userId === targetUserId);
+    const targetRole = targetUserId === access.ownerId ? 'owner' : targetParticipant?.role || 'member';
+    if (access.role !== 'owner' && targetRole === 'admin') {
+      return res.status(403).json({ error: 'Только создатель может удалить администратора' });
+    }
 
     await prisma.chatParticipant.deleteMany({ where: { chatId, userId: targetUserId } });
     const chat = await getFormattedChat(chatId, userId);
+    emitChatUpdated(req, chat);
+    res.json({ chat });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateGroupParticipantRole = async (req, res, next) => {
+  try {
+    const { chatId, userId: targetUserId } = req.params;
+    const ownerId = req.user.id;
+    const { role } = req.body;
+    const access = await assertGroupOwner(chatId, ownerId);
+    if (access.error) return res.status(access.status).json({ error: access.error });
+    if (targetUserId === access.ownerId) {
+      return res.status(400).json({ error: 'Создателя группы нельзя перевести в другую роль' });
+    }
+
+    const participant = access.chat.participants.find((item) => item.userId === targetUserId);
+    if (!participant) {
+      return res.status(404).json({ error: 'Участник не найден' });
+    }
+
+    await prisma.chatParticipant.update({
+      where: { chatId_userId: { chatId, userId: targetUserId } },
+      data: { role: role === 'admin' ? 'admin' : 'member' },
+    });
+
+    const chat = await getFormattedChat(chatId, ownerId);
     emitChatUpdated(req, chat);
     res.json({ chat });
   } catch (error) {
@@ -408,8 +496,17 @@ const sendMessage = async (req, res, next) => {
   try {
     const { chatId } = req.params;
     const userId = req.user.id;
-    const { content } = req.body;
-    const imageUrl = req.file?.path || null;
+    const rawContent = req.body.content?.trim() || '';
+    const file = req.file || null;
+    const isImage = file?.mimetype?.startsWith('image/');
+    const imageUrl = isImage ? file.path : null;
+    const content = file && !isImage
+      ? [rawContent, `[[file:${file.originalname}|${file.path}]]`].filter(Boolean).join('\n\n')
+      : rawContent;
+
+    if (!content && !imageUrl) {
+      return res.status(400).json({ error: 'Сообщение должно содержать текст, фото или вложение' });
+    }
 
     if (!(await assertParticipant(chatId, userId))) {
       return res.status(403).json({ error: 'Нет доступа к этому чату' });
@@ -417,12 +514,15 @@ const sendMessage = async (req, res, next) => {
 
     const chat = await prisma.chat.findUnique({
       where: { id: chatId },
-      include: { participants: true },
+      include: { participants: { include: { user: { select: { notifyMessages: true } } } } },
     });
 
     const receiverId = chat.isGroup
       ? null
       : chat.participants.find((p) => p.userId !== userId)?.userId || null;
+    if (receiverId && !(await canSendDirectMessage(userId, receiverId))) {
+      return res.status(403).json({ error: 'Пользователь ограничил входящие сообщения' });
+    }
 
     const message = await prisma.message.create({
       data: { chatId, senderId: userId, receiverId, content, imageUrl },
@@ -438,7 +538,7 @@ const sendMessage = async (req, res, next) => {
     if (io) {
       io.to(`chat:${chatId}`).emit('message:new', { message, chatId });
       chat.participants.forEach((participant) => {
-        if (participant.userId !== userId) {
+        if (participant.userId !== userId && participant.user?.notifyMessages !== false) {
           io.to(`user:${participant.userId}`).emit('chat:notification', {
             chatId,
             message,
@@ -446,6 +546,10 @@ const sendMessage = async (req, res, next) => {
           });
         }
       });
+    }
+    if (imageUrl && process.env.JOB_QUEUE_ENABLED !== 'false') {
+      enqueue('media', 'messageImageUploaded', { messageId: message.id, imageUrl })
+        .catch((error) => logger.warn(`Media queue skipped: ${error.message}`));
     }
 
     res.status(201).json({ message });
@@ -470,11 +574,14 @@ const editMessage = async (req, res, next) => {
 
     const existing = await prisma.message.findFirst({
       where: { id: messageId, chatId },
-      select: { id: true, senderId: true },
+      select: { id: true, senderId: true, content: true },
     });
 
     if (!existing) {
       return res.status(404).json({ error: 'Сообщение не найдено' });
+    }
+    if (isCallSystemMessage(existing)) {
+      return res.status(403).json({ error: 'Системное сообщение звонка нельзя изменять' });
     }
     if (existing.senderId !== userId) {
       return res.status(403).json({ error: 'Можно редактировать только свои сообщения' });
@@ -504,11 +611,14 @@ const deleteMessage = async (req, res, next) => {
 
     const existing = await prisma.message.findFirst({
       where: { id: messageId, chatId },
-      select: { id: true, senderId: true },
+      select: { id: true, senderId: true, content: true },
     });
 
     if (!existing) {
       return res.status(404).json({ error: 'Сообщение не найдено' });
+    }
+    if (isCallSystemMessage(existing)) {
+      return res.status(403).json({ error: 'Системное сообщение звонка нельзя удалить' });
     }
     if (existing.senderId !== userId) {
       return res.status(403).json({ error: 'Можно удалить только свои сообщения' });
@@ -579,6 +689,7 @@ module.exports = {
   updateGroupChat,
   addGroupParticipants,
   removeGroupParticipant,
+  updateGroupParticipantRole,
   deleteGroupChat,
   getMessages,
   sendMessage,

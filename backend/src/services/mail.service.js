@@ -1,4 +1,5 @@
 const logger = require('../utils/logger');
+const { enqueue } = require('../queues');
 
 const fromAddress = process.env.MAIL_FROM || 'Zwiteer <onboarding@resend.dev>';
 
@@ -56,7 +57,7 @@ const codeEmailShell = ({ title, lead, code }) => `
   </div>
 `;
 
-const sendVerificationEmail = ({ to, displayName, code }) => sendMail({
+const sendVerificationEmailNow = ({ to, displayName, code }) => sendMail({
   to,
   subject: 'Код подтверждения Zwiteer',
   html: codeEmailShell({
@@ -67,7 +68,18 @@ const sendVerificationEmail = ({ to, displayName, code }) => sendMail({
   text: `Привет, ${displayName}. Код подтверждения Zwiteer: ${code}`,
 });
 
-const sendPasswordResetEmail = ({ to, displayName, url }) => sendMail({
+const sendEmailChangeVerificationNow = ({ to, displayName, code }) => sendMail({
+  to,
+  subject: 'Подтверждение нового email Zwiteer',
+  html: codeEmailShell({
+    title: 'Подтверди новый email',
+    lead: `Привет, ${displayName}. Введи этот код в настройках Zwiteer, чтобы завершить смену email.`,
+    code,
+  }),
+  text: `Привет, ${displayName}. Код подтверждения нового email Zwiteer: ${code}`,
+});
+
+const sendPasswordResetEmailNow = ({ to, displayName, url }) => sendMail({
   to,
   subject: 'Восстановление пароля Zwiteer',
   html: emailShell({
@@ -79,4 +91,26 @@ const sendPasswordResetEmail = ({ to, displayName, url }) => sendMail({
   text: `Привет, ${displayName}. Сбросить пароль Zwiteer: ${url}`,
 });
 
-module.exports = { sendVerificationEmail, sendPasswordResetEmail };
+const queueEmail = async (jobName, payload, fallback) => {
+  if (process.env.JOB_QUEUE_ENABLED === 'false') return fallback(payload);
+  try {
+    await enqueue('email', jobName, payload);
+    return { sent: true, queued: true };
+  } catch (error) {
+    logger.warn(`Email queue unavailable, sending synchronously: ${error.message}`);
+    return fallback(payload);
+  }
+};
+
+const sendVerificationEmail = (payload) => queueEmail('verifyEmail', payload, sendVerificationEmailNow);
+const sendEmailChangeVerification = (payload) => queueEmail('emailChange', payload, sendEmailChangeVerificationNow);
+const sendPasswordResetEmail = (payload) => queueEmail('passwordReset', payload, sendPasswordResetEmailNow);
+
+module.exports = {
+  sendVerificationEmail,
+  sendEmailChangeVerification,
+  sendPasswordResetEmail,
+  sendVerificationEmailNow,
+  sendEmailChangeVerificationNow,
+  sendPasswordResetEmailNow,
+};

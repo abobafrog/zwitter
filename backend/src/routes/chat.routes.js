@@ -8,6 +8,7 @@ const {
   updateGroupChat,
   addGroupParticipants,
   removeGroupParticipant,
+  updateGroupParticipantRole,
   deleteGroupChat,
   getMessages,
   sendMessage,
@@ -16,9 +17,8 @@ const {
   toggleReaction,
 } = require('../controllers/chat.controller');
 const { authenticate } = require('../middleware/auth');
-const { messageLimiter } = require('../middleware/rateLimiter');
-const { uploadMessageImage } = require('../config/cloudinary');
-const { uploadProfileMedia } = require('../config/cloudinary');
+const { messageLimiter, uploadLimiter } = require('../middleware/rateLimiter');
+const { uploadAttachment, uploadProfileMedia } = require('../config/cloudinary');
 const validate = require('../middleware/validate');
 
 router.use(authenticate);
@@ -60,6 +60,13 @@ router.post(
   addGroupParticipants
 );
 
+router.patch(
+  '/:chatId/group/participants/:userId/role',
+  [body('role').isIn(['member', 'admin']).withMessage('Роль должна быть member или admin')],
+  validate,
+  updateGroupParticipantRole
+);
+
 router.delete('/:chatId/group/participants/:userId', removeGroupParticipant);
 router.delete('/:chatId/group', deleteGroupChat);
 
@@ -84,8 +91,9 @@ router.post(
 router.post(
   '/:chatId/messages',
   messageLimiter,
-  uploadMessageImage.single('image'),
-  [body('content').trim().isLength({ min: 1, max: 1000 }).withMessage('Сообщение 1-1000 символов')],
+  uploadLimiter,
+  uploadAttachment.single('attachment'),
+  [body('content').optional().trim().isLength({ max: 1000 }).withMessage('Сообщение до 1000 символов')],
   validate,
   sendMessage
 );

@@ -15,6 +15,7 @@ const {
   updateCommunity,
   addCommunityMembers,
   removeCommunityMember,
+  updateCommunityMemberRole,
   deleteCommunity,
 } = require('../controllers/community.controller');
 
@@ -55,6 +56,7 @@ router.post(
   addCommunityMembers
 );
 router.delete('/:slug/members/:userId', authenticate, removeCommunityMember);
+router.patch('/:slug/members/:userId/role', authenticate, [body('role').isIn(['member', 'admin']).withMessage('Роль должна быть member или admin')], validate, updateCommunityMemberRole);
 router.delete('/:slug', authenticate, deleteCommunity);
 router.post('/:slug/join', authenticate, toggleCommunityMembership);
 

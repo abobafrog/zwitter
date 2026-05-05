@@ -11,8 +11,12 @@ const fs = require('fs');
 
 const logger = require('./utils/logger');
 const errorHandler = require('./middleware/errorHandler');
+const { metricsHandler, metricsMiddleware } = require('./middleware/metrics');
 const { apiLimiter } = require('./middleware/rateLimiter');
 const { initSocket } = require('./services/socket.service');
+const prisma = require('./config/prisma');
+const { connectRedis, redis } = require('./config/redis');
+const { closeQueues, scheduleRecurringJobs } = require('./queues');
 
 // Routes
 const authRoutes = require('./routes/auth.routes');
@@ -21,6 +25,9 @@ const tweetRoutes = require('./routes/tweet.routes');
 const userRoutes = require('./routes/user.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const communityRoutes = require('./routes/community.routes');
+const musicRoutes = require('./routes/music.routes');
+const serviceRoutes = require('./routes/service.routes');
+const paymentRoutes = require('./routes/payment.routes');
 const { getNotifications } = require('./controllers/notification.controller');
 
 // Ensure logs directory exists
@@ -47,9 +54,8 @@ const io = new Server(httpServer, {
     credentials: true,
   },
   pingTimeout: 60000,
+  maxHttpBufferSize: parseInt(process.env.SOCKET_MAX_PAYLOAD_BYTES, 10) || 128 * 1024,
 });
-
-initSocket(io);
 
 // Make io accessible in routes
 app.set('io', io);
@@ -62,7 +68,9 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", 'data:', 'blob:', 'https://res.cloudinary.com'],
+      imgSrc: ["'self'", 'data:', 'blob:', 'https://res.cloudinary.com', 'https://lh3.googleusercontent.com'],
+      mediaSrc: ["'self'", ...allowedOrigins, 'blob:'],
+      frameSrc: ["'self'"],
       connectSrc: ["'self'", ...allowedOrigins, 'wss:', 'ws:'],
       fontSrc: ["'self'", 'data:'],
       objectSrc: ["'none'"],
@@ -85,6 +93,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(morgan('combined', {
   stream: { write: (message) => logger.http(message.trim()) },
 }));
+app.use(metricsMiddleware);
 
 // Rate limiting
 app.use('/api/', apiLimiter);
@@ -94,6 +103,18 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+app.get('/ready', async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    if (!redis.isOpen) throw new Error('Redis is not connected');
+    res.json({ status: 'ready', timestamp: new Date().toISOString() });
+  } catch (error) {
+    res.status(503).json({ status: 'not_ready', error: error.message });
+  }
+});
+
+app.get('/metrics', metricsHandler);
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/chats', chatRoutes);
@@ -101,6 +122,9 @@ app.use('/api/tweets', tweetRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes)
 app.use('/api/communities', communityRoutes);
+app.use('/api/music', musicRoutes);
+app.use('/api/services', serviceRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -112,15 +136,34 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-httpServer.listen(PORT, () => {
-  logger.info(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
-  logger.info(`📡 Socket.IO ready`);
+const start = async () => {
+  await connectRedis();
+  if (process.env.JOB_QUEUE_ENABLED !== 'false') await scheduleRecurringJobs();
+  await initSocket(io);
+  httpServer.listen(PORT, () => {
+    logger.info(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+    logger.info(`📡 Socket.IO ready`);
+  });
+};
+
+start().catch((error) => {
+  logger.error('Server startup failed:', error);
+  process.exit(1);
 });
 
-process.on('SIGTERM', async () => {
-  logger.info('SIGTERM received, shutting down gracefully');
-  httpServer.close(() => process.exit(0));
-});
+const shutdown = async (signal) => {
+  logger.info(`${signal} received, shutting down gracefully`);
+  io.close();
+  httpServer.close(async () => {
+    await prisma.$disconnect();
+    await closeQueues();
+    if (redis.isOpen) await redis.quit();
+    process.exit(0);
+  });
+};
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
 process.on('unhandledRejection', (reason) => {
   logger.error('Unhandled Rejection:', reason);

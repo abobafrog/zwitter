@@ -25,6 +25,12 @@ const authenticate = async (req, res, next) => {
         isVerified: true,
         isCommunity: true,
         blockGroupInvites: true,
+        messagePrivacy: true,
+        notifyLikes: true,
+        notifyReplies: true,
+        notifyRetweets: true,
+        notifyFollows: true,
+        notifyMessages: true,
       },
     });
 
@@ -56,7 +62,21 @@ const optionalAuth = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id: true, username: true, displayName: true, avatarUrl: true, isCommunity: true, emailVerified: true, blockGroupInvites: true },
+      select: {
+        id: true,
+        username: true,
+        displayName: true,
+        avatarUrl: true,
+        isCommunity: true,
+        emailVerified: true,
+        blockGroupInvites: true,
+        messagePrivacy: true,
+        notifyLikes: true,
+        notifyReplies: true,
+        notifyRetweets: true,
+        notifyFollows: true,
+        notifyMessages: true,
+      },
     });
     req.user = user || null;
     next();

@@ -1,8 +1,12 @@
 node_modules/
+backend/.venv/
 .env
 dist/
 build/
 logs/
+backend/uploads/
+music/
+navidrome-data/
 *.log
 .DS_Store
 Thumbs.db

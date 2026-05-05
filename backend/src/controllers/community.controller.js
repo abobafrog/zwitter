@@ -1,6 +1,11 @@
 // src/controllers/community.controller.js
 const prisma = require('../config/prisma');
 const { tweetSelect, withThreadReplyCounts } = require('./tweet.controller');
+const { redis } = require('../config/redis');
+
+const invalidateExploreCache = () => {
+  if (redis.isOpen) redis.del('explore:response:v2:anon').catch(() => {});
+};
 
 const communitySelect = (userId) => ({
   id: true,
@@ -12,14 +17,15 @@ const communitySelect = (userId) => ({
   isVerified: true,
   ownerId: true,
   createdAt: true,
+  membersCount: true,
+  tweetsCount: true,
   owner: {
     select: { id: true, username: true, displayName: true, avatarUrl: true },
   },
-  _count: { select: { members: true, tweets: true } },
   members: userId ? { where: { userId }, select: { id: true, role: true } } : false,
 });
 
-const normalizeCommunity = ({ members, _count, ...community }, userId) => ({
+const normalizeCommunity = ({ members, ...community }, userId) => ({
   ...community,
   username: community.slug,
   displayName: community.name,
@@ -27,9 +33,9 @@ const normalizeCommunity = ({ members, _count, ...community }, userId) => ({
   isMember: userId ? members.length > 0 : false,
   memberRole: userId ? members[0]?.role || null : null,
   _count: {
-    followers: _count.members,
-    tweets: _count.tweets,
-    members: _count.members,
+    followers: community.membersCount || 0,
+    tweets: community.tweetsCount || 0,
+    members: community.membersCount || 0,
   },
 });
 
@@ -59,7 +65,7 @@ const listCommunities = async (req, res, next) => {
             ],
           }
         : {},
-      orderBy: [{ members: { _count: 'desc' } }, { createdAt: 'desc' }],
+      orderBy: [{ membersCount: 'desc' }, { createdAt: 'desc' }],
       take: 20,
       select: communitySelect(userId),
     });
@@ -177,11 +183,19 @@ const toggleCommunityMembership = async (req, res, next) => {
     });
 
     if (existing) {
-      await prisma.communityMember.delete({ where: { id: existing.id } });
+      await prisma.$transaction([
+        prisma.communityMember.delete({ where: { id: existing.id } }),
+        prisma.community.update({ where: { id: community.id }, data: { membersCount: { decrement: 1 } } }),
+      ]);
+      invalidateExploreCache();
       return res.json({ member: false });
     }
 
-    await prisma.communityMember.create({ data: { communityId: community.id, userId } });
+    await prisma.$transaction([
+      prisma.communityMember.create({ data: { communityId: community.id, userId } }),
+      prisma.community.update({ where: { id: community.id }, data: { membersCount: { increment: 1 } } }),
+    ]);
+    invalidateExploreCache();
     res.json({ member: true });
   } catch (error) {
     next(error);
@@ -259,10 +273,19 @@ const addCommunityMembers = async (req, res, next) => {
       return res.status(400).json({ error: 'Один из пользователей не найден' });
     }
 
+    const beforeCount = await prisma.communityMember.count({ where: { communityId: access.community.id } });
     await prisma.communityMember.createMany({
       data: userIds.map((memberUserId) => ({ communityId: access.community.id, userId: memberUserId })),
       skipDuplicates: true,
     });
+    const afterCount = await prisma.communityMember.count({ where: { communityId: access.community.id } });
+    if (afterCount !== beforeCount) {
+      await prisma.community.update({
+        where: { id: access.community.id },
+        data: { membersCount: { increment: afterCount - beforeCount } },
+      });
+      invalidateExploreCache();
+    }
 
     const community = await prisma.community.findUnique({
       where: { id: access.community.id },
@@ -284,15 +307,47 @@ const removeCommunityMember = async (req, res, next) => {
       return res.status(400).json({ error: 'Владелец не может удалить себя из сообщества' });
     }
 
-    await prisma.communityMember.deleteMany({
+    const result = await prisma.communityMember.deleteMany({
       where: { communityId: access.community.id, userId: targetUserId },
     });
+    if (result.count > 0) {
+      await prisma.community.update({
+        where: { id: access.community.id },
+        data: { membersCount: { decrement: result.count } },
+      });
+      invalidateExploreCache();
+    }
 
     const community = await prisma.community.findUnique({
       where: { id: access.community.id },
       select: communitySelect(userId),
     });
     res.json({ community: normalizeCommunity(community, userId) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateCommunityMemberRole = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { slug, userId: targetUserId } = req.params;
+    const role = req.body.role === 'admin' ? 'admin' : 'member';
+    const access = await assertCommunityOwner(slug, userId);
+    if (access.error) return res.status(access.status).json({ error: access.error });
+    if (targetUserId === userId) {
+      return res.status(400).json({ error: 'Роль владельца нельзя изменить' });
+    }
+
+    const member = await prisma.communityMember.update({
+      where: { communityId_userId: { communityId: access.community.id, userId: targetUserId } },
+      data: { role },
+      include: {
+        user: { select: { id: true, username: true, displayName: true, avatarUrl: true, isVerified: true } },
+      },
+    });
+
+    res.json({ member: { ...member.user, role: member.role, joinedAt: member.createdAt } });
   } catch (error) {
     next(error);
   }
@@ -323,5 +378,6 @@ module.exports = {
   updateCommunity,
   addCommunityMembers,
   removeCommunityMember,
+  updateCommunityMemberRole,
   deleteCommunity,
 };

@@ -3,11 +3,13 @@ const router = require('express').Router();
 const { body } = require('express-validator');
 const {
   forgotPassword,
+  listSessions,
   login,
   logout,
   me,
   refresh,
   register,
+  revokeSession,
   resendVerification,
   resetPassword,
   verifyEmail,
@@ -60,6 +62,8 @@ router.post(
   resetPassword
 );
 router.get('/me', authenticate, me);
+router.get('/sessions', authenticate, listSessions);
+router.delete('/sessions/:id', authenticate, revokeSession);
 router.get('/check', authLimiter, async (req, res) => {
   const { username, email } = req.query;
   const prisma = require('../config/prisma');

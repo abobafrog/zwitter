@@ -20,6 +20,8 @@ import SearchPage from './pages/SearchPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ServicesPage from './pages/ServicesPage';
+import GlobalTranslator from './components/i18n/GlobalTranslator';
+import { applyPlusTheme } from './utils/plus';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, hasCheckedAuth } = useAuthStore();
@@ -66,8 +68,13 @@ function App() {
     initializeAuth();
   }, [initializeAuth]);
 
+  useEffect(() => {
+    applyPlusTheme();
+  }, []);
+
   return (
     <>
+      <GlobalTranslator />
       <ScrollToRouteTop />
       <Routes>
         <Route path="/" element={<Navigate to="/home" replace />} />

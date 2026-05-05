@@ -23,6 +23,15 @@ model User {
   isVerified   Boolean   @default(false) @map("is_verified")
   isCommunity  Boolean   @default(false) @map("is_community")
   blockGroupInvites Boolean @default(false) @map("block_group_invites")
+  messagePrivacy String   @default("everyone") @map("message_privacy") @db.VarChar(20)
+  notifyLikes    Boolean  @default(true) @map("notify_likes")
+  notifyReplies  Boolean  @default(true) @map("notify_replies")
+  notifyRetweets Boolean  @default(true) @map("notify_retweets")
+  notifyFollows  Boolean  @default(true) @map("notify_follows")
+  notifyMessages Boolean  @default(true) @map("notify_messages")
+  followersCount Int      @default(0) @map("followers_count")
+  followingCount Int      @default(0) @map("following_count")
+  tweetsCount    Int      @default(0) @map("tweets_count")
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
@@ -40,11 +49,14 @@ model User {
   chatParticipants ChatParticipant[]
   refreshTokens  RefreshToken[]
   accountTokens   AccountToken[]
+  quickNotes      QuickNote[]
+  serviceTasks    ServiceTask[]
   notifications  Notification[] @relation("NotificationUser")
   sentNotifications Notification[] @relation("NotificationFrom")
   ownedCommunities Community[] @relation("CommunityOwner")
   communityMemberships CommunityMember[]
 
+  @@index([isCommunity, followersCount, createdAt])
   @@map("users")
 }
 
@@ -53,6 +65,7 @@ model AccountToken {
   tokenHash String   @unique @map("token_hash")
   userId    String   @map("user_id")
   type      String   @db.VarChar(40)
+  payload   String?  @db.Text
   expiresAt DateTime @map("expires_at")
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -60,6 +73,51 @@ model AccountToken {
 
   @@index([userId, type])
   @@map("account_tokens")
+}
+
+model QuickNote {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  content   String   @db.VarChar(1000)
+  color     String   @default("cyan") @db.VarChar(20)
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  history QuickNoteHistory[]
+
+  @@index([userId, pinned, updatedAt])
+  @@map("quick_notes")
+}
+
+model QuickNoteHistory {
+  id        String   @id @default(uuid())
+  noteId    String   @map("note_id")
+  summary   String   @db.VarChar(180)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  note QuickNote @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([noteId, createdAt])
+  @@map("quick_note_history")
+}
+
+model ServiceTask {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  title     String   @db.VarChar(160)
+  details   String?  @db.VarChar(1000)
+  status    String   @default("todo") @db.VarChar(20)
+  priority  String   @default("normal") @db.VarChar(20)
+  dueDate   DateTime? @map("due_date")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status, dueDate])
+  @@map("service_tasks")
 }
 
 model Community {
@@ -71,6 +129,8 @@ model Community {
   bannerUrl   String?  @map("banner_url")
   ownerId     String   @map("owner_id")
   isVerified  Boolean  @default(false) @map("is_verified")
+  membersCount Int     @default(0) @map("members_count")
+  tweetsCount  Int     @default(0) @map("tweets_count")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -78,6 +138,7 @@ model Community {
   members CommunityMember[]
   tweets  Tweet[]
 
+  @@index([membersCount, createdAt])
   @@map("communities")
 }
 
@@ -109,8 +170,12 @@ model RefreshToken {
 
 model Tweet {
   viewsCount   Int   @default(0)   @map("views_count")
+  likesCount   Int   @default(0)   @map("likes_count")
+  retweetsCount Int  @default(0)   @map("retweets_count")
+  repliesCount Int   @default(0)   @map("replies_count")
+  bookmarksCount Int @default(0)   @map("bookmarks_count")
   id        String   @id @default(uuid())
-  content   String   @db.VarChar(280)
+  content   String   @db.VarChar(500)
   imageUrl  String?  @map("image_url")
   authorId  String   @map("author_id")
   communityId String? @map("community_id")
@@ -128,6 +193,13 @@ model Tweet {
   bookmarks Bookmark[]
   notifications Notification[]
 
+  @@index([createdAt, id])
+  @@index([authorId, createdAt])
+  @@index([parentId, createdAt])
+  @@index([communityId, createdAt])
+  @@index([viewsCount, createdAt])
+  @@index([viewsCount, createdAt, id])
+  @@index([parentId, viewsCount, createdAt])
   @@map("tweets")
 }
 
@@ -142,6 +214,9 @@ model TweetView {
   user  User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([tweetId, userId])
+  @@index([tweetId])
+  @@index([userId])
+  @@index([createdAt])
   @@map("tweet_views")
 }
 
@@ -155,6 +230,8 @@ model Like {
   tweet Tweet @relation(fields: [tweetId], references: [id], onDelete: Cascade)
 
   @@unique([userId, tweetId])
+  @@index([tweetId])
+  @@index([userId])
   @@map("likes")
 }
 
@@ -168,6 +245,9 @@ model Retweet {
   tweet Tweet @relation(fields: [tweetId], references: [id], onDelete: Cascade)
 
   @@unique([userId, tweetId])
+  @@index([userId, createdAt])
+  @@index([tweetId])
+  @@index([createdAt])
   @@map("retweets")
 }
 
@@ -181,6 +261,8 @@ model Follow {
   following User @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
   @@map("follows")
 }
 
@@ -204,12 +286,15 @@ model ChatParticipant {
   id       String   @id @default(uuid())
   chatId   String   @map("chat_id")
   userId   String   @map("user_id")
+  role     String   @default("member")
   joinedAt DateTime @default(now()) @map("joined_at")
 
   chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([chatId, userId])
+  @@index([userId])
+  @@index([chatId])
   @@map("chat_participants")
 }
 
@@ -229,6 +314,10 @@ model Message {
   receiver  User?             @relation("ReceivedMessages", fields: [receiverId], references: [id])
   reactions MessageReaction[]
 
+  @@index([chatId, createdAt])
+  @@index([senderId])
+  @@index([isRead])
+  @@index([chatId, isRead, senderId])
   @@map("messages")
 }
 
@@ -256,7 +345,23 @@ model Bookmark {
   tweet Tweet @relation(fields: [tweetId], references: [id], onDelete: Cascade)
 
   @@unique([userId, tweetId])
+  @@index([userId, createdAt])
+  @@index([tweetId])
+  @@index([createdAt])
   @@map("bookmarks")
+}
+
+model TopicStat {
+  id        String   @id @default(uuid())
+  name      String   @unique @db.VarChar(80)
+  slug      String   @unique @db.VarChar(100)
+  keywords  String[] @default([])
+  posts     Int      @default(0)
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([posts, updatedAt])
+  @@map("topic_stats")
 }
 
 model Notification {

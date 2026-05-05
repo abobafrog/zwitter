@@ -1384,14 +1384,88 @@
   .background-music-player {
     position: fixed;
     z-index: 60;
+    left: auto;
+    top: auto;
     right: 18px;
     bottom: 92px;
-    width: min(360px, calc(100vw - 32px));
+  }
+
+  .background-music-panel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-width: 320px;
+    min-height: 300px;
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 120px);
+  }
+
+  .background-music-panel > .bg-slate-950 {
+    height: calc(100% - 73px);
+    min-height: 210px;
   }
 
   .background-music-player-compact {
     width: auto;
   }
+
+  .background-music-player-compact .background-music-panel {
+    width: auto;
+    height: auto;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .music-resize-edge,
+  .music-resize-corner,
+  .music-move-side {
+    position: absolute;
+    z-index: 4;
+    border: 0;
+    background: transparent;
+  }
+
+  .music-resize-n,
+  .music-resize-s {
+    left: 18px;
+    right: 18px;
+    height: 9px;
+    cursor: ns-resize;
+  }
+
+  .music-resize-n { top: 0; }
+  .music-resize-s { bottom: 0; }
+
+  .music-resize-e,
+  .music-resize-w {
+    top: 18px;
+    bottom: 18px;
+    width: 9px;
+    cursor: ew-resize;
+  }
+
+  .music-resize-e { right: 0; }
+  .music-resize-w { left: 0; }
+
+  .music-resize-corner {
+    width: 22px;
+    height: 22px;
+  }
+
+  .music-resize-ne { top: 0; right: 0; cursor: nesw-resize; }
+  .music-resize-nw { top: 0; left: 0; cursor: nwse-resize; }
+  .music-resize-se { bottom: 0; right: 0; cursor: nwse-resize; }
+  .music-resize-sw { bottom: 0; left: 0; cursor: nesw-resize; }
+
+  .music-move-side {
+    top: 76px;
+    bottom: 18px;
+    width: 18px;
+    cursor: move;
+  }
+
+  .music-move-left { left: 9px; }
+  .music-move-right { right: 9px; }
 
   @media (min-width: 768px) {
     .background-music-player {
@@ -1402,4 +1476,82 @@
   .nebula-section-heading {
     @apply text-[11px] font-bold uppercase tracking-[0.18em] text-x-muted;
   }
+}
+
+html[data-plus-theme='midnight'] body {
+  background:
+    radial-gradient(ellipse at 18% 8%, rgba(30, 64, 175, 0.2), transparent 36%),
+    radial-gradient(ellipse at 72% 18%, rgba(67, 56, 202, 0.24), transparent 34%),
+    linear-gradient(180deg, #01030c 0%, #020617 50%, #02030b 100%);
+}
+
+html[data-plus-theme='midnight'] .cosmic-header,
+html[data-plus-theme='midnight'] .cosmic-panel,
+html[data-plus-theme='midnight'] .settings-window,
+html[data-plus-theme='midnight'] .settings-main,
+html[data-plus-theme='midnight'] .settings-sidebar,
+html[data-plus-theme='midnight'] .nebula-sidebar-shell,
+html[data-plus-theme='midnight'] .nebula-mobile-nav,
+html[data-plus-theme='midnight'] .layout-restore-button,
+html[data-plus-theme='midnight'] .nebula-sidebar-profile-card,
+html[data-plus-theme='midnight'] .nebula-sidebar-secondary {
+  background: rgba(6, 16, 38, 0.88) !important;
+  border-color: rgba(96, 165, 250, 0.22) !important;
+}
+
+html[data-plus-theme='midnight'] .btn-accent {
+  background: linear-gradient(90deg, #38bdf8 0%, #3b82f6 100%) !important;
+  color: #03111f !important;
+}
+
+html[data-plus-theme='midnight'] .nebula-sidebar-compose {
+  background: linear-gradient(90deg, #38bdf8 0%, #2563eb 100%) !important;
+  color: #04121d !important;
+}
+
+html[data-plus-theme='contrast'] body {
+  background:
+    radial-gradient(ellipse at 14% 12%, rgba(251, 191, 36, 0.16), transparent 30%),
+    radial-gradient(ellipse at 82% 18%, rgba(34, 211, 238, 0.14), transparent 30%),
+    linear-gradient(180deg, #030303 0%, #09090b 52%, #020617 100%);
+}
+
+html[data-plus-theme='contrast'] .cosmic-header,
+html[data-plus-theme='contrast'] .cosmic-panel,
+html[data-plus-theme='contrast'] .settings-window,
+html[data-plus-theme='contrast'] .settings-main,
+html[data-plus-theme='contrast'] .settings-sidebar,
+html[data-plus-theme='contrast'] .nebula-sidebar-shell,
+html[data-plus-theme='contrast'] .nebula-mobile-nav,
+html[data-plus-theme='contrast'] .layout-restore-button,
+html[data-plus-theme='contrast'] .nebula-sidebar-profile-card,
+html[data-plus-theme='contrast'] .nebula-sidebar-secondary {
+  background: rgba(9, 9, 11, 0.92) !important;
+  border-color: rgba(250, 204, 21, 0.32) !important;
+  box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.12), 0 18px 70px rgba(0, 0, 0, 0.44) !important;
+}
+
+html[data-plus-theme='contrast'] .input-field,
+html[data-plus-theme='contrast'] .settings-input {
+  border-color: rgba(250, 204, 21, 0.28) !important;
+  background: rgba(12, 12, 14, 0.9) !important;
+}
+
+html[data-plus-theme='contrast'] .btn-accent {
+  background: linear-gradient(90deg, #facc15 0%, #f97316 100%) !important;
+  color: #101010 !important;
+  box-shadow: 0 0 18px rgba(250, 204, 21, 0.28), 0 0 42px rgba(249, 115, 22, 0.18) !important;
+}
+
+html[data-plus-theme='contrast'] .nebula-sidebar-compose {
+  background: linear-gradient(90deg, #facc15 0%, #f97316 100%) !important;
+  color: #101010 !important;
+}
+
+.music-wave-shell wave {
+  border-radius: 18px;
+}
+
+.music-waveform {
+  min-height: 76px;
 }

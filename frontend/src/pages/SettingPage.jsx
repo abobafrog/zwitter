@@ -1,21 +1,32 @@
 // src/pages/SettingsPage.jsx
-import { useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import useAuthStore from '../store/authStore';
+import useLanguageStore, { languages } from '../store/languageStore';
 import NavIcon from '../components/layout/NavIcon';
+import { activatePlusForUser, hasPlusAccess, isPlusUser, savePlusTheme } from '../utils/plus';
 
 const settingsSections = [
   ['profile', 'Профиль', 'Профиль', 'user'],
   ['username', 'Никнейм', 'Профиль', 'user'],
   ['privacy', 'Приватность', 'Аккаунт', 'settings'],
+  ['notifications', 'Уведомления', 'Аккаунт', 'bell'],
+  ['language', 'Язык', 'Аккаунт', 'compass'],
   ['email', 'Email', 'Аккаунт', 'messages'],
   ['password', 'Пароль', 'Аккаунт', 'settings'],
   ['security', 'Безопасность', 'Аккаунт', 'settings'],
+  ['sessions', 'Сессии', 'Аккаунт', 'settings'],
+  ['blacklist', 'Чёрный список', 'Аккаунт', 'close'],
+  ['accounts', 'Аккаунты', 'Аккаунт', 'user'],
   ['subscription', 'Подписка', 'Plus', 'plus'],
+  ['appearance', 'Оформление', 'Plus', 'compass'],
+  ['feedback', 'Обратная связь', 'Plus', 'messages'],
   ['danger', 'Удаление', 'Опасная зона', 'close'],
 ];
+const PLUS_PAYMENT_KEY = 'zwitter-plus-payment-id';
 
 const settingsGroups = [
   ['Профиль', settingsSections.filter(([, , group]) => group === 'Профиль')],
@@ -26,9 +37,9 @@ const settingsGroups = [
 
 const subscriptionFeatures = [
   {
-    feature: 'Профиль и публикации',
-    regular: 'Базовый профиль, звиты и ответы',
-    premium: 'Расширенный профиль и будущие инструменты оформления',
+    feature: 'Длина звита',
+    regular: 'До 280 символов',
+    premium: 'До 500 символов и длиннее черновики',
   },
   {
     feature: 'Сообщества',
@@ -130,7 +141,10 @@ const ToggleButton = ({ enabled, onClick, label, disabled }) => (
 
 export default function SettingsPage() {
   const { user, updateUser, logout } = useAuthStore();
+  const { language, setLanguage } = useLanguageStore();
   const navigate = useNavigate();
+  const location = useLocation();
+  const qc = useQueryClient();
   const settingsBodyRef = useRef(null);
 
   const [profile, setProfile] = useState({
@@ -138,7 +152,7 @@ export default function SettingsPage() {
     bio: user?.bio || '',
   });
   const [username, setUsername] = useState(user?.username || '');
-  const [emailData, setEmailData] = useState({ newEmail: '', currentPassword: '' });
+  const [emailData, setEmailData] = useState({ newEmail: '', currentPassword: '', code: '', pendingEmail: '' });
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -146,6 +160,22 @@ export default function SettingsPage() {
   });
   const [deleteData, setDeleteData] = useState({ currentPassword: '', confirm: '' });
   const [billing, setBilling] = useState('month');
+  const [blockedDraft, setBlockedDraft] = useState('');
+  const [blockedUsers, setBlockedUsers] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('zwitter-blacklist') || '[]');
+    } catch {
+      return [];
+    }
+  });
+  const [savedAccounts, setSavedAccounts] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('zwitter-saved-accounts') || '[]');
+    } catch {
+      return [];
+    }
+  });
+  const [appearance, setAppearance] = useState(() => localStorage.getItem('zwitter-plus-theme') || 'neon');
   const [activeSection, setActiveSection] = useState('profile');
   const [loading, setLoading] = useState({
     profile: false,
@@ -154,9 +184,39 @@ export default function SettingsPage() {
     password: false,
     delete: false,
     privacy: false,
+    notifications: false,
   });
 
   const activeEmail = useMemo(() => user?.email || 'email не указан', [user?.email]);
+  const plusActive = hasPlusAccess(user);
+  const { data: sessionData } = useQuery({
+    queryKey: ['sessions'],
+    queryFn: () => api.get('/auth/sessions').then((r) => r.data),
+    enabled: !!user,
+  });
+  const revokeSessionMutation = useMutation({
+    mutationFn: (id) => api.delete(`/auth/sessions/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['sessions'] });
+      toast.success('Сессия завершена');
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Не удалось завершить сессию'),
+  });
+  const createYooKassaPaymentMutation = useMutation({
+    mutationFn: (plan) => api.post('/payments/plus/create', {
+      plan,
+      returnUrl: `${window.location.origin}/settings`,
+    }),
+    onSuccess: ({ data }) => {
+      if (data.paymentId) localStorage.setItem(PLUS_PAYMENT_KEY, data.paymentId);
+      if (data.confirmationUrl) {
+        window.location.href = data.confirmationUrl;
+        return;
+      }
+      toast.error('YooKassa не вернула ссылку на оплату');
+    },
+    onError: (error) => toast.error(error.response?.data?.error || 'Не удалось создать оплату YooKassa'),
+  });
   const setLoad = (key, val) => setLoading((l) => ({ ...l, [key]: val }));
   const closeSettings = () => {
     if (window.history.state?.idx > 0) {
@@ -221,11 +281,37 @@ export default function SettingsPage() {
     setLoad('email', true);
     try {
       const { data } = await api.patch('/users/me/email', emailData);
-      updateUser({ email: data.email });
-      setEmailData({ newEmail: '', currentPassword: '' });
-      toast.success('Email изменён');
+      setEmailData((current) => ({
+        ...current,
+        code: '',
+        pendingEmail: data.pendingEmail,
+        currentPassword: '',
+      }));
+      toast.success(data.message || 'Код отправлен на новый email');
     } catch (e) {
       toast.error(e.response?.data?.error || 'Ошибка');
+    } finally {
+      setLoad('email', false);
+    }
+  };
+
+  const confirmEmail = async () => {
+    const pendingEmail = emailData.pendingEmail || emailData.newEmail.trim().toLowerCase();
+    if (!pendingEmail || !emailData.code.trim()) {
+      toast.error('Введите email и код из письма');
+      return;
+    }
+    setLoad('email', true);
+    try {
+      const { data } = await api.post('/users/me/email/confirm', {
+        newEmail: pendingEmail,
+        code: emailData.code.trim(),
+      });
+      updateUser({ email: data.email, emailVerified: true, emailVerifiedAt: new Date().toISOString() });
+      setEmailData({ newEmail: '', currentPassword: '', code: '', pendingEmail: '' });
+      toast.success('Email подтверждён и изменён');
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Код не подошёл');
     } finally {
       setLoad('email', false);
     }
@@ -276,6 +362,32 @@ export default function SettingsPage() {
     }
   };
 
+  const saveMessagePrivacy = async (messagePrivacy) => {
+    setLoad('privacy', true);
+    try {
+      const { data } = await api.patch('/users/me/profile', { messagePrivacy });
+      updateUser(data.user);
+      toast.success('Ограничение сообщений сохранено');
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Не удалось сохранить настройку');
+    } finally {
+      setLoad('privacy', false);
+    }
+  };
+
+  const saveNotificationSetting = async (key, value) => {
+    setLoad('notifications', true);
+    try {
+      const { data } = await api.patch('/users/me/profile', { [key]: value });
+      updateUser(data.user);
+      toast.success('Настройки уведомлений сохранены');
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Не удалось сохранить уведомления');
+    } finally {
+      setLoad('notifications', false);
+    }
+  };
+
   const deleteAccount = async () => {
     if (deleteData.confirm !== user?.username) {
       toast.error('Введи свой никнейм для подтверждения');
@@ -299,7 +411,46 @@ export default function SettingsPage() {
   };
 
   const buySubscription = () => {
-    toast('Оплата подписки скоро появится. Сейчас это витрина будущего тарифа.');
+    activatePlusForUser(user);
+    updateUser({ isPlus: true });
+    toast.success('Тестовый Plus активирован для этого аккаунта');
+  };
+
+  const addBlockedUser = () => {
+    const value = blockedDraft.trim().replace(/^@/, '').toLowerCase();
+    if (!value) return;
+    const next = [...new Set([...blockedUsers, value])];
+    setBlockedUsers(next);
+    setBlockedDraft('');
+    localStorage.setItem('zwitter-blacklist', JSON.stringify(next));
+    toast.success('Пользователь добавлен в чёрный список');
+  };
+
+  const removeBlockedUser = (username) => {
+    const next = blockedUsers.filter((item) => item !== username);
+    setBlockedUsers(next);
+    localStorage.setItem('zwitter-blacklist', JSON.stringify(next));
+  };
+
+  const rememberCurrentAccount = () => {
+    if (!user) return;
+    const next = [
+      { id: user.id, username: user.username, displayName: user.displayName, avatarUrl: user.avatarUrl },
+      ...savedAccounts.filter((account) => account.id !== user.id),
+    ].slice(0, 5);
+    setSavedAccounts(next);
+    localStorage.setItem('zwitter-saved-accounts', JSON.stringify(next));
+    toast.success('Аккаунт добавлен в переключатель');
+  };
+
+  const saveAppearance = (theme) => {
+    if (!plusActive) {
+      toast.error('Оформление доступно только с Plus');
+      return;
+    }
+    setAppearance(theme);
+    savePlusTheme(theme);
+    toast.success('Оформление сохранено');
   };
 
   const showTwoFactorNotice = () => {
@@ -315,8 +466,49 @@ export default function SettingsPage() {
     });
   };
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const paymentState = params.get('plusPayment');
+    const paymentId = params.get('paymentId') || localStorage.getItem(PLUS_PAYMENT_KEY);
+    if (paymentState !== 'return' || !paymentId || !user) return;
+
+    let cancelled = false;
+    showSettingsSection('subscription');
+
+    api.get(`/payments/plus/${paymentId}`)
+      .then(({ data }) => {
+        if (cancelled) return;
+        if (data.status === 'succeeded' || data.paid) {
+          activatePlusForUser(user);
+          updateUser({ isPlus: true });
+          toast.success('Plus успешно активирован');
+        } else if (data.status === 'pending') {
+          toast('Платёж ещё обрабатывается YooKassa');
+        } else {
+          toast.error('Оплата не завершена');
+        }
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        toast.error(error.response?.data?.error || 'Не удалось проверить оплату YooKassa');
+      })
+      .finally(() => {
+        if (cancelled) return;
+        localStorage.removeItem(PLUS_PAYMENT_KEY);
+        const nextParams = new URLSearchParams(location.search);
+        nextParams.delete('plusPayment');
+        nextParams.delete('paymentId');
+        const nextSearch = nextParams.toString();
+        navigate(`${location.pathname}${nextSearch ? `?${nextSearch}` : ''}`, { replace: true });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [location.pathname, location.search, navigate, updateUser, user]);
+
   return (
-    <div className="settings-stage">
+    <div className="settings-stage" data-no-translate="true">
       <div className="settings-window">
         <aside className="settings-sidebar">
           <div className="settings-sidebar-header">
@@ -368,14 +560,6 @@ export default function SettingsPage() {
             ))}
           </nav>
 
-          <button
-            type="button"
-            onClick={closeSettings}
-            className="settings-sidebar-exit"
-          >
-            <NavIcon name="close" className="h-4 w-4" />
-            Закрыть
-          </button>
         </aside>
 
         <main className="settings-main">
@@ -450,9 +634,35 @@ export default function SettingsPage() {
       <Section
         id="privacy"
         title="Приватность"
-        description="Управляй тем, как другие пользователи могут добавлять тебя в групповые чаты."
+        description="Управляй тем, кто может писать тебе и добавлять тебя в групповые чаты."
       >
         <div className="rounded-2xl border border-x-border/75 bg-x-panel/55 px-4 shadow-panel">
+          <SecurityRow
+            title="Кто может писать мне"
+            description="Ограничение влияет на создание новых личных чатов и отправку сообщений в личных диалогах."
+          >
+            <div className="flex flex-wrap gap-2">
+              {[
+                ['everyone', 'Все'],
+                ['following', 'Мои подписки'],
+                ['none', 'Никто'],
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => saveMessagePrivacy(value)}
+                  disabled={loading.privacy}
+                  className={`rounded-xl border px-3 py-2 text-xs font-black uppercase tracking-wide transition disabled:opacity-60 ${
+                    (user?.messagePrivacy || 'everyone') === value
+                      ? 'border-cyan-300/60 bg-cyan-300/12 text-x-accent shadow-neon'
+                      : 'border-x-border bg-x-bg/70 text-x-muted hover:border-cyan-300/45 hover:text-x-text'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </SecurityRow>
           <SecurityRow
             title="Не добавлять меня в группы"
             description="Если включено, другие пользователи не смогут выбрать тебя при создании группового чата."
@@ -468,11 +678,168 @@ export default function SettingsPage() {
       </Section>
       )}
 
+      {activeSection === 'notifications' && (
+      <Section
+        id="notifications"
+        title="Уведомления"
+        description="Выбери, какие события должны появляться в уведомлениях и бейджах."
+      >
+        <div className="rounded-2xl border border-x-border/75 bg-x-panel/55 px-4 shadow-panel">
+          {[
+            ['notifyLikes', 'Лайки', 'Когда кто-то лайкает твой звит.'],
+            ['notifyReplies', 'Ответы', 'Когда отвечают на твой звит или тред.'],
+            ['notifyRetweets', 'Репосты', 'Когда кто-то репостит твой звит.'],
+            ['notifyFollows', 'Подписки', 'Когда на тебя подписываются.'],
+            ['notifyMessages', 'Сообщения', 'Когда приходят новые сообщения в чатах.'],
+          ].map(([key, title, description]) => (
+            <SecurityRow key={key} title={title} description={description}>
+              <ToggleButton
+                enabled={user?.[key] !== false}
+                onClick={() => saveNotificationSetting(key, !(user?.[key] !== false))}
+                disabled={loading.notifications}
+                label={`Уведомления: ${title}`}
+              />
+            </SecurityRow>
+          ))}
+        </div>
+      </Section>
+      )}
+
+      {activeSection === 'sessions' && (
+      <Section
+        id="sessions"
+        title="Активные сессии"
+        description="Устройства и браузеры, где сейчас действуют refresh-сессии аккаунта."
+      >
+        <div className="rounded-2xl border border-x-border/75 bg-x-panel/55 px-4 shadow-panel">
+          {(sessionData?.sessions || []).map((session) => (
+            <SecurityRow
+              key={session.id}
+              title={session.current ? 'Текущая сессия' : `Сессия ${session.id.slice(0, 8)}`}
+              description={`Создана ${new Date(session.createdAt).toLocaleString('ru-RU')} · активна до ${new Date(session.expiresAt).toLocaleString('ru-RU')}`}
+            >
+              <button
+                type="button"
+                disabled={session.current || revokeSessionMutation.isPending}
+                onClick={() => revokeSessionMutation.mutate(session.id)}
+                className="rounded-xl border border-red-400/35 px-4 py-2 text-sm font-black text-red-300 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                {session.current ? 'Это устройство' : 'Завершить'}
+              </button>
+            </SecurityRow>
+          ))}
+          {(sessionData?.sessions || []).length === 0 && (
+            <p className="py-4 text-sm text-x-muted">Активных сессий пока не найдено.</p>
+          )}
+        </div>
+      </Section>
+      )}
+
+      {activeSection === 'blacklist' && (
+      <Section id="blacklist" title="Чёрный список" description="Локальный список пользователей, которых ты хочешь скрывать и проверять перед общением.">
+        <div className="rounded-2xl border border-x-border/75 bg-x-panel/55 p-4 shadow-panel">
+          <div className="flex gap-2">
+            <input value={blockedDraft} onChange={(e) => setBlockedDraft(e.target.value)} className="settings-input mb-0" placeholder="@username" />
+            <button type="button" onClick={addBlockedUser} className="btn-accent px-4 py-2 text-sm">Добавить</button>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {blockedUsers.map((username) => (
+              <button key={username} type="button" onClick={() => removeBlockedUser(username)} className="rounded-full border border-x-border px-3 py-1 text-sm font-black text-x-muted hover:border-red-300/45 hover:text-red-200">
+                @{username} ×
+              </button>
+            ))}
+            {blockedUsers.length === 0 && <span className="text-sm text-x-muted">Список пуст.</span>}
+          </div>
+        </div>
+      </Section>
+      )}
+
+      {activeSection === 'accounts' && (
+      <Section id="accounts" title="Переключение аккаунтов" description="Сохраняет быстрые ярлыки аккаунтов на этом устройстве; вход всё равно подтверждается паролем или сессией.">
+        <div className="rounded-2xl border border-x-border/75 bg-x-panel/55 p-4 shadow-panel">
+          <button type="button" onClick={rememberCurrentAccount} className="btn-accent px-4 py-2 text-sm">Запомнить текущий аккаунт</button>
+          <div className="mt-4 grid gap-2">
+            {savedAccounts.map((account) => (
+              <button key={account.id} type="button" onClick={() => navigate('/login')} className="flex items-center gap-3 rounded-2xl border border-x-border bg-x-bg/55 px-3 py-2 text-left">
+                <div className="h-9 w-9 overflow-hidden rounded-full cosmic-avatar">
+                  {account.avatarUrl ? <img src={account.avatarUrl} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center font-black">{account.displayName?.[0]?.toUpperCase()}</div>}
+                </div>
+                <div>
+                  <p className="text-sm font-black text-x-text">{account.displayName}</p>
+                  <p className="text-xs text-x-muted">@{account.username}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </Section>
+      )}
+
+      {activeSection === 'language' && (
+      <Section
+        id="language"
+        title="Язык"
+        description="Переключает язык интерфейса. Название сети Zwiteer не переводится."
+      >
+        <div className="grid gap-2 sm:grid-cols-2">
+          {languages.map(([code, label]) => (
+            <button
+              key={code}
+              type="button"
+              onClick={() => {
+                setLanguage(code);
+                toast.success('Язык обновлён');
+              }}
+              className={`rounded-2xl border px-4 py-3 text-left text-sm font-black transition ${
+                language === code
+                  ? 'border-cyan-300/60 bg-cyan-300/12 text-x-accent shadow-neon'
+                  : 'border-x-border bg-x-bg/55 text-x-muted hover:border-cyan-300/45 hover:text-x-text'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </Section>
+      )}
+
+      {activeSection === 'appearance' && (
+      <Section id="appearance" title="Оформление" description="Темы интерфейса доступны только с Plus.">
+        <div className="grid gap-2 sm:grid-cols-3">
+          {[
+            ['neon', 'Неон'],
+            ['midnight', 'Полночь'],
+            ['contrast', 'Контраст'],
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => saveAppearance(value)}
+              className={`rounded-2xl border px-4 py-4 text-sm font-black transition ${appearance === value && plusActive ? 'border-cyan-300/60 bg-cyan-300/12 text-x-accent shadow-neon' : 'border-x-border bg-x-bg/55 text-x-muted hover:border-cyan-300/45'}`}
+            >
+              {label}
+              {!plusActive && <span className="mt-1 block text-[10px] uppercase text-fuchsia-200">Plus</span>}
+            </button>
+          ))}
+        </div>
+      </Section>
+      )}
+
+      {activeSection === 'feedback' && (
+      <Section id="feedback" title="Обратная связь" description="Предложения, баги и идеи можно отправить на почту команды.">
+        <div className="rounded-2xl border border-x-border/75 bg-x-panel/55 p-4 shadow-panel">
+          <a href="mailto:allo100717@gmail.com?subject=Zwiteer%20feedback" className="btn-accent inline-flex px-5 py-2 text-sm">
+            Написать на allo100717@gmail.com
+          </a>
+        </div>
+      </Section>
+      )}
+
       {activeSection === 'email' && (
       <Section
         id="email"
         title="Email"
-        description={`Текущий email: ${activeEmail}`}
+        description={`Текущий email: ${activeEmail}. Смена завершится только после кода с нового адреса.`}
       >
         <Field
           label="Новый email"
@@ -489,8 +856,25 @@ export default function SettingsPage() {
           placeholder="Пароль для подтверждения"
         />
         <button type="button" onClick={saveEmail} disabled={loading.email} className="btn-accent px-5 py-2 text-sm">
-          {loading.email ? 'Меняем...' : 'Изменить email'}
+          {loading.email ? 'Отправляем...' : 'Отправить код'}
         </button>
+        {(emailData.pendingEmail || emailData.newEmail) && (
+          <div className="mt-5 rounded-2xl border border-cyan-300/25 bg-x-panel/55 p-4">
+            <p className="text-sm font-bold text-x-text">
+              Подтверждение для {emailData.pendingEmail || emailData.newEmail}
+            </p>
+            <Field
+              label="Код из письма"
+              value={emailData.code}
+              onChange={(e) => setEmailData((d) => ({ ...d, code: e.target.value }))}
+              placeholder="000000"
+              maxLength={6}
+            />
+            <button type="button" onClick={confirmEmail} disabled={loading.email} className="btn-outline px-5 py-2 text-sm">
+              Подтвердить смену email
+            </button>
+          </div>
+        )}
       </Section>
       )}
 
@@ -569,7 +953,7 @@ export default function SettingsPage() {
       <Section
         id="subscription"
         title="Подписка Zwiteer Plus"
-        description="Здесь будет покупка подписки. Возможности будут расширяться постепенно, поэтому блок сразу сделан как сравнение тарифов."
+        description="Платная подписка расширяет лимиты и включает ранние функции. Оплата создаётся через YooKassa redirect checkout."
       >
         <div className="overflow-hidden rounded-2xl border border-cyan-300/25 bg-x-panel/60 shadow-panel">
           <div className="border-b border-x-border/70 bg-gradient-to-r from-cyan-300/12 via-x-panel to-blue-500/15 p-4">
@@ -578,7 +962,7 @@ export default function SettingsPage() {
                 <p className="text-[11px] font-black uppercase tracking-[0.14em] text-x-accent">Zwiteer Plus</p>
                 <h3 className="mt-2 text-2xl font-black text-x-text">{subscriptionPrice}</h3>
                 <p className="mt-1 text-sm text-x-muted">
-                  Будущие расширенные возможности аккаунта в одном тарифе.
+                  До 500 символов в звите, больше пространства для черновиков и ранний доступ к новым настройкам.
                 </p>
               </div>
               <div className="flex rounded-xl border border-x-border bg-x-bg/60 p-1">
@@ -598,9 +982,19 @@ export default function SettingsPage() {
                 </button>
               </div>
             </div>
-            <button type="button" onClick={buySubscription} className="btn-accent mt-4 px-5 py-2 text-sm">
-              Купить подписку
-            </button>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button type="button" onClick={buySubscription} className="btn-accent px-5 py-2 text-sm">
+                Протестить Plus
+              </button>
+              <button
+                type="button"
+                onClick={() => createYooKassaPaymentMutation.mutate(billing)}
+                disabled={createYooKassaPaymentMutation.isPending}
+                className="rounded-xl border border-x-border px-5 py-2 text-sm font-black text-x-text transition hover:border-cyan-300/40"
+              >
+                {createYooKassaPaymentMutation.isPending ? 'Создаём платёж...' : 'Оплатить через YooKassa'}
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">

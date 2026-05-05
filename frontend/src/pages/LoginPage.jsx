@@ -24,14 +24,22 @@ const Spinner = () => (
 );
 
 export default function LoginPage() {
-  const [form, setForm] = useState({ login: '', password: '' });
+  const location = useLocation();
+  const [form, setForm] = useState({ login: location.state?.login || '', password: '' });
   const [touched, setTouched] = useState({ login: false, password: false });
   const [verificationEmail, setVerificationEmail] = useState('');
   const [isResending, setIsResending] = useState(false);
   const { login, isLoading } = useAuthStore();
   const navigate = useNavigate();
-  const location = useLocation();
   const stateEmail = location.state?.verificationEmail || '';
+  const savedAccounts = (() => {
+    try {
+      const parsed = JSON.parse(localStorage.getItem('zwitter-saved-accounts') || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  })();
 
   const handleChange = (field) => (e) => {
     setForm((f) => ({ ...f, [field]: e.target.value }));
@@ -62,6 +70,14 @@ export default function LoginPage() {
 
     const result = await login(form.login, form.password);
     if (result.success) {
+      try {
+        const current = JSON.parse(localStorage.getItem('zwitter-saved-accounts') || '[]');
+        const next = [
+          { username: form.login.trim(), displayName: form.login.trim(), avatarUrl: null, id: form.login.trim() },
+          ...current.filter((item) => item.username !== form.login.trim()),
+        ].slice(0, 5);
+        localStorage.setItem('zwitter-saved-accounts', JSON.stringify(next));
+      } catch {}
       toast.success('Добро пожаловать!');
       navigate('/home');
     } else {
@@ -126,6 +142,35 @@ export default function LoginPage() {
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {savedAccounts.length > 0 && (
+            <div className="mb-2">
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-x-muted">Быстрый вход</p>
+              <div className="grid gap-2">
+                {savedAccounts.map((account) => (
+                  <button
+                    key={account.id || account.username}
+                    type="button"
+                    onClick={() => setForm((current) => ({ ...current, login: account.username }))}
+                    className="flex items-center gap-3 rounded-2xl border border-x-border bg-x-surface/50 px-3 py-2 text-left transition hover:border-cyan-300/40"
+                  >
+                    <div className="h-9 w-9 rounded-full cosmic-avatar">
+                      {account.avatarUrl ? (
+                        <img src={account.avatarUrl} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center font-black">
+                          {account.displayName?.[0]?.toUpperCase() || account.username?.[0]?.toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-x-text">{account.displayName || account.username}</p>
+                      <p className="truncate text-xs text-x-muted">@{account.username}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Поле логина с проверкой существования */}
           <div>

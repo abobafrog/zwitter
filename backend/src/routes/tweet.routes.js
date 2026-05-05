@@ -2,13 +2,14 @@
 const router = require('express').Router();
 const { body } = require('express-validator');
 const { authenticate, optionalAuth } = require('../middleware/auth');
-const { tweetLimiter } = require('../middleware/rateLimiter');
-const { uploadTweetImage } = require('../config/cloudinary');
+const { tweetLimiter, uploadLimiter } = require('../middleware/rateLimiter');
+const { uploadAttachment } = require('../config/cloudinary');
 const validate = require('../middleware/validate');
 const {
   getFeed,
   getExplore,
   createTweet,
+  updateTweet,
   getTweet,
   deleteTweet,
   likeTweet,
@@ -29,10 +30,21 @@ router.use(authenticate);
 router.post(
   '/',
   tweetLimiter,
-  uploadTweetImage.single('image'),
-  [body('content').trim().isLength({ min: 1, max: 280 }).withMessage('Твит 1-280 символов')],
+  uploadLimiter,
+  uploadAttachment.single('attachment'),
+  [body('content').optional().trim().isLength({ max: 500 }).withMessage('Твит до 500 символов')],
   validate,
   createTweet
+);
+
+router.patch(
+  '/:id',
+  tweetLimiter,
+  uploadLimiter,
+  uploadAttachment.single('attachment'),
+  [body('content').optional().trim().isLength({ max: 500 }).withMessage('Твит до 500 символов')],
+  validate,
+  updateTweet
 );
 
 router.delete('/:id', deleteTweet);

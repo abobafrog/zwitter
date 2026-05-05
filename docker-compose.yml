@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15-alpine
@@ -19,6 +17,13 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: twitter_clone_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
   backend:
     build:
       context: ./backend
@@ -28,8 +33,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_started
     environment:
       DATABASE_URL: postgresql://postgres:password@postgres:5432/twitter_clone
+      REDIS_URL: redis://redis:6379
       JWT_SECRET: dev-jwt-secret-change-in-production-min-32-chars
       JWT_REFRESH_SECRET: dev-refresh-secret-change-in-production-min-32-chars
       JWT_EXPIRES_IN: 15m
@@ -37,13 +45,46 @@ services:
       PORT: 5000
       NODE_ENV: development
       FRONTEND_URL: http://localhost:3000
+      CORS_ORIGINS: http://localhost:3000
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       MAIL_FROM: ${MAIL_FROM:-Zwiteer <onboarding@resend.dev>}
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+      YOOKASSA_SHOP_ID: ${YOOKASSA_SHOP_ID:-}
+      YOOKASSA_SECRET_KEY: ${YOOKASSA_SECRET_KEY:-}
+      YOOKASSA_PLUS_MONTH_AMOUNT: ${YOOKASSA_PLUS_MONTH_AMOUNT:-299.00}
+      YOOKASSA_PLUS_YEAR_AMOUNT: ${YOOKASSA_PLUS_YEAR_AMOUNT:-2990.00}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-2000}
+      TWEET_RATE_LIMIT_MAX: ${TWEET_RATE_LIMIT_MAX:-40}
+      MESSAGE_RATE_LIMIT_MAX: ${MESSAGE_RATE_LIMIT_MAX:-90}
+      UPLOAD_RATE_LIMIT_MAX: ${UPLOAD_RATE_LIMIT_MAX:-30}
+      JOB_QUEUE_ENABLED: ${JOB_QUEUE_ENABLED:-true}
+      SLOW_QUERY_MS: ${SLOW_QUERY_MS:-250}
     ports:
       - "5001:5000"
+    volumes:
+      - ./backend/logs:/app/logs
+      - ./backend/uploads:/app/uploads
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: twitter_clone_worker
+    restart: unless-stopped
+    command: npm run start:worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/twitter_clone
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: development
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-5}
+      SLOW_QUERY_MS: ${SLOW_QUERY_MS:-250}
     volumes:
       - ./backend/logs:/app/logs
 
@@ -60,6 +101,20 @@ services:
       VITE_SOCKET_URL: http://localhost:5001
     ports:
       - "3000:80"
+
+  navidrome:
+    image: deluan/navidrome:latest
+    container_name: zwitter_navidrome
+    restart: unless-stopped
+    ports:
+      - "4533:4533"
+    environment:
+      ND_SCANSCHEDULE: 1h
+      ND_LOGLEVEL: info
+      ND_SESSIONTIMEOUT: 24h
+    volumes:
+      - ./navidrome-data:/data
+      - ./music:/music:ro
 
 volumes:
   pgdata:

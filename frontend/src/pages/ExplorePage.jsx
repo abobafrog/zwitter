@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -116,6 +116,10 @@ export default function ExplorePage({ mode = 'explore' }) {
   const [draft, setDraft] = useState(currentFilter);
   const [createOpen, setCreateOpen] = useState(false);
 
+  useEffect(() => {
+    if (searchParams.get('createCommunity') === '1') setCreateOpen(true);
+  }, [searchParams]);
+
   const endpoint = useMemo(() => {
     if (isCommunities) {
       const params = new URLSearchParams();
@@ -149,6 +153,20 @@ export default function ExplorePage({ mode = 'explore' }) {
     setFilter(draft.trim());
   };
 
+  const openCreateCommunity = () => {
+    const next = new URLSearchParams(searchParams);
+    next.set('createCommunity', '1');
+    setSearchParams(next);
+    setCreateOpen(true);
+  };
+
+  const closeCreateCommunity = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete('createCommunity');
+    setSearchParams(next);
+    setCreateOpen(false);
+  };
+
   const title = isCommunities ? 'Сообщества' : 'Обзор';
   const subtitle = isCommunities ? 'паблики и клубы' : 'поиск и рекомендации';
   const discoveryUsers = isCommunities ? (data?.communities || []) : (data?.users || []);
@@ -161,15 +179,20 @@ export default function ExplorePage({ mode = 'explore' }) {
             <p className="nebula-section-heading">{subtitle}</p>
             <h1 className="text-xl font-black tracking-normal">{title}</h1>
           </div>
-          <form onSubmit={submitSearch} className="relative w-full sm:max-w-xs">
-            <NavIcon name="search" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-x-muted" />
-            <input
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              placeholder={isCommunities ? 'Найти сообщество' : 'Найти в обзоре'}
-              className="input-field pl-10"
-            />
-          </form>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            <form onSubmit={submitSearch} className="relative w-full sm:min-w-[260px] sm:max-w-xs">
+              <NavIcon name="search" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-x-muted" />
+              <input
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                placeholder={isCommunities ? 'Найти сообщество' : 'Найти в обзоре'}
+                className="input-field pl-10"
+              />
+            </form>
+            <button type="button" onClick={openCreateCommunity} className="btn-outline px-4 py-2 text-sm">
+              Создать группу
+            </button>
+          </div>
         </div>
       </div>
 
@@ -182,11 +205,7 @@ export default function ExplorePage({ mode = 'explore' }) {
           <section className="border-b border-x-border/80 bg-x-panel/25 p-4 sm:p-5">
             <div className="mb-3 flex items-center justify-between gap-3">
               <h2 className="text-lg font-black">{isCommunities ? (currentFilter ? 'Найденные сообщества' : 'Популярные сообщества') : 'Кого читать'}</h2>
-              {isCommunities && (
-                <button type="button" onClick={() => setCreateOpen(true)} className="text-sm font-bold text-x-accent hover:text-x-accent-hover">
-                  Создать
-                </button>
-              )}
+              {isCommunities && <span className="text-sm font-bold text-x-muted">Группы создаются отсюда же</span>}
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {discoveryUsers.slice(0, isCommunities ? 8 : 4).map((user) => (
@@ -215,7 +234,7 @@ export default function ExplorePage({ mode = 'explore' }) {
           )}
         </>
       )}
-      {createOpen && <CreateCommunityModal onClose={() => setCreateOpen(false)} />}
+      {createOpen && <CreateCommunityModal onClose={closeCreateCommunity} />}
     </div>
   );
 }

@@ -18,6 +18,10 @@ export const useSocket = () => {
     updateChat,
     removeChat,
     activeChat,
+    setIncomingCall,
+    clearIncomingCall,
+    setActiveCall,
+    clearActiveCall,
   } = useChatStore();
   const initialized = useRef(false);
   const qc = useQueryClient();
@@ -76,6 +80,27 @@ export const useSocket = () => {
 
     socket.on('user:online', ({ userId }) => setUserOnline(userId));
     socket.on('user:offline', ({ userId }) => setUserOffline(userId));
+
+    socket.on('call:ring', (payload) => {
+      setIncomingCall(payload);
+    });
+
+    socket.on('call:started', ({ call }) => {
+      setActiveCall({ call, status: 'calling', peers: [] });
+    });
+
+    socket.on('call:peer-joined', ({ user }) => {
+      setActiveCall({ call: useChatStore.getState().activeCall?.call, status: 'connected', peers: [user].filter(Boolean) });
+    });
+
+    socket.on('call:rejected', () => {
+      clearIncomingCall();
+    });
+
+    socket.on('call:ended', () => {
+      clearIncomingCall();
+      clearActiveCall();
+    });
 
     return () => {
       disconnectSocket();

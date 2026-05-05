@@ -1,8 +1,56 @@
 // src/controllers/tweet.controller.js
 const { Prisma } = require('@prisma/client');
 const prisma = require('../config/prisma');
+const { redis } = require('../config/redis');
 const logger = require('../utils/logger');
 const { createNotification } = require('../services/notification.service');
+const { enqueue } = require('../queues');
+
+const topicSeeds = [
+  { name: 'Космос', slug: 'space', keywords: ['космос', 'звезд', 'звёзд', 'орбит', 'галактик', 'планет'] },
+  { name: 'Будущее', slug: 'future', keywords: ['будущ', 'интерфейс', 'протокол', 'релиз'] },
+  { name: 'Наука', slug: 'science', keywords: ['наук', 'лаборатор', 'исслед', 'сигнал'] },
+  { name: 'Искусство', slug: 'art', keywords: ['арт', 'визуал', 'дизайн', 'кадр', 'баннер'] },
+  { name: 'Технологии', slug: 'technology', keywords: ['ui', 'ux', 'чат', 'канал', 'мобильн'] },
+];
+const EXPLORE_CACHE_TTL_SECONDS = parseInt(process.env.EXPLORE_CACHE_TTL_SECONDS, 10) || 30;
+const EXPLORE_CACHE_KEY = 'explore:response:v2:anon';
+const FEED_CACHE_TTL_SECONDS = parseInt(process.env.FEED_CACHE_TTL_SECONDS, 10) || 10;
+const FILE_MARKER = /\[\[file:(.+?)\|(.+?)\]\]/g;
+
+const invalidateExploreCache = async () => {
+  if (!redis.isOpen) return;
+  const feedKeys = await redis.keys('feed:anon:v2:*');
+  await redis.del(['explore:trends:v1', EXPLORE_CACHE_KEY, ...feedKeys]);
+};
+
+const encodeCursor = (item) => Buffer.from(JSON.stringify({
+  createdAt: new Date(item.retweetedAt || item.createdAt).toISOString(),
+  id: item.cursorId || item.id,
+})).toString('base64url');
+
+const decodeCursor = (cursor) => {
+  if (!cursor) return null;
+  try {
+    const parsed = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'));
+    if (!parsed.createdAt || !parsed.id) return null;
+    return { createdAt: new Date(parsed.createdAt), id: parsed.id };
+  } catch {
+    const legacyDate = new Date(cursor);
+    return Number.isNaN(legacyDate.getTime()) ? null : { createdAt: legacyDate, id: null };
+  }
+};
+
+const buildStableCursorWhere = (cursor) => {
+  if (!cursor) return {};
+  if (!cursor.id) return { createdAt: { lt: cursor.createdAt } };
+  return {
+    OR: [
+      { createdAt: { lt: cursor.createdAt } },
+      { createdAt: cursor.createdAt, id: { lt: cursor.id } },
+    ],
+  };
+};
 
 const tweetSelect = (userId) => ({
   id: true,
@@ -10,6 +58,10 @@ const tweetSelect = (userId) => ({
   imageUrl: true,
   createdAt: true,
   viewsCount: true,
+  likesCount: true,
+  retweetsCount: true,
+  repliesCount: true,
+  bookmarksCount: true,
   parentId: true,
   communityId: true,
   author: {
@@ -26,7 +78,6 @@ const tweetSelect = (userId) => ({
       community: { select: { slug: true, name: true } },
     },
   },
-  _count: { select: { likes: true, retweets: true, replies: true, bookmarks: true } },
   likes: userId ? { where: { userId }, select: { id: true } } : false,
   retweets: userId ? { where: { userId }, select: { id: true } } : false,
   bookmarks: userId ? { where: { userId }, select: { id: true } } : false,
@@ -54,6 +105,28 @@ const markViewed = async (req, tweets) => {
     where: { id: { in: newIds } },
     data: { viewsCount: { increment: 1 } },
   });
+
+  tweets.forEach((tweet) => {
+    if (newIds.includes(tweet.id)) tweet.viewsCount = (tweet.viewsCount || 0) + 1;
+  });
+};
+
+const applyTweetCounts = (tweets) => {
+  const items = collectTweets(Array.isArray(tweets) ? tweets : [tweets]);
+  items.forEach((tweet) => {
+    const likes = Math.max(0, tweet.likesCount || 0);
+    const retweets = Math.max(0, tweet.retweetsCount || 0);
+    const replies = Math.max(0, tweet.repliesCount || 0);
+    const bookmarks = Math.max(0, tweet.bookmarksCount || 0);
+    tweet._count = {
+      likes,
+      retweets,
+      replies,
+      bookmarks,
+      ...(tweet._count || {}),
+    };
+  });
+  return tweets;
 };
 
 const formatPostsLabel = (count) => {
@@ -67,6 +140,64 @@ const formatPostsLabel = (count) => {
 
   return `${count} ${word}`;
 };
+
+const hydrateTopicStats = async () => {
+  await Promise.all(topicSeeds.map((topic) => prisma.topicStat.upsert({
+    where: { slug: topic.slug },
+    create: topic,
+    update: { name: topic.name, keywords: topic.keywords },
+  })));
+};
+
+const getCachedTrends = async () => {
+  const cacheKey = 'explore:trends:v1';
+  if (redis.isOpen) {
+    const cached = await redis.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+  }
+
+  await hydrateTopicStats();
+  const rows = await prisma.topicStat.findMany({
+    orderBy: [{ posts: 'desc' }, { updatedAt: 'desc' }],
+    take: 10,
+  });
+  const trends = rows.map((row) => ({
+    name: row.name,
+    slug: row.slug,
+    posts: row.posts,
+    label: formatPostsLabel(row.posts),
+  }));
+  if (redis.isOpen) await redis.set(cacheKey, JSON.stringify(trends), { EX: 60 });
+  return trends;
+};
+
+const updateTopicStatsForTweet = async (content) => {
+  const normalized = content.toLowerCase();
+  const matchedTopics = topicSeeds.filter((topic) => (
+    topic.keywords.some((keyword) => normalized.includes(keyword.toLowerCase()))
+    || normalized.includes(`#${topic.name.toLowerCase()}`)
+  ));
+  if (!matchedTopics.length) return;
+
+  await Promise.all(matchedTopics.map((topic) => prisma.topicStat.upsert({
+    where: { slug: topic.slug },
+    create: { ...topic, posts: 1 },
+    update: { posts: { increment: 1 }, name: topic.name, keywords: topic.keywords },
+  })));
+  await invalidateExploreCache();
+};
+
+const normalizeHashtags = (value = '') => {
+  const seen = new Set();
+  return value.replace(/#[\p{L}\p{N}_-]+/gu, (tag) => {
+    const key = tag.toLowerCase();
+    if (seen.has(key)) return '';
+    seen.add(key);
+    return tag;
+  }).replace(/[ \t]{2,}/g, ' ').replace(/[ \t]+\n/g, '\n').trim();
+};
+
+const stripFileMarkers = (value = '') => value.replace(FILE_MARKER, '').replace(/\n{3,}/g, '\n\n').trim();
 
 const collectTweets = (items) => {
   const result = [];
@@ -118,7 +249,13 @@ const getFeed = async (req, res, next) => {
     const mode = (req.query.mode || req.query.filter || 'all').toString();
     const followingOnly = mode === 'following' || mode === 'subscriptions';
     const parsedLimit = Math.min(parseInt(limit, 10) || 20, 50);
-    const cursorDate = cursor ? new Date(cursor) : null;
+    const cursorValue = decodeCursor(cursor);
+    const cacheKey = `feed:anon:v2:${mode}:${parsedLimit}`;
+
+    if (!userId && !cursorValue && !followingOnly && redis.isOpen) {
+      const cached = await redis.get(cacheKey);
+      if (cached) return res.json(JSON.parse(cached));
+    }
 
     let timelineUserIds = null;
     if (followingOnly) {
@@ -135,19 +272,19 @@ const getFeed = async (req, res, next) => {
       where: {
         parentId: null,
         ...(timelineUserIds ? { authorId: { in: timelineUserIds } } : {}),
-        ...(cursorDate ? { createdAt: { lt: cursorDate } } : {}),
+        ...buildStableCursorWhere(cursorValue),
       },
       select: tweetSelect(userId),
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: parsedLimit,
     });
 
     const retweets = await prisma.retweet.findMany({
       where: {
         ...(timelineUserIds ? { userId: { in: timelineUserIds } } : {}),
-        ...(cursorDate ? { createdAt: { lt: cursorDate } } : {}),
+        ...buildStableCursorWhere(cursorValue),
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: parsedLimit,
       include: {
         tweet: { select: tweetSelect(userId) },
@@ -160,20 +297,30 @@ const getFeed = async (req, res, next) => {
       isRetweet: true,
       retweetedBy: rt.user,
       retweetedAt: rt.createdAt,
+      cursorId: rt.id,
     }));
 
     const feedItems = [...tweets, ...retweetedTweets]
-      .sort((a, b) => new Date(b.retweetedAt || b.createdAt) - new Date(a.retweetedAt || a.createdAt))
+      .sort((a, b) => {
+        const dateDiff = new Date(b.retweetedAt || b.createdAt) - new Date(a.retweetedAt || a.createdAt);
+        if (dateDiff !== 0) return dateDiff;
+        return (b.cursorId || b.id).localeCompare(a.cursorId || a.id);
+      })
       .slice(0, parsedLimit);
 
     await markViewed(req, feedItems);
-    await withThreadReplyCounts(feedItems);
+    applyTweetCounts(feedItems);
 
     const nextCursor = feedItems.length === parsedLimit
-      ? new Date(feedItems[feedItems.length - 1].retweetedAt || feedItems[feedItems.length - 1].createdAt).toISOString()
+      ? encodeCursor(feedItems[feedItems.length - 1])
       : null;
 
-    res.json({ tweets: feedItems, nextCursor });
+    const payload = { tweets: feedItems, nextCursor };
+    if (!userId && !cursorValue && !followingOnly && redis.isOpen) {
+      await redis.set(cacheKey, JSON.stringify(payload), { EX: FEED_CACHE_TTL_SECONDS });
+    }
+
+    res.json(payload);
   } catch (error) {
     next(error);
   }
@@ -183,13 +330,10 @@ const getExplore = async (req, res, next) => {
   try {
     const userId = req.user?.id;
     const rawTopic = (req.query.topic || req.query.q || '').toString().trim();
-    const topicSeeds = [
-      { name: 'Космос', keywords: ['космос', 'звезд', 'звёзд', 'орбит', 'галактик', 'планет'] },
-      { name: 'Будущее', keywords: ['будущ', 'интерфейс', 'протокол', 'релиз'] },
-      { name: 'Наука', keywords: ['наук', 'лаборатор', 'исслед', 'сигнал'] },
-      { name: 'Искусство', keywords: ['арт', 'визуал', 'дизайн', 'кадр', 'баннер'] },
-      { name: 'Технологии', keywords: ['ui', 'ux', 'чат', 'канал', 'мобильн'] },
-    ];
+    if (!userId && !rawTopic && redis.isOpen) {
+      const cached = await redis.get(EXPLORE_CACHE_KEY);
+      if (cached) return res.json(JSON.parse(cached));
+    }
     const matchedTopic = topicSeeds.find((topic) => topic.name.toLowerCase() === rawTopic.toLowerCase());
     const searchTerms = rawTopic
       ? [...new Set([rawTopic, ...(matchedTopic?.keywords || [])])]
@@ -210,7 +354,8 @@ const getExplore = async (req, res, next) => {
       bio: true,
       isVerified: true,
       isCommunity: true,
-      _count: { select: { followers: true, tweets: true } },
+      followersCount: true,
+      tweetsCount: true,
       followers: userId ? { where: { followerId: userId }, select: { id: true } } : false,
     };
 
@@ -221,11 +366,12 @@ const getExplore = async (req, res, next) => {
       bio: true,
       avatarUrl: true,
       isVerified: true,
-      _count: { select: { members: true, tweets: true } },
+      membersCount: true,
+      tweetsCount: true,
       members: userId ? { where: { userId }, select: { id: true, role: true } } : false,
     };
 
-    const [tweets, users, communities, allTweets] = await Promise.all([
+    const [tweets, users, communities, trends] = await Promise.all([
       prisma.tweet.findMany({
         where,
         select: tweetSelect(userId),
@@ -234,45 +380,44 @@ const getExplore = async (req, res, next) => {
       }),
       prisma.user.findMany({
         where: { isCommunity: false },
-        orderBy: [{ followers: { _count: 'desc' } }, { createdAt: 'desc' }],
+        orderBy: [{ followersCount: 'desc' }, { createdAt: 'desc' }],
         take: 8,
         select: userCardSelect,
       }),
       prisma.community.findMany({
-        orderBy: [{ members: { _count: 'desc' } }, { createdAt: 'desc' }],
+        orderBy: [{ membersCount: 'desc' }, { createdAt: 'desc' }],
         take: 8,
         select: communityCardSelect,
       }),
-      prisma.tweet.findMany({ where: { parentId: null }, select: { content: true } }),
+      getCachedTrends(),
     ]);
-
-    const corpus = allTweets.map((tweet) => tweet.content.toLowerCase());
-    const trends = topicSeeds.map((topic) => {
-      const count = corpus.filter((content) => topic.keywords.some((keyword) => content.includes(keyword))).length;
-      return {
-        name: topic.name,
-        posts: count,
-        label: formatPostsLabel(count),
-      };
-    }).sort((a, b) => b.posts - a.posts);
 
     const normalizedUsers = users.map(({ followers, ...user }) => ({
       ...user,
       isFollowing: userId ? followers.length > 0 : false,
+      _count: { followers: user.followersCount || 0, tweets: user.tweetsCount || 0 },
     }));
-    const normalizedCommunities = communities.map(({ members, _count, ...community }) => ({
+    const normalizedCommunities = communities.map(({ members, ...community }) => ({
       ...community,
       username: community.slug,
       displayName: community.name,
       isCommunity: true,
       isMember: userId ? members.length > 0 : false,
       memberRole: userId ? members[0]?.role || null : null,
-      _count: { followers: _count.members, tweets: _count.tweets, members: _count.members },
+      _count: {
+        followers: community.membersCount || 0,
+        tweets: community.tweetsCount || 0,
+        members: community.membersCount || 0,
+      },
     }));
 
     await markViewed(req, tweets);
-    await withThreadReplyCounts(tweets);
-    res.json({ tweets, users: normalizedUsers, communities: normalizedCommunities, trends });
+    applyTweetCounts(tweets);
+    const payload = { tweets, users: normalizedUsers, communities: normalizedCommunities, trends };
+    if (!userId && !rawTopic && redis.isOpen) {
+      await redis.set(EXPLORE_CACHE_KEY, JSON.stringify(payload), { EX: EXPLORE_CACHE_TTL_SECONDS });
+    }
+    res.json(payload);
   } catch (error) {
     next(error);
   }
@@ -280,10 +425,21 @@ const getExplore = async (req, res, next) => {
 
 const createTweet = async (req, res, next) => {
   try {
-    const { content, parentId, communityId } = req.body;
-    const imageUrl = req.file?.path || null;
+    const { parentId, communityId } = req.body;
+    const rawContent = (req.body.content || '').trim();
+    const content = normalizeHashtags(rawContent);
+    const file = req.file || null;
+    const isImage = file?.mimetype?.startsWith('image/');
+    const imageUrl = isImage ? file.path : null;
+    const finalContent = file && !isImage
+      ? [content, `[[file:${file.originalname}|${file.path}]]`].filter(Boolean).join('\n\n')
+      : content;
     let parent = null;
     let community = null;
+
+    if (!finalContent && !imageUrl) {
+      return res.status(400).json({ error: 'Твит должен содержать текст, фото или вложение' });
+    }
 
     if (parentId) {
       parent = await prisma.tweet.findUnique({ where: { id: parentId } });
@@ -303,15 +459,26 @@ const createTweet = async (req, res, next) => {
       }
     }
 
-    const tweet = await prisma.tweet.create({
-      data: {
-        content,
-        imageUrl,
-        authorId: req.user.id,
-        communityId: community?.id || null,
-        parentId: parentId || null,
-      },
-      select: tweetSelect(req.user.id),
+    const tweet = await prisma.$transaction(async (tx) => {
+      const created = await tx.tweet.create({
+        data: {
+          content: finalContent,
+          imageUrl,
+          authorId: req.user.id,
+          communityId: community?.id || null,
+          parentId: parentId || null,
+        },
+        select: tweetSelect(req.user.id),
+      });
+      if (parentId) {
+        await tx.tweet.update({ where: { id: parentId }, data: { repliesCount: { increment: 1 } } });
+      } else {
+        await tx.user.update({ where: { id: req.user.id }, data: { tweetsCount: { increment: 1 } } });
+        if (community?.id) {
+          await tx.community.update({ where: { id: community.id }, data: { tweetsCount: { increment: 1 } } });
+        }
+      }
+      return created;
     });
 
     if (parent) {
@@ -324,8 +491,74 @@ const createTweet = async (req, res, next) => {
       });
     }
 
+    if (!parentId) {
+      updateTopicStatsForTweet(finalContent).catch((error) => logger.error('Topic stat update failed:', error));
+      invalidateExploreCache().catch((error) => logger.warn(`Explore cache invalidation failed: ${error.message}`));
+    }
+    if (imageUrl && process.env.JOB_QUEUE_ENABLED !== 'false') {
+      enqueue('media', 'tweetImageUploaded', { tweetId: tweet.id, imageUrl })
+        .catch((error) => logger.warn(`Media queue skipped: ${error.message}`));
+    }
+
     logger.info(`Tweet created by ${req.user.username}: ${tweet.id}`);
     res.status(201).json({ tweet });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateTweet = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const rawContent = req.body.content ?? '';
+    const normalizedContent = normalizeHashtags(rawContent.trim());
+    const file = req.file || null;
+    const isImage = file?.mimetype?.startsWith('image/');
+    const clearImage = req.body.clearImage === 'true';
+
+    const existing = await prisma.tweet.findUnique({
+      where: { id },
+      select: { id: true, authorId: true, parentId: true, imageUrl: true, content: true },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Твит не найден' });
+    }
+    if (existing.authorId !== req.user.id) {
+      return res.status(403).json({ error: 'Можно редактировать только свои твиты' });
+    }
+
+    const existingFileMarker = existing.content.match(FILE_MARKER)?.[0] || '';
+    let nextContent = stripFileMarkers(normalizedContent);
+    if (file && !isImage) {
+      nextContent = [nextContent, `[[file:${file.originalname}|${file.path}]]`].filter(Boolean).join('\n\n');
+    } else if (!file && existingFileMarker) {
+      nextContent = [nextContent, existingFileMarker].filter(Boolean).join('\n\n');
+    }
+
+    let imageUrl = existing.imageUrl;
+    if (clearImage) imageUrl = null;
+    if (file && isImage) imageUrl = file.path;
+
+    if (!nextContent && !imageUrl) {
+      return res.status(400).json({ error: 'Твит должен содержать текст, фото, ссылку, опрос или вложение' });
+    }
+
+    const tweet = await prisma.tweet.update({
+      where: { id },
+      data: {
+        content: nextContent,
+        imageUrl,
+      },
+      select: tweetSelect(req.user.id),
+    });
+
+    applyTweetCounts(tweet);
+    if (!existing.parentId) {
+      invalidateExploreCache().catch((error) => logger.warn(`Explore cache invalidation failed: ${error.message}`));
+    }
+
+    res.json({ tweet });
   } catch (error) {
     next(error);
   }
@@ -365,7 +598,21 @@ const deleteTweet = async (req, res, next) => {
     if (!tweet) return res.status(404).json({ error: 'Твит не найден' });
     if (tweet.authorId !== req.user.id) return res.status(403).json({ error: 'Нет прав' });
 
-    await prisma.tweet.delete({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      await tx.tweet.delete({ where: { id } });
+      if (tweet.parentId) {
+        await tx.tweet.update({
+          where: { id: tweet.parentId },
+          data: { repliesCount: { decrement: 1 } },
+        }).catch(() => {});
+      } else {
+        await tx.user.update({ where: { id: tweet.authorId }, data: { tweetsCount: { decrement: 1 } } }).catch(() => {});
+        if (tweet.communityId) {
+          await tx.community.update({ where: { id: tweet.communityId }, data: { tweetsCount: { decrement: 1 } } }).catch(() => {});
+        }
+      }
+    });
+    invalidateExploreCache().catch((error) => logger.warn(`Explore cache invalidation failed: ${error.message}`));
     res.json({ message: 'Твит удалён' });
   } catch (error) {
     next(error);
@@ -385,13 +632,29 @@ const likeTweet = async (req, res, next) => {
     });
 
     if (existing) {
-      await prisma.like.delete({ where: { id: existing.id } });
-      return res.json({ liked: false });
+      const [, updatedTweet] = await prisma.$transaction([
+        prisma.like.delete({ where: { id: existing.id } }),
+        prisma.tweet.update({
+          where: { id },
+          data: { likesCount: Math.max(0, (tweet.likesCount || 0) - 1) },
+          select: { likesCount: true },
+        }),
+      ]);
+      invalidateExploreCache().catch((error) => logger.warn(`Explore cache invalidation failed: ${error.message}`));
+      return res.json({ liked: false, count: updatedTweet.likesCount });
     }
 
-    await prisma.like.create({ data: { userId, tweetId: id } });
+    const [, updatedTweet] = await prisma.$transaction([
+      prisma.like.create({ data: { userId, tweetId: id } }),
+      prisma.tweet.update({
+        where: { id },
+        data: { likesCount: { increment: 1 } },
+        select: { likesCount: true },
+      }),
+    ]);
+    invalidateExploreCache().catch((error) => logger.warn(`Explore cache invalidation failed: ${error.message}`));
     await createNotification({ req, userId: tweet.authorId, fromId: userId, type: 'like', tweetId: id });
-    res.json({ liked: true });
+    res.json({ liked: true, count: updatedTweet.likesCount });
   } catch (error) {
     next(error);
   }
@@ -410,13 +673,29 @@ const retweetTweet = async (req, res, next) => {
     });
 
     if (existing) {
-      await prisma.retweet.delete({ where: { id: existing.id } });
-      return res.json({ retweeted: false });
+      const [, updatedTweet] = await prisma.$transaction([
+        prisma.retweet.delete({ where: { id: existing.id } }),
+        prisma.tweet.update({
+          where: { id },
+          data: { retweetsCount: Math.max(0, (tweet.retweetsCount || 0) - 1) },
+          select: { retweetsCount: true },
+        }),
+      ]);
+      invalidateExploreCache().catch((error) => logger.warn(`Explore cache invalidation failed: ${error.message}`));
+      return res.json({ retweeted: false, count: updatedTweet.retweetsCount });
     }
 
-    await prisma.retweet.create({ data: { userId, tweetId: id } });
+    const [, updatedTweet] = await prisma.$transaction([
+      prisma.retweet.create({ data: { userId, tweetId: id } }),
+      prisma.tweet.update({
+        where: { id },
+        data: { retweetsCount: { increment: 1 } },
+        select: { retweetsCount: true },
+      }),
+    ]);
+    invalidateExploreCache().catch((error) => logger.warn(`Explore cache invalidation failed: ${error.message}`));
     await createNotification({ req, userId: tweet.authorId, fromId: userId, type: 'retweet', tweetId: id });
-    res.json({ retweeted: true });
+    res.json({ retweeted: true, count: updatedTweet.retweetsCount });
   } catch (error) {
     next(error);
   }
@@ -435,12 +714,26 @@ const bookmarkTweet = async (req, res, next) => {
     });
 
     if (existing) {
-      await prisma.bookmark.delete({ where: { id: existing.id } });
-      return res.json({ bookmarked: false });
+      const [, updatedTweet] = await prisma.$transaction([
+        prisma.bookmark.delete({ where: { id: existing.id } }),
+        prisma.tweet.update({
+          where: { id },
+          data: { bookmarksCount: Math.max(0, (tweet.bookmarksCount || 0) - 1) },
+          select: { bookmarksCount: true },
+        }),
+      ]);
+      return res.json({ bookmarked: false, count: updatedTweet.bookmarksCount });
     }
 
-    await prisma.bookmark.create({ data: { userId, tweetId: id } });
-    res.json({ bookmarked: true });
+    const [, updatedTweet] = await prisma.$transaction([
+      prisma.bookmark.create({ data: { userId, tweetId: id } }),
+      prisma.tweet.update({
+        where: { id },
+        data: { bookmarksCount: { increment: 1 } },
+        select: { bookmarksCount: true },
+      }),
+    ]);
+    res.json({ bookmarked: true, count: updatedTweet.bookmarksCount });
   } catch (error) {
     next(error);
   }
@@ -471,7 +764,7 @@ const getBookmarks = async (req, res, next) => {
       ? bookmarks[bookmarks.length - 1].createdAt.toISOString()
       : null;
 
-    await withThreadReplyCounts(tweets);
+    applyTweetCounts(tweets);
     res.json({ tweets, nextCursor });
   } catch (error) {
     next(error);
@@ -493,7 +786,7 @@ const searchTweets = async (req, res, next) => {
       select: tweetSelect(userId),
     });
 
-    await withThreadReplyCounts(tweets);
+    applyTweetCounts(tweets);
     res.json({ tweets });
   } catch (error) {
     next(error);
@@ -504,6 +797,7 @@ module.exports = {
   getFeed,
   getExplore,
   createTweet,
+  updateTweet,
   getTweet,
   deleteTweet,
   likeTweet,

@@ -1,19 +1,17 @@
-FROM node:20-alpine AS base
+FROM node:20-alpine
+
 WORKDIR /app
+
 RUN apk add --no-cache openssl
 
-FROM base AS builder
 COPY package*.json ./
 RUN npm ci
+
 COPY . .
 RUN npx prisma generate
 
-FROM base AS runner
-COPY --from=builder /app/node_modules ./node_modules
-COPY . .
-
-RUN mkdir -p logs
+RUN mkdir -p logs uploads
 
 EXPOSE 5000
 
-CMD ["sh", "-c", "npx prisma db push && node src/server.js"]
+CMD ["npm", "run", "start"]

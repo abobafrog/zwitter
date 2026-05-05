@@ -3,11 +3,48 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 import useAuthStore from '../../store/authStore';
 import PhotoViewer from '../ui/PhotoViewer';
+
+const extractTags = (content = '') => [...new Set(content.match(/#[\p{L}\p{N}_-]+/gu) || [])].slice(0, 6);
+const LINK_MARKER = /\[\[link:(.+?)\]\]/;
+const POLL_MARKER = /\[\[poll:(.+?)\]\]/;
+const FILE_MARKER = /\[\[file:(.+?)\|(.+?)\]\]/;
+
+const parseTweetContent = (content = '') => {
+  const link = content.match(LINK_MARKER)?.[1] || '';
+  const pollRaw = content.match(POLL_MARKER)?.[1] || '';
+  const fileMatch = content.match(FILE_MARKER);
+  const pollParts = pollRaw ? pollRaw.split('|').map((part) => part.trim()).filter(Boolean) : [];
+  const [pollQuestion, ...pollOptions] = pollParts;
+  const plainContent = content
+    .replace(LINK_MARKER, '')
+    .replace(POLL_MARKER, '')
+    .replace(FILE_MARKER, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+  return {
+    plainContent,
+    linkUrl: link,
+    pollQuestion: pollQuestion || '',
+    pollOptions,
+    file: fileMatch ? { name: fileMatch[1], url: fileMatch[2] } : null,
+  };
+};
+
+const buildTweetContent = ({ text, linkUrl, pollQuestion, pollOptions }) => {
+  const parts = [text.trim()];
+  if (linkUrl.trim()) parts.push(`[[link:${linkUrl.trim()}]]`);
+  const cleanedPollOptions = pollOptions.map((option) => option.trim()).filter(Boolean);
+  if (pollQuestion.trim() && cleanedPollOptions.length > 0) {
+    parts.push(`[[poll:${[pollQuestion.trim(), ...cleanedPollOptions].join('|')}]]`);
+  }
+  return parts.filter(Boolean).join('\n\n').trim();
+};
 
 export default function TweetCard({ tweet, queryKey, detail = false }) {
   const navigate = useNavigate();
@@ -17,10 +54,19 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
   const [liked, setLiked] = useState(tweet.likes?.length > 0);
   const [retweeted, setRetweeted] = useState(tweet.retweets?.length > 0);
   const [bookmarked, setBookmarked] = useState(tweet.bookmarks?.length > 0);
-  const [likeCount, setLikeCount] = useState(tweet._count?.likes || 0);
-  const [retweetCount, setRetweetCount] = useState(tweet._count?.retweets || 0);
+  const [likeCount, setLikeCount] = useState(Math.max(0, tweet._count?.likes || tweet.likesCount || 0));
+  const [retweetCount, setRetweetCount] = useState(Math.max(0, tweet._count?.retweets || tweet.retweetsCount || 0));
   const [replyOpen, setReplyOpen] = useState(false);
   const [replyText, setReplyText] = useState('');
+  const [showShareSheet, setShowShareSheet] = useState(false);
+  const [pollVotes, setPollVotes] = useState(() => ({}));
+  const [editing, setEditing] = useState(false);
+  const { data: chatsData } = useQuery({
+    queryKey: ['share-chats'],
+    queryFn: () => api.get('/chats').then((r) => r.data.chats),
+    enabled: showShareSheet && !!user,
+    staleTime: 15000,
+  });
   const displayAuthor = tweet.community
     ? {
         id: tweet.community.id,
@@ -55,12 +101,16 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
     mutationFn: () => api.post(`/tweets/${tweet.id}/like`),
     onMutate: () => {
       setLiked((current) => !current);
-      setLikeCount((count) => (liked ? count - 1 : count + 1));
+      setLikeCount((count) => Math.max(0, liked ? count - 1 : count + 1));
     },
     onError: () => {
       setLiked((current) => !current);
-      setLikeCount((count) => (liked ? count + 1 : count - 1));
+      setLikeCount((count) => Math.max(0, liked ? count + 1 : count - 1));
       toast.error('Ошибка');
+    },
+    onSuccess: ({ data }) => {
+      if (typeof data.count === 'number') setLikeCount(Math.max(0, data.count));
+      if (typeof data.liked === 'boolean') setLiked(data.liked);
     },
     onSettled: invalidate,
   });
@@ -69,12 +119,16 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
     mutationFn: () => api.post(`/tweets/${tweet.id}/retweet`),
     onMutate: () => {
       setRetweeted((current) => !current);
-      setRetweetCount((count) => (retweeted ? count - 1 : count + 1));
+      setRetweetCount((count) => Math.max(0, retweeted ? count - 1 : count + 1));
     },
     onError: () => {
       setRetweeted((current) => !current);
-      setRetweetCount((count) => (retweeted ? count + 1 : count - 1));
+      setRetweetCount((count) => Math.max(0, retweeted ? count + 1 : count - 1));
       toast.error('Ошибка');
+    },
+    onSuccess: ({ data }) => {
+      if (typeof data.count === 'number') setRetweetCount(Math.max(0, data.count));
+      if (typeof data.retweeted === 'boolean') setRetweeted(data.retweeted);
     },
     onSettled: invalidate,
   });
@@ -108,6 +162,29 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: () => {
+      const content = buildTweetContent({
+        text: editText,
+        linkUrl: editLinkUrl,
+        pollQuestion: editPollQuestion,
+        pollOptions: editPollOptions,
+      });
+      const fd = new FormData();
+      fd.append('content', content);
+      if (editAttachment) fd.append('attachment', editAttachment);
+      if (clearImage) fd.append('clearImage', 'true');
+      return api.patch(`/tweets/${tweet.id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+    },
+    onSuccess: () => {
+      invalidate();
+      setEditing(false);
+      setEditAttachment(null);
+      toast.success('Звит обновлён');
+    },
+    onError: (error) => toast.error(error.response?.data?.error || 'Не удалось обновить звит'),
+  });
+
   const timeAgo = formatDistanceToNow(new Date(tweet.createdAt), { locale: ru, addSuffix: true });
   const requireAuth = (action) => {
     if (!user) {
@@ -119,6 +196,60 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
   const openTweetPage = () => {
     if (!detail) navigate(`/tweet/${tweet.id}`);
   };
+  const tweetUrl = `${window.location.origin}/tweet/${tweet.id}`;
+  const parsedContent = parseTweetContent(tweet.content);
+  const [editText, setEditText] = useState(parsedContent.plainContent);
+  const [editLinkUrl, setEditLinkUrl] = useState(parsedContent.linkUrl);
+  const [editPollQuestion, setEditPollQuestion] = useState(parsedContent.pollQuestion);
+  const [editPollOptions, setEditPollOptions] = useState(parsedContent.pollOptions.length > 0 ? parsedContent.pollOptions : ['', '']);
+  const [editAttachment, setEditAttachment] = useState(null);
+  const [clearImage, setClearImage] = useState(false);
+  const tags = extractTags(parsedContent.plainContent);
+
+  const copyTweetLink = async (event) => {
+    event.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(tweetUrl);
+      toast.success('Ссылка скопирована');
+    } catch {
+      toast.error('Не удалось скопировать ссылку');
+    }
+  };
+
+  const shareTweet = async (event) => {
+    event.stopPropagation();
+    setShowShareSheet(true);
+  };
+
+  const shareIntoChat = async (chatId) => {
+    try {
+      await api.post(`/chats/${chatId}/messages`, { content: `${parsedContent.plainContent || 'Поделиться звитом'}\n${tweetUrl}` });
+      toast.success('Звит отправлен в чат');
+      setShowShareSheet(false);
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Не удалось отправить в чат');
+    }
+  };
+
+  const resetEditor = () => {
+    setEditText(parsedContent.plainContent);
+    setEditLinkUrl(parsedContent.linkUrl);
+    setEditPollQuestion(parsedContent.pollQuestion);
+    setEditPollOptions(parsedContent.pollOptions.length > 0 ? parsedContent.pollOptions : ['', '']);
+    setEditAttachment(null);
+    setClearImage(false);
+    setEditing(false);
+  };
+
+  const currentFile = parsedContent.file;
+  const canSaveEdit = Boolean(
+    buildTweetContent({
+      text: editText,
+      linkUrl: editLinkUrl,
+      pollQuestion: editPollQuestion,
+      pollOptions: editPollOptions,
+    }) || (tweet.imageUrl && !clearImage) || currentFile || editAttachment
+  );
 
   return (
     <article
@@ -183,16 +314,31 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
             <span className="text-xs text-x-muted">через @{tweet.author.username}</span>
           )}
           {user?.id === tweet.author.id && (
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(); }}
-              className="ml-auto rounded-full p-1 text-x-muted transition-colors hover:bg-x-danger/10 hover:text-x-danger"
-              aria-label="Удалить звит"
-            >
-              <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
-                <path d="M16 6V4.5C16 3.12 14.88 2 13.5 2h-3C9.11 2 8 3.12 8 4.5V6H3v2h1.06l.81 11.21C4.98 20.78 6.28 22 7.86 22h8.27c1.58 0 2.88-1.22 3-2.79L19.93 8H21V6h-5zm-6-1.5c0-.28.22-.5.5-.5h3c.27 0 .5.22.5.5V6h-4V4.5zm7.13 15.03c-.04.52-.47.97-1 .97H7.86c-.53 0-.96-.45-1-.97L6.07 8h11.85l-.79 11.53z" />
-              </svg>
-            </button>
+            <div className="ml-auto flex items-center gap-1">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditing(true);
+                }}
+                className="rounded-full p-1 text-x-muted transition-colors hover:bg-cyan-400/10 hover:text-x-accent"
+                aria-label="Редактировать звит"
+              >
+                <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
+                  <path d="M3 17.25V21h3.75l11-11.03-3.75-3.75L3 17.25zm17.71-10.04a1.003 1.003 0 0 0 0-1.42l-2.5-2.5a1.003 1.003 0 0 0-1.42 0l-1.96 1.96 3.75 3.75 2.13-2.29z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(); }}
+                className="rounded-full p-1 text-x-muted transition-colors hover:bg-x-danger/10 hover:text-x-danger"
+                aria-label="Удалить звит"
+              >
+                <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
+                  <path d="M16 6V4.5C16 3.12 14.88 2 13.5 2h-3C9.11 2 8 3.12 8 4.5V6H3v2h1.06l.81 11.21C4.98 20.78 6.28 22 7.86 22h8.27c1.58 0 2.88-1.22 3-2.79L19.93 8H21V6h-5zm-6-1.5c0-.28.22-.5.5-.5h3c.27 0 .5.22.5.5V6h-4V4.5zm7.13 15.03c-.04.52-.47.97-1 .97H7.86c-.53 0-.96-.45-1-.97L6.07 8h11.85l-.79 11.53z" />
+                </svg>
+              </button>
+            </div>
           )}
         </div>
 
@@ -217,7 +363,72 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
           </div>
         )}
 
-        <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed text-x-text/95">{tweet.content}</p>
+        <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed text-x-text/95">{parsedContent.plainContent}</p>
+
+        {parsedContent.linkUrl && (
+          <a
+            href={parsedContent.linkUrl}
+            target="_blank"
+            rel="noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="mt-3 block rounded-2xl border border-cyan-300/25 bg-cyan-300/10 px-4 py-3 text-sm text-x-accent transition hover:border-cyan-200/50"
+          >
+            {parsedContent.linkUrl}
+          </a>
+        )}
+
+        {parsedContent.file && (
+          <a
+            href={parsedContent.file.url}
+            target="_blank"
+            rel="noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-x-border/70 bg-x-bg/45 px-4 py-3 text-sm"
+          >
+            <span className="truncate font-bold text-x-text">{parsedContent.file.name}</span>
+            <span className="text-x-accent">Скачать</span>
+          </a>
+        )}
+
+        {parsedContent.pollQuestion && parsedContent.pollOptions.length > 0 && (
+          <div className="mt-3 rounded-2xl border border-x-border/70 bg-x-bg/45 p-3">
+            <p className="mb-2 text-sm font-black text-x-text">{parsedContent.pollQuestion}</p>
+            <div className="grid gap-2">
+              {parsedContent.pollOptions.map((option) => {
+                const count = pollVotes[option] || 0;
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPollVotes((current) => ({ ...current, [option]: (current[option] || 0) + 1 }));
+                    }}
+                    className="flex items-center justify-between rounded-xl border border-x-border bg-x-panel/55 px-3 py-2 text-left text-sm transition hover:border-cyan-300/35"
+                  >
+                    <span>{option}</span>
+                    <span className="text-x-muted">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {tags.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {tags.map((tag) => (
+              <Link
+                key={tag}
+                to={`/search?q=${encodeURIComponent(tag)}`}
+                onClick={(e) => e.stopPropagation()}
+                className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-2.5 py-1 text-xs font-bold text-x-accent transition hover:border-cyan-200/60"
+              >
+                {tag}
+              </Link>
+            ))}
+          </div>
+        )}
 
         {tweet.imageUrl && (
           <button
@@ -281,6 +492,22 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
               </svg>
             </span>
           </button>
+
+          <button className="tweet-action hover:text-fuchsia-200 group" onClick={shareTweet} title="Поделиться">
+            <span className="tweet-action-icon group-hover:bg-fuchsia-300/10">
+              <svg viewBox="0 0 24 24" className="h-[18px] w-[18px] fill-current">
+                <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.22.09-.45.09-.7s-.04-.48-.09-.7l7.05-4.11A2.99 2.99 0 1 0 15 5c0 .25.04.48.09.7L8.04 9.81A2.99 2.99 0 1 0 8.04 14.2l7.12 4.18c-.05.2-.08.41-.08.63a2.92 2.92 0 1 0 2.92-2.92z" />
+              </svg>
+            </span>
+          </button>
+
+          <button className="tweet-action hover:text-cyan-100 group" onClick={copyTweetLink} title="Скопировать ссылку">
+            <span className="tweet-action-icon group-hover:bg-cyan-300/10">
+              <svg viewBox="0 0 24 24" className="h-[18px] w-[18px] fill-current">
+                <path d="M3.9 12c0-1.71.69-3.35 1.9-4.56l2.83-2.83a6.45 6.45 0 0 1 9.12 0 6.4 6.4 0 0 1 1.78 5.66h-2.08a4.42 4.42 0 0 0-1.11-4.25 4.45 4.45 0 0 0-6.29 0L7.22 8.85a4.45 4.45 0 0 0 0 6.29 4.42 4.42 0 0 0 4.25 1.11v2.08a6.4 6.4 0 0 1-5.66-1.78A6.42 6.42 0 0 1 3.9 12zm7.17 1.41 2.34-2.34 1.41 1.41-2.34 2.34-1.41-1.41zm1.46-7.74a6.4 6.4 0 0 1 5.66 1.78 6.45 6.45 0 0 1 0 9.12l-2.83 2.83a6.45 6.45 0 0 1-9.12 0 6.4 6.4 0 0 1-1.78-5.66h2.08a4.42 4.42 0 0 0 1.11 4.25 4.45 4.45 0 0 0 6.29 0l2.83-2.83a4.45 4.45 0 0 0 0-6.29 4.42 4.42 0 0 0-4.25-1.11V5.67z" />
+              </svg>
+            </span>
+          </button>
         </div>
 
         {replyOpen && (
@@ -306,10 +533,128 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
             </div>
           </div>
         )}
+
+        {editing && (
+          <div className="mt-3 rounded-2xl border border-cyan-300/20 bg-x-bg/55 p-3" onClick={(e) => e.stopPropagation()}>
+            <p className="mb-3 text-sm font-black text-x-text">Редактировать пост</p>
+            <textarea
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              rows={4}
+              maxLength={500}
+              placeholder="Текст поста"
+              className="input-field min-h-28 resize-none"
+            />
+            <input
+              value={editLinkUrl}
+              onChange={(e) => setEditLinkUrl(e.target.value)}
+              placeholder="Ссылка"
+              className="input-field mt-3"
+            />
+            <input
+              value={editPollQuestion}
+              onChange={(e) => setEditPollQuestion(e.target.value)}
+              placeholder="Вопрос опроса"
+              className="input-field mt-3"
+            />
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {editPollOptions.map((option, index) => (
+                <input
+                  key={`${tweet.id}-poll-edit-${index}`}
+                  value={option}
+                  onChange={(e) => setEditPollOptions((current) => current.map((item, itemIndex) => (itemIndex === index ? e.target.value : item)))}
+                  placeholder={`Вариант ${index + 1}`}
+                  className="input-field"
+                />
+              ))}
+            </div>
+            <label className="mt-3 flex cursor-pointer items-center justify-between rounded-2xl border border-dashed border-x-border px-3 py-3 text-sm text-x-muted">
+              <span>{editAttachment ? editAttachment.name : 'Заменить фото или вложение'}</span>
+              <input
+                type="file"
+                accept="image/*,.pdf,.doc,.docx,.txt,.zip,.rar"
+                className="hidden"
+                onChange={(e) => setEditAttachment(e.target.files?.[0] || null)}
+              />
+            </label>
+            {(tweet.imageUrl || currentFile) && (
+              <div className="mt-3 rounded-2xl border border-x-border bg-x-panel/45 px-3 py-2 text-sm text-x-muted">
+                {tweet.imageUrl && !clearImage && <p>Текущее фото сохранится, пока ты его не снимешь или не заменишь.</p>}
+                {currentFile && !editAttachment && <p className="mt-1">Текущее вложение: {currentFile.name}</p>}
+                {tweet.imageUrl && (
+                  <label className="mt-2 flex items-center gap-2">
+                    <input type="checkbox" checked={clearImage} onChange={(e) => setClearImage(e.target.checked)} />
+                    Убрать текущее фото
+                  </label>
+                )}
+              </div>
+            )}
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <span className="text-xs text-x-muted">{editText.length}/500</span>
+              <div className="flex gap-2">
+                <button type="button" className="btn-outline px-4 py-1.5 text-sm" onClick={resetEditor}>
+                  Отмена
+                </button>
+                <button
+                  type="button"
+                  className="btn-accent px-4 py-1.5 text-sm"
+                  disabled={!canSaveEdit || updateMutation.isPending}
+                  onClick={() => updateMutation.mutate()}
+                >
+                  {updateMutation.isPending ? 'Сохраняю...' : 'Сохранить'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {viewingImage && (
         <PhotoViewer src={viewingImage} alt="Изображение звита" onClose={() => setViewingImage(null)} />
+      )}
+
+      {showShareSheet && (
+        <div className="fixed inset-0 z-[90] flex items-end justify-center bg-slate-950/70 p-4 backdrop-blur-sm" onClick={() => setShowShareSheet(false)}>
+          <div className="w-full max-w-md rounded-3xl border border-x-border bg-x-panel/95 p-4 shadow-panel" onClick={(e) => e.stopPropagation()}>
+            <p className="text-lg font-black text-x-text">Поделиться</p>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button type="button" onClick={copyTweetLink} className="rounded-2xl border border-x-border px-4 py-3 text-sm font-bold">Копировать ссылку</button>
+              <button
+                type="button"
+                onClick={async (e) => {
+                  if (navigator.share) {
+                    try {
+                      await navigator.share({ title: 'Звит', text: parsedContent.plainContent, url: tweetUrl });
+                    } catch {}
+                  } else {
+                    copyTweetLink(e);
+                  }
+                }}
+                className="rounded-2xl border border-x-border px-4 py-3 text-sm font-bold"
+              >
+                Поделиться
+              </button>
+            </div>
+            {!!user && (
+              <div className="mt-4">
+                <p className="mb-2 text-sm font-bold text-x-muted">Отправить в свои чаты</p>
+                <div className="grid gap-2">
+                  {(chatsData || []).slice(0, 6).map((chat) => (
+                    <button
+                      key={chat.id}
+                      type="button"
+                      onClick={() => shareIntoChat(chat.id)}
+                      className="flex items-center justify-between rounded-2xl border border-x-border bg-x-bg/55 px-3 py-2 text-left text-sm"
+                    >
+                      <span className="truncate font-bold text-x-text">{chat.isGroup ? chat.name : chat.otherUser?.displayName || chat.name}</span>
+                      <span className="text-x-accent">Отправить</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </article>
   );

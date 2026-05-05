@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import api from '../services/api';
 import { clearAccessToken, setAccessToken } from '../services/tokenStore';
+import { isPlusUser } from '../utils/plus';
 
 const useAuthStore = create(
   persist(
@@ -14,7 +15,7 @@ const useAuthStore = create(
 
       setAuth: (user, accessToken) => {
         setAccessToken(accessToken);
-        set({ user, accessToken });
+        set({ user: user ? { ...user, isPlus: isPlusUser(user) } : null, accessToken });
       },
 
       updateUser: (updates) =>
@@ -29,7 +30,7 @@ const useAuthStore = create(
         try {
           const { data } = await api.post('/auth/refresh');
           setAccessToken(data.accessToken);
-          set({ user: data.user, accessToken: data.accessToken, hasCheckedAuth: true });
+          set({ user: data.user ? { ...data.user, isPlus: isPlusUser(data.user) } : null, accessToken: data.accessToken, hasCheckedAuth: true });
           return true;
         } catch {
           clearAccessToken();
@@ -43,7 +44,7 @@ const useAuthStore = create(
         try {
           const { data } = await api.post('/auth/login', { login: loginInput, password });
           setAccessToken(data.accessToken);
-          set({ user: data.user, accessToken: data.accessToken, hasCheckedAuth: true });
+          set({ user: data.user ? { ...data.user, isPlus: isPlusUser(data.user) } : null, accessToken: data.accessToken, hasCheckedAuth: true });
           return { success: true };
         } catch (error) {
           return {
@@ -61,7 +62,12 @@ const useAuthStore = create(
         set({ isLoading: true });
         try {
           const { data } = await api.post('/auth/register', userData);
-          return { success: true, message: data.message, emailSent: data.emailSent };
+          return {
+            success: true,
+            message: data.message,
+            emailSent: data.emailSent,
+            emailAutoVerified: data.emailAutoVerified,
+          };
         } catch (error) {
           // Берём текст ошибки с сервера напрямую
           const serverError = error.response?.data?.error || '';
