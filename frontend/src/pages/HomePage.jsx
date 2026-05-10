@@ -66,7 +66,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="grid gap-4">
       <main className="min-w-0">
         <div className="cosmic-header px-4 py-3">
           <div className="flex items-center justify-between gap-3">
@@ -82,7 +82,7 @@ export default function HomePage() {
           <div className="mt-3 grid grid-cols-3 gap-2 text-center sm:hidden">
             <button type="button" onClick={() => setFeedMode('all')} className={`nebula-pill ${feedMode === 'all' ? 'border-x-accent/70 text-x-text' : ''}`}>Главная</button>
             <button type="button" onClick={() => setFeedMode('following')} className={`nebula-pill ${feedMode === 'following' ? 'border-x-accent/70 text-x-text' : ''}`}>Подписки</button>
-            <a href="/explore" className="nebula-pill">Обзор</a>
+            <span className="nebula-pill opacity-45">Лента</span>
           </div>
         </div>
 
@@ -129,51 +129,6 @@ export default function HomePage() {
           </>
         )}
       </main>
-
-      <aside className="hidden px-4 py-4 xl:block">
-        <div className="sticky top-4 space-y-4">
-          <section className="rounded-3xl border border-x-border/75 bg-x-panel/55 p-4 shadow-panel backdrop-blur-xl">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div>
-                <p className="nebula-section-heading">Signal Board</p>
-                <h2 className="text-lg font-black">Тренды</h2>
-              </div>
-              <a href="/explore" className="text-sm font-bold text-x-accent hover:underline">Обзор</a>
-            </div>
-            <div className="space-y-2">
-              {trendingTags.map(([tag, count]) => (
-                <a
-                  key={tag}
-                  href={`/search?q=${encodeURIComponent(tag)}`}
-                  className="flex items-center justify-between rounded-2xl border border-x-border/60 bg-x-surface/45 px-3 py-2 transition hover:border-cyan-300/40"
-                >
-                  <span className="font-bold text-x-text">{tag}</span>
-                  <span className="text-xs font-bold text-x-muted">{count ? `${count} пост.` : 'тема'}</span>
-                </a>
-              ))}
-            </div>
-          </section>
-
-          <section className="rounded-3xl border border-x-border/75 bg-x-panel/55 p-4 shadow-panel backdrop-blur-xl">
-            <p className="nebula-section-heading">Creator Kit</p>
-            <h2 className="mb-3 text-lg font-black">Идеи для активности</h2>
-            <div className="space-y-3">
-              {ideaCards.map((idea) => (
-                <div key={idea.title} className="rounded-2xl border border-x-border/60 bg-x-surface/45 p-3">
-                  <p className="font-black text-x-text">{idea.title}</p>
-                  <p className="mt-1 text-sm leading-relaxed text-x-muted">{idea.text}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="rounded-3xl border border-emerald-300/20 bg-emerald-300/10 p-4">
-            <p className="text-sm font-bold text-emerald-100">
-              Совет: пост с вопросом и одним хэштегом легче найти в поиске и проще комментировать.
-            </p>
-          </section>
-        </div>
-      </aside>
     </div>
   );
 }

@@ -42,10 +42,16 @@ const base = {
   'Главная': ['Home', '主页', 'Accueil', 'Startseite', 'Inicio', 'Home', 'ホーム', '홈'],
   'Поиск': ['Search', '搜索', 'Recherche', 'Suche', 'Buscar', 'Cerca', '検索', '검색'],
   'Сообщения': ['Messages', '消息', 'Messages', 'Nachrichten', 'Mensajes', 'Messaggi', 'メッセージ', '메시지'],
+  'Личный': ['Direct', '私聊', 'Direct', 'Direkt', 'Directo', 'Diretto', 'ダイレクト', '개인'],
+  'Группа': ['Group', '群组', 'Groupe', 'Gruppe', 'Grupo', 'Gruppo', 'グループ', '그룹'],
   'Обзор': ['Explore', '探索', 'Explorer', 'Entdecken', 'Explorar', 'Esplora', '探索', '탐색'],
   'Сообщества': ['Communities', '社区', 'Communautés', 'Communities', 'Comunidades', 'Community', 'コミュニティ', '커뮤니티'],
   'Закладки': ['Bookmarks', '书签', 'Signets', 'Lesezeichen', 'Marcadores', 'Segnalibri', 'ブックマーク', '북마크'],
+  'Пока нет избранного': ['No bookmarks yet', '还没有收藏', 'Aucun signet pour le moment', 'Noch keine Lesezeichen', 'Aún no hay marcadores', 'Ancora nessun segnalibro', 'まだブックマークはありません', '아직 북마크가 없습니다'],
+  'Добавляй звиты в закладки, чтобы быстро возвращаться к ним позже.': ['Save posts to bookmarks to get back to them quickly later.', '把帖子加入书签，稍后可以快速回来。', 'Ajoute des posts aux signets pour y revenir vite plus tard.', 'Speichere Posts als Lesezeichen, um schnell zurückzukehren.', 'Guarda publicaciones en marcadores para volver rápido luego.', 'Salva i post nei segnalibri per tornarci più tardi.', '投稿をブックマークして後ですぐ戻れます。', '게시물을 북마크해 나중에 빨리 돌아오세요.'],
   'Создать пост': ['Create post', '创建帖子', 'Créer un post', 'Post erstellen', 'Crear publicación', 'Crea post', '投稿を作成', '게시물 만들기'],
+  'Создать звит': ['Create zwit', '创建 zwit', 'Créer un zwit', 'Zwit erstellen', 'Crear zwit', 'Crea zwit', 'zwit を作成', 'zwit 만들기'],
+  'Создать группу': ['Create group', '创建群组', 'Créer un groupe', 'Gruppe erstellen', 'Crear grupo', 'Crea gruppo', 'グループ作成', '그룹 만들기'],
   'Выйти': ['Log out', '退出', 'Se déconnecter', 'Abmelden', 'Salir', 'Esci', 'ログアウト', '로그아웃'],
   'Публиковать как': ['Post as', '发布身份', 'Publier en tant que', 'Posten als', 'Publicar como', 'Pubblica come', '投稿者', '게시자로'],
   'Что нового в космосе?': ['What is new in space?', '太空有什么新鲜事？', 'Quoi de neuf dans l’espace ?', 'Was gibt es Neues im Kosmos?', '¿Qué hay de nuevo en el espacio?', 'Cosa c’è di nuovo nello spazio?', '宇宙の新着は？', '우주에는 무슨 일이 있나요?'],
@@ -81,6 +87,21 @@ const base = {
   'Загружаю заметки...': ['Loading notes...', '加载笔记...', 'Chargement des notes...', 'Notizen werden geladen...', 'Cargando notas...', 'Caricamento note...', 'メモを読み込み中...', '메모 로딩 중...'],
   'Пока пусто. Первая заметка появится здесь.': ['Empty for now. The first note will appear here.', '暂时为空。第一条笔记会显示在这里。', 'Vide pour l’instant. La première note apparaîtra ici.', 'Noch leer. Die erste Notiz erscheint hier.', 'Vacío por ahora. La primera nota aparecerá aquí.', 'Vuoto per ora. La prima nota apparirà qui.', 'まだ空です。最初のメモがここに表示されます。', '아직 비어 있습니다. 첫 메모가 여기에 표시됩니다.'],
   'История заметок': ['Notes history', '笔记历史', 'Historique des notes', 'Notizverlauf', 'Historial de notas', 'Cronologia note', 'メモ履歴', '메모 기록'],
+  'Сводка аккаунта': ['Account summary', '账号摘要', 'Résumé du compte', 'Kontoübersicht', 'Resumen de cuenta', 'Riepilogo account', 'アカウント概要', '계정 요약'],
+  'Анонимные вопросы': ['Anonymous questions', '匿名提问', 'Questions anonymes', 'Anonyme Fragen', 'Preguntas anónimas', 'Domande anonime', '匿名の質問', '익명 질문'],
+  'Календарь': ['Calendar', '日历', 'Calendrier', 'Kalender', 'Calendario', 'Calendario', 'カレンダー', '캘린더'],
+  'Сессии': ['Sessions', '会话', 'Sessions', 'Sitzungen', 'Sesiones', 'Sessioni', 'セッション', '세션'],
+  'Чёрный список': ['Blacklist', '黑名单', 'Liste noire', 'Blockliste', 'Lista negra', 'Lista nera', 'ブラックリスト', '차단 목록'],
+  'Подписка': ['Subscription', '订阅', 'Abonnement', 'Abo', 'Suscripción', 'Abbonamento', 'サブスクリプション', '구독'],
+  'Оформление': ['Appearance', '外观', 'Apparence', 'Darstellung', 'Apariencia', 'Aspetto', '外観', '테마'],
+  'Обратная связь': ['Feedback', '反馈', 'Retour', 'Feedback', 'Comentarios', 'Feedback', 'フィードバック', '피드백'],
+  'Все': ['All', '全部', 'Tout', 'Alle', 'Todo', 'Tutto', 'すべて', '전체'],
+  'Новые': ['New', '新的', 'Nouveaux', 'Neu', 'Nuevos', 'Nuovi', '新着', '새 항목'],
+  'Лайки': ['Likes', '点赞', 'Likes', 'Likes', 'Me gusta', 'Like', 'いいね', '좋아요'],
+  'Ответы': ['Replies', '回复', 'Réponses', 'Antworten', 'Respuestas', 'Risposte', '返信', '답글'],
+  'Подписки': ['Follows', '关注', 'Abonnements', 'Folgen', 'Seguimientos', 'Seguiti', 'フォロー', '팔로우'],
+  'Репосты': ['Reposts', '转发', 'Reposts', 'Reposts', 'Reposts', 'Repost', 'リポスト', '리포스트'],
+  'Прочитать всё': ['Mark all read', '全部标记已读', 'Tout marquer lu', 'Alles als gelesen markieren', 'Marcar todo leído', 'Segna tutto come letto', 'すべて既読にする', '모두 읽음 처리'],
   'Закрыть историю': ['Close history', '关闭历史', 'Fermer l’historique', 'Verlauf schließen', 'Cerrar historial', 'Chiudi cronologia', '履歴を閉じる', '기록 닫기'],
   'Загружаю историю...': ['Loading history...', '加载历史...', 'Chargement de l’historique...', 'Verlauf wird geladen...', 'Cargando historial...', 'Caricamento cronologia...', '履歴を読み込み中...', '기록 로딩 중...'],
   'История пока пустая.': ['History is empty for now.', '历史暂时为空。', 'L’historique est vide pour l’instant.', 'Der Verlauf ist noch leer.', 'El historial está vacío por ahora.', 'La cronologia è vuota per ora.', '履歴はまだ空です。', '기록이 아직 비어 있습니다.'],
@@ -167,6 +188,26 @@ export const translate = (text, language) => {
     const translated = variants[index];
     if (!translated) return text;
     return text.replace(trimmed, translated);
+  }
+
+  if (index !== -1) {
+    const replacements = Object.entries(base).sort((a, b) => b[0].length - a[0].length);
+    let next = text;
+    let changed = false;
+    replacements.forEach(([ru, variants]) => {
+      const translated = language === 'ru' ? ru : variants[index];
+      if (!translated) return;
+      if (next.includes(ru)) {
+        next = next.split(ru).join(translated);
+        changed = true;
+      }
+      variants.forEach((variant) => {
+        if (!variant || variant === translated || !next.includes(variant)) return;
+        next = next.split(variant).join(translated);
+        changed = true;
+      });
+    });
+    if (changed) return next;
   }
 
   return text;

@@ -13,11 +13,14 @@ const {
   updateTask,
   deleteTask,
   getWeather,
+  listAnonymousQuestions,
+  sendAnonymousQuestion,
+  answerAnonymousQuestion,
 } = require('../controllers/service.controller');
 
-router.use(authenticate);
-
 router.get('/weather', getWeather);
+
+router.use(authenticate);
 
 router.get('/notes', listNotes);
 router.get('/notes/history', listNoteHistory);
@@ -39,5 +42,22 @@ router.post(
 );
 router.patch('/tasks/:taskId', updateTask);
 router.delete('/tasks/:taskId', deleteTask);
+
+router.get('/anonymous-questions', listAnonymousQuestions);
+router.post(
+  '/anonymous-questions/send',
+  [
+    body('targetUsername').trim().isLength({ min: 1, max: 50 }).withMessage('Укажите получателя'),
+    body('question').trim().isLength({ min: 1, max: 500 }).withMessage('Вопрос 1-500 символов'),
+  ],
+  validate,
+  sendAnonymousQuestion
+);
+router.patch(
+  '/anonymous-questions/:questionId',
+  [body('answer').trim().isLength({ min: 1, max: 1000 }).withMessage('Ответ 1-1000 символов')],
+  validate,
+  answerAnonymousQuestion
+);
 
 module.exports = router;

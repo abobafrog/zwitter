@@ -1,5 +1,5 @@
 // src/components/chat/TweetCard.jsx
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -7,6 +7,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 import useAuthStore from '../../store/authStore';
+import useLanguageStore from '../../store/languageStore';
+import { translate } from '../../i18n/translations';
 import PhotoViewer from '../ui/PhotoViewer';
 
 const extractTags = (content = '') => [...new Set(content.match(/#[\p{L}\p{N}_-]+/gu) || [])].slice(0, 6);
@@ -50,6 +52,7 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { user } = useAuthStore();
+  const language = useLanguageStore((state) => state.language);
   const [viewingImage, setViewingImage] = useState(null);
   const [liked, setLiked] = useState(tweet.likes?.length > 0);
   const [retweeted, setRetweeted] = useState(tweet.retweets?.length > 0);
@@ -198,6 +201,19 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
   };
   const tweetUrl = `${window.location.origin}/tweet/${tweet.id}`;
   const parsedContent = parseTweetContent(tweet.content);
+  const translatedContent = useMemo(
+    () => (language === 'ru' ? parsedContent.plainContent : translate(parsedContent.plainContent, language)),
+    [language, parsedContent.plainContent]
+  );
+  const translatedPollQuestion = useMemo(
+    () => (language === 'ru' ? parsedContent.pollQuestion : translate(parsedContent.pollQuestion, language)),
+    [language, parsedContent.pollQuestion]
+  );
+  const translatedPollOptions = useMemo(
+    () => parsedContent.pollOptions.map((option) => (language === 'ru' ? option : translate(option, language))),
+    [language, parsedContent.pollOptions]
+  );
+  const showTranslation = language !== 'ru' && translatedContent && translatedContent !== parsedContent.plainContent;
   const [editText, setEditText] = useState(parsedContent.plainContent);
   const [editLinkUrl, setEditLinkUrl] = useState(parsedContent.linkUrl);
   const [editPollQuestion, setEditPollQuestion] = useState(parsedContent.pollQuestion);
@@ -363,7 +379,14 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
           </div>
         )}
 
-        <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed text-x-text/95">{parsedContent.plainContent}</p>
+        <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed text-x-text/95">
+          {showTranslation ? translatedContent : parsedContent.plainContent}
+        </p>
+        {showTranslation && (
+          <p className="mt-2 whitespace-pre-wrap break-words rounded-2xl border border-cyan-300/20 bg-cyan-300/10 px-3 py-2 text-xs text-cyan-100">
+            Исходный текст: {parsedContent.plainContent}
+          </p>
+        )}
 
         {parsedContent.linkUrl && (
           <a
@@ -392,13 +415,13 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
 
         {parsedContent.pollQuestion && parsedContent.pollOptions.length > 0 && (
           <div className="mt-3 rounded-2xl border border-x-border/70 bg-x-bg/45 p-3">
-            <p className="mb-2 text-sm font-black text-x-text">{parsedContent.pollQuestion}</p>
+            <p className="mb-2 text-sm font-black text-x-text">{translatedPollQuestion || parsedContent.pollQuestion}</p>
             <div className="grid gap-2">
-              {parsedContent.pollOptions.map((option) => {
+              {translatedPollOptions.map((option, index) => {
                 const count = pollVotes[option] || 0;
                 return (
                   <button
-                    key={option}
+                    key={`${option}-${index}`}
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -412,6 +435,9 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
                 );
               })}
             </div>
+            {language !== 'ru' && translatedPollQuestion && translatedPollQuestion !== parsedContent.pollQuestion && (
+              <p className="mt-3 text-xs text-x-muted">Исходный вопрос: {parsedContent.pollQuestion}</p>
+            )}
           </div>
         )}
 

@@ -14,9 +14,9 @@ export const connectSocket = (token) => {
     reconnectionDelay: 1000,
   });
 
-  socket.on('connect', () => console.log('🔌 Socket connected:', socket.id));
-  socket.on('disconnect', (reason) => console.log('🔌 Socket disconnected:', reason));
-  socket.on('connect_error', (err) => console.error('Socket error:', err.message));
+  socket.on('connect_error', (err) => {
+    if (import.meta.env.DEV) console.warn('Socket connection error:', err.message);
+  });
 
   return socket;
 };

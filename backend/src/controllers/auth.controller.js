@@ -115,11 +115,16 @@ const sendEmailVerification = async (user) => {
     tokenHash: hashToken(`${user.id}:${code}`),
   });
 
-  return sendVerificationEmail({
+  const result = await sendVerificationEmail({
     to: user.email,
     displayName: user.displayName,
     code,
   });
+
+  return {
+    ...result,
+    devCode: process.env.NODE_ENV === 'production' ? undefined : code,
+  };
 };
 
 const sendPasswordReset = async (user) => {
@@ -206,9 +211,11 @@ const register = async (req, res, next) => {
     });
 
     let emailSent = false;
+    let devVerificationCode;
     try {
       const result = await sendEmailVerification(user);
       emailSent = result.sent;
+      devVerificationCode = result.devCode;
     } catch (mailError) {
       logger.error('Verification email send error:', mailError);
     }
@@ -222,6 +229,7 @@ const register = async (req, res, next) => {
         : 'Аккаунт создан, но письмо не отправилось. Попробуй отправить письмо ещё раз.',
       user,
       emailSent,
+      devVerificationCode,
     });
   } catch (error) {
     next(error);
@@ -400,11 +408,16 @@ const resendVerification = async (req, res, next) => {
     if (!email) return res.status(400).json({ error: 'Укажи email' });
 
     const user = await prisma.user.findUnique({ where: { email } });
+    let devVerificationCode;
     if (user && !user.emailVerified) {
-      await sendEmailVerification(user).catch((error) => logger.error('Resend verification error:', error));
+      const result = await sendEmailVerification(user).catch((error) => {
+        logger.error('Resend verification error:', error);
+        return null;
+      });
+      devVerificationCode = result?.devCode;
     }
 
-    res.json({ message: 'Если email есть и ещё не подтверждён, письмо отправлено.' });
+    res.json({ message: 'Если email есть и ещё не подтверждён, письмо отправлено.', devVerificationCode });
   } catch (error) {
     next(error);
   }

@@ -538,6 +538,11 @@ const sendMessage = async (req, res, next) => {
     if (io) {
       io.to(`chat:${chatId}`).emit('message:new', { message, chatId });
       chat.participants.forEach((participant) => {
+        if (participant.userId !== userId) {
+          io.to(`user:${participant.userId}`).emit('message:new', { message, chatId });
+        }
+      });
+      chat.participants.forEach((participant) => {
         if (participant.userId !== userId && participant.user?.notifyMessages !== false) {
           io.to(`user:${participant.userId}`).emit('chat:notification', {
             chatId,

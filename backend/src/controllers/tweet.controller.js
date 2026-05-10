@@ -265,7 +265,8 @@ const getFeed = async (req, res, next) => {
         where: { followerId: userId },
         select: { followingId: true },
       });
-      timelineUserIds = [...new Set([userId, ...follows.map((follow) => follow.followingId)])];
+      timelineUserIds = [...new Set(follows.map((follow) => follow.followingId))];
+      if (!timelineUserIds.length) return res.json({ tweets: [], nextCursor: null });
     }
 
     const tweets = await prisma.tweet.findMany({

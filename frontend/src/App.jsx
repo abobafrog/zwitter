@@ -20,6 +20,8 @@ import SearchPage from './pages/SearchPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ServicesPage from './pages/ServicesPage';
+import MusicPage from './pages/MusicPage';
+import MusicArtistPage from './pages/MusicArtistPage';
 import GlobalTranslator from './components/i18n/GlobalTranslator';
 import { applyPlusTheme } from './utils/plus';
 
@@ -83,20 +85,22 @@ function App() {
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+        <Route element={<Layout />}>
           <Route path="/home" element={<HomePage />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/explore" element={<ExplorePage />} />
-          <Route path="/communities" element={<ExplorePage mode="communities" />} />
-          <Route path="/community/:slug" element={<CommunityPage />} />
-          <Route path="/notifications" element={<NotificationsPage />} />
-          <Route path="/bookmarks" element={<BookmarksPage />} />
+          <Route path="/music" element={<MusicPage />} />
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/tweet/:id" element={<TweetPage />} />
-          <Route path="/messages" element={<ChatsPage />} />
-          <Route path="/messages/:chatId" element={<ChatsPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/:username" element={<ProfilePage />} />
+          <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+          <Route path="/explore" element={<ProtectedRoute><ExplorePage /></ProtectedRoute>} />
+          <Route path="/communities" element={<ProtectedRoute><ExplorePage mode="communities" /></ProtectedRoute>} />
+          <Route path="/community/:slug" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
+          <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+          <Route path="/bookmarks" element={<ProtectedRoute><BookmarksPage /></ProtectedRoute>} />
+          <Route path="/music/artist/:artistSlug" element={<ProtectedRoute><MusicArtistPage /></ProtectedRoute>} />
+          <Route path="/messages" element={<ProtectedRoute><ChatsPage /></ProtectedRoute>} />
+          <Route path="/messages/:chatId" element={<ProtectedRoute><ChatsPage /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+          <Route path="/:username" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         </Route>
       </Routes>
     </>

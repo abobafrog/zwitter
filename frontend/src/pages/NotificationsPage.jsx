@@ -1,16 +1,29 @@
-import { useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import api from '../services/api';
 import NavIcon from '../components/layout/NavIcon';
+import useAuthStore from '../store/authStore';
+import { getCalendarNotifications, markAllCalendarNotificationsRead, markCalendarNotificationRead } from '../utils/calendarNotifications';
+
+const filters = [
+  ['all', 'Все'],
+  ['unread', 'Новые'],
+  ['like', 'Лайки'],
+  ['reply', 'Ответы'],
+  ['follow', 'Подписки'],
+  ['retweet', 'Репосты'],
+  ['calendar', 'Календарь'],
+];
 
 const notificationText = {
   like: 'оценил ваш пост',
   retweet: 'сделал репост',
   reply: 'ответил на ваш пост',
   follow: 'подписался на вас',
+  calendar: 'напоминает о событии',
 };
 
 const notificationLetter = {
@@ -18,15 +31,25 @@ const notificationLetter = {
   retweet: 'M7 7h8.17l-2.58-2.59L14 3l5 5-5 5-1.41-1.41L15.17 9H7v3H5V9a2 2 0 012-2zm10 5h2v3a2 2 0 01-2 2H8.83l2.58 2.59L10 21l-5-5 5-5 1.41 1.41L8.83 15H17v-3z',
   reply: 'M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-.9-5-3.9-10-11-11z',
   follow: 'M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zM15 14c-2.67 0-8 1.34-8 4v2h10v-2c0-1.2.75-2.27 1.87-3.11C17.42 14.34 15.98 14 15 14zM6 10V7H3V5h3V2h2v3h3v2H8v3H6z',
+  calendar: 'M7 2h2v2h6V2h2v2h1.5A2.5 2.5 0 0121 6.5v12a2.5 2.5 0 01-2.5 2.5h-13A2.5 2.5 0 013 18.5v-12A2.5 2.5 0 015.5 4H7V2zm11.5 7h-13v9.5c0 .28.22.5.5.5h12.5c.28 0 .5-.22.5-.5V9z',
 };
 
-function NotificationItem({ item }) {
+function NotificationItem({ item, onRead }) {
   const navigate = useNavigate();
   const timeAgo = formatDistanceToNow(new Date(item.createdAt), { locale: ru, addSuffix: true });
   const iconPath = notificationLetter[item.type] || notificationLetter.follow;
-  const openActor = () => navigate(`/${item.from.username}`);
+  const openActor = () => {
+    onRead?.(item.id);
+    if (item.type === 'calendar') {
+      navigate('/services');
+      return;
+    }
+    navigate(`/${item.from.username}`);
+  };
   const openTarget = () => {
-    if (item.tweet?.id) navigate(`/tweet/${item.tweet.id}`);
+    onRead?.(item.id);
+    if (item.type === 'calendar') navigate('/services');
+    else if (item.tweet?.id) navigate(`/tweet/${item.tweet.id}`);
     else openActor();
   };
 
@@ -65,6 +88,12 @@ function NotificationItem({ item }) {
         <p className="mt-2 text-sm text-x-text/90">
           {notificationText[item.type] || 'отправил уведомление'} <span className="text-x-muted">{timeAgo}</span>
         </p>
+        {item.type === 'calendar' && (
+          <p className="mt-2 line-clamp-3 rounded-2xl border border-x-border/70 bg-x-surface/45 px-3 py-2 text-sm text-x-muted">
+            {item.title}
+            {item.note ? ` · ${item.note}` : ''}
+          </p>
+        )}
         {item.tweet?.content && (
           <p className="mt-2 line-clamp-2 rounded-2xl border border-x-border/70 bg-x-surface/45 px-3 py-2 text-sm text-x-muted">
             {item.tweet.content}
@@ -77,17 +106,27 @@ function NotificationItem({ item }) {
 
 export default function NotificationsPage() {
   const qc = useQueryClient();
+  const { user } = useAuthStore();
+  const [filter, setFilter] = useState('all');
   const { data, isLoading } = useQuery({
     queryKey: ['notifications'],
     queryFn: () => api.get('/notifications').then((r) => r.data),
   });
 
-  const notifications = data?.notifications || [];
-  const unreadCount = data?.unreadCount || 0;
+  const localCalendar = user ? getCalendarNotifications(user.id) : { notifications: [], unreadCount: 0 };
+  const notifications = [...localCalendar.notifications, ...(data?.notifications || [])]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const unreadCount = (data?.unreadCount || 0) + localCalendar.unreadCount;
+  const filteredNotifications = notifications.filter((item) => {
+    if (filter === 'all') return true;
+    if (filter === 'unread') return !item.isRead;
+    return item.type === filter;
+  });
 
-  const markReadMutation = useMutation({
+  const markAllReadMutation = useMutation({
     mutationFn: () => api.patch('/notifications'),
     onSuccess: () => {
+      if (user?.id) markAllCalendarNotificationsRead(user.id);
       qc.setQueryData(['notifications'], (current) => current
         ? {
             ...current,
@@ -97,12 +136,22 @@ export default function NotificationsPage() {
         : current);
     },
   });
-
-  useEffect(() => {
-    if (unreadCount > 0 && !markReadMutation.isPending) {
-      markReadMutation.mutate();
-    }
-  }, [unreadCount, markReadMutation.isPending]);
+  const markOneReadMutation = useMutation({
+    mutationFn: (item) => item.type === 'calendar'
+      ? Promise.resolve({ data: { notification: { ...item, isRead: true } } })
+      : api.patch(`/notifications/${item.id}/read`),
+    onSuccess: ({ data }) => {
+      qc.setQueryData(['notifications'], (current) => current
+        ? {
+            ...current,
+            unreadCount: data.notification.type === 'calendar'
+              ? current.unreadCount || 0
+              : Math.max(0, (current.unreadCount || 0) - 1),
+            notifications: current.notifications.map((item) => item.id === data.notification.id ? data.notification : item),
+          }
+        : current);
+    },
+  });
 
   return (
     <div className="min-h-full">
@@ -116,8 +165,18 @@ export default function NotificationsPage() {
             </h1>
           </div>
           <span className="rounded-full border border-x-border bg-x-surface/80 px-3 py-1.5 text-xs font-black text-x-muted">
-            Просмотрено
+            {unreadCount > 0 ? `${unreadCount} новых` : 'Все прочитаны'}
           </span>
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {filters.map(([id, label]) => (
+            <button key={id} type="button" onClick={() => setFilter(id)} className={`nebula-pill ${filter === id ? 'border-x-accent/70 text-x-text' : ''}`}>
+              {label}
+            </button>
+          ))}
+          <button type="button" onClick={() => markAllReadMutation.mutate()} disabled={unreadCount === 0 || markAllReadMutation.isPending} className="btn-outline ml-auto px-4 py-2 text-xs disabled:opacity-50">
+            Прочитать всё
+          </button>
         </div>
       </div>
 
@@ -125,9 +184,20 @@ export default function NotificationsPage() {
         <div className="flex justify-center py-16">
           <div className="h-7 w-7 animate-spin rounded-full border-2 border-x-accent border-t-transparent" />
         </div>
-      ) : notifications.length > 0 ? (
+      ) : filteredNotifications.length > 0 ? (
         <div>
-          {notifications.map((item) => <NotificationItem key={item.id} item={item} />)}
+          {filteredNotifications.map((item) => (
+            <NotificationItem
+              key={item.id}
+              item={item}
+              onRead={() => {
+                if (!item.isRead) {
+                  if (item.type === 'calendar' && user?.id) markCalendarNotificationRead(user.id, item.id);
+                  markOneReadMutation.mutate(item);
+                }
+              }}
+            />
+          ))}
         </div>
       ) : (
         <div className="px-8 py-16 text-center">

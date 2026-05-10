@@ -170,11 +170,18 @@ export default function SearchPage() {
     <div className="min-h-full">
       <div className="cosmic-header px-4 py-3 sm:px-5">
         <div className="mb-4">
-          <p className="nebula-section-heading">глобальный поиск</p>
-          <h1 className="flex items-center gap-2 text-xl font-black tracking-normal">
-            <NavIcon name="search" className="h-5 w-5 text-x-accent" />
-            Поиск
-          </h1>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="nebula-section-heading">глобальный поиск</p>
+              <h1 className="flex items-center gap-2 text-xl font-black tracking-normal">
+                <NavIcon name="search" className="h-5 w-5 text-x-accent" />
+                Поиск
+              </h1>
+            </div>
+            <button type="button" onClick={() => navigate('/explore?createCommunity=1')} className="btn-outline px-4 py-2 text-sm">
+              Создать группу
+            </button>
+          </div>
         </div>
         <form onSubmit={submitSearch} className="relative">
           <NavIcon name="search" className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-x-muted" />

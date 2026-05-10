@@ -9,6 +9,7 @@ export const useSocket = () => {
   const { accessToken, isAuthenticated } = useAuthStore();
   const {
     addMessage,
+    addOrUpdateChat,
     updateMessage,
     removeMessage,
     setTyping,
@@ -17,7 +18,6 @@ export const useSocket = () => {
     incrementUnread,
     updateChat,
     removeChat,
-    activeChat,
     setIncomingCall,
     clearIncomingCall,
     setActiveCall,
@@ -40,6 +40,7 @@ export const useSocket = () => {
 
     socket.on('message:new', ({ message, chatId }) => {
       addMessage(chatId, message);
+      qc.invalidateQueries({ queryKey: ['chats'] });
     });
 
     socket.on('message:updated', ({ message, chatId }) => {
@@ -55,9 +56,18 @@ export const useSocket = () => {
     });
 
     socket.on('chat:notification', ({ chatId, message }) => {
+      const { activeChat, chats } = useChatStore.getState();
+      if (chats.some((chat) => chat.id === chatId)) {
+        addOrUpdateChat({
+          id: chatId,
+          lastMessage: message,
+          updatedAt: message?.createdAt || new Date().toISOString(),
+        });
+      }
       if (chatId !== activeChat?.id) {
         incrementUnread(chatId);
       }
+      qc.invalidateQueries({ queryKey: ['chats'] });
     });
 
     socket.on('chat:updated', ({ chat }) => {

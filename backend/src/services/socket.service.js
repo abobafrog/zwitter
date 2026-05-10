@@ -215,8 +215,13 @@ const initSocket = async (io) => {
 
         await prisma.chat.update({ where: { id: chatId }, data: { updatedAt: new Date() } });
 
-        // Broadcast to chat room
+        // Broadcast to chat room and personal rooms so unread chats still update live.
         io.to(`chat:${chatId}`).emit('message:new', { message, chatId });
+        chat.participants.forEach((participant) => {
+          if (participant.userId !== userId) {
+            io.to(`user:${participant.userId}`).emit('message:new', { message, chatId });
+          }
+        });
 
         // Notify offline participants
         chat.participants.forEach((p) => {
@@ -332,6 +337,11 @@ const initSocket = async (io) => {
             });
             await prisma.chat.update({ where: { id: chatId }, data: { updatedAt: new Date() } });
             io.to(`chat:${chatId}`).emit('message:new', { message, chatId });
+            chat.participants.forEach((participant) => {
+              if (participant.userId !== call.callerId) {
+                io.to(`user:${participant.userId}`).emit('message:new', { message, chatId });
+              }
+            });
           }
         }
         io.to(`call:${callId}`).emit('call:ended', { callId, chatId, user: socket.user });

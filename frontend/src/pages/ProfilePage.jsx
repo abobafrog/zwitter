@@ -36,7 +36,26 @@ export default function ProfilePage() {
   const followMutation = useMutation({
     mutationFn: () => api.post(`/users/${data.id}/follow`),
     onSuccess: ({ data: res }) => {
+      qc.setQueryData(['profile', username], (current) => current ? ({
+        ...current,
+        isFollowing: res.following,
+        _count: {
+          ...current._count,
+          followers: Math.max(0, (current._count?.followers || 0) + (res.following ? 1 : -1)),
+        },
+      }) : current);
+      if (me?.username) {
+        qc.invalidateQueries({ queryKey: ['profile', me.username] });
+        qc.invalidateQueries({ queryKey: ['follow-list', me.username, 'followers'] });
+        qc.invalidateQueries({ queryKey: ['follow-list', me.username, 'following'] });
+        qc.invalidateQueries({ queryKey: ['chat-suggested-following', me.username] });
+        qc.invalidateQueries({ queryKey: ['chat-suggested-followers', me.username] });
+      }
       qc.invalidateQueries({ queryKey: ['profile', username] });
+      qc.invalidateQueries({ queryKey: ['follow-list', username, 'followers'] });
+      qc.invalidateQueries({ queryKey: ['follow-list', username, 'following'] });
+      qc.invalidateQueries({ queryKey: ['search-users'] });
+      qc.invalidateQueries({ queryKey: ['page-search-users'] });
       toast.success(res.following ? 'Вы подписались!' : 'Вы отписались');
     },
     onError: () => toast.error('Ошибка'),
@@ -89,7 +108,7 @@ export default function ProfilePage() {
     <>
       <button
         onClick={() => setEditOpen(true)}
-        className="btn-outline text-sm px-4 py-1.5"
+        className="btn-outline text-sm px-4 py-2"
       >
         Редактировать
       </button>
@@ -104,7 +123,8 @@ export default function ProfilePage() {
     <div className="flex gap-2">
       <button
         onClick={() => startChatMutation.mutate()}
-        className="btn-outline text-sm px-4 py-1.5"
+        disabled={startChatMutation.isPending}
+        className="btn-outline text-sm px-4 py-2 disabled:opacity-50"
         title="Написать"
       >
         <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
@@ -114,7 +134,7 @@ export default function ProfilePage() {
       <button
         onClick={() => followMutation.mutate()}
         disabled={followMutation.isPending}
-        className={`text-sm px-4 py-1.5 rounded-full font-bold transition-colors ${
+        className={`text-sm px-4 py-2 rounded-full font-bold transition-colors disabled:opacity-50 ${
           data.isFollowing
             ? 'border border-x-border hover:border-x-danger hover:text-x-danger hover:bg-x-danger/10'
             : 'btn-primary'
@@ -138,15 +158,13 @@ export default function ProfilePage() {
         <div className="absolute -bottom-14 left-4 z-20">
           {avatarNode}
         </div>
-        <div className="absolute -bottom-9 right-4 z-20 flex gap-2">
-          {profileActions}
-        </div>
       </div>
 
       {/* Profile info */}
       <div className="relative z-10 border-b border-x-border/80 bg-transparent px-4 pb-4 pt-20">
-        <div className="mb-3">
-          <div className="flex items-center gap-1">
+        <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <div className="flex items-center gap-1">
             <h2 className="text-xl font-black">{data.displayName}</h2>
             {isCommunity && (
               <span className="rounded-full border border-cyan-300/35 bg-cyan-300/10 px-2 py-0.5 text-xs font-black uppercase tracking-normal text-x-accent">
@@ -154,8 +172,8 @@ export default function ProfilePage() {
               </span>
             )}
             {isPlusUser(data) && (
-              <span className="rounded-full border border-amber-300/35 bg-amber-300/15 px-2 py-0.5 text-xs font-black uppercase tracking-normal text-amber-200">
-                Plus
+              <span className="plus-star-badge" title="Plus" aria-label="Plus">
+                <span className="plus-star-badge-core">★</span>
               </span>
             )}
             {data.isVerified && (
@@ -163,8 +181,12 @@ export default function ProfilePage() {
                 <path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.68-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2L6.8 12.46l1.41-1.42 2.26 2.26 4.8-5.23 1.47 1.36-6.2 6.77z"/>
               </svg>
             )}
+            </div>
+            <p className="text-x-muted">@{data.username}</p>
           </div>
-          <p className="text-x-muted">@{data.username}</p>
+          <div className="relative z-20 flex gap-2 self-start">
+            {profileActions}
+          </div>
         </div>
 
         {data.bio && <p className="mb-3 text-[15px]">{data.bio}</p>}

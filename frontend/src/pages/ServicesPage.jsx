@@ -1,25 +1,22 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import NavIcon from '../components/layout/NavIcon';
 import useMusicStore from '../store/musicStore';
 import useAuthStore from '../store/authStore';
 import api from '../services/api';
 import { deleteDraft, loadDrafts, normalizeHashtags, upsertDraft } from '../utils/drafts';
+import { buildPlaylistShareUrl, buildTrackShareUrl, decodeSharedPlaylist } from '../utils/musicShare';
+import { hasPlusAccess } from '../utils/plus';
 
 const SERVICE_ORDER_KEY = 'zwitter-services-order-v2';
 const SAVED_CITIES_KEY = 'zwitter-weather-cities';
-const MUSIC_SERVER_KEY = 'zwitter-music-server';
 const FOCUS_KEY = 'zwitter-focus-history';
 const CALENDAR_KEY = 'zwitter-calendar-events';
+const PUBLIC_SERVICE_IDS = new Set(['weather']);
 
 const servicesCatalog = [
-  {
-    id: 'music',
-    title: 'Музыка',
-    description: 'Бесплатный музыкальный блок на Navidrome/OpenSubsonic с новым плеером и волной трека.',
-    icon: 'music',
-    accent: 'from-fuchsia-400 to-cyan-300',
-  },
   {
     id: 'notes',
     title: 'Заметки',
@@ -55,13 +52,30 @@ const servicesCatalog = [
     icon: 'bell',
     accent: 'from-emerald-300 to-cyan-300',
   },
+  {
+    id: 'account',
+    title: 'Сводка аккаунта',
+    description: 'Посты, лайки, просмотры, подписчики и другие быстрые показатели аккаунта.',
+    icon: 'user',
+    accent: 'from-cyan-300 to-violet-300',
+  },
+  {
+    id: 'anonymous',
+    title: 'Анонимные вопросы',
+    description: 'Анонимная входящая коробка и быстрые ответы внутри приложения.',
+    icon: 'messages',
+    accent: 'from-amber-300 to-rose-300',
+  },
 ];
 
-const defaultMusicServer = {
-  serverUrl: 'http://localhost:4533',
-  username: '',
-  password: '',
-};
+const featuredArtists = [
+  { name: 'Lady Gaga', accent: 'from-cyan-300 to-fuchsia-300', songs: ['Abracadabra', 'Bloody Mary', 'Bad Romance', 'Poker Face'] },
+  { name: 'Кино', accent: 'from-amber-300 to-cyan-300', songs: ['Группа крови', 'Кукушка', 'Пачка сигарет', 'Звезда по имени Солнце'] },
+  { name: 'Баста', accent: 'from-emerald-300 to-blue-400', songs: ['Сансара', 'Моя игра', 'Выпускной', 'На заре'] },
+  { name: 'MACAN', accent: 'from-sky-300 to-violet-300', songs: ['ASPHALT 8', 'Кино', 'За всех', 'Останься образом'] },
+  { name: 'The Weeknd', accent: 'from-rose-300 to-cyan-300', songs: ['Blinding Lights', 'Starboy', 'Save Your Tears', 'The Hills'] },
+  { name: 'Billie Eilish', accent: 'from-lime-300 to-sky-300', songs: ['Birds of a Feather', 'Bad Guy', 'Lovely', 'Ocean Eyes'] },
+];
 
 const moveItem = (items, fromId, toId) => {
   if (fromId === toId) return items;
@@ -89,16 +103,15 @@ const loadSavedCities = () => {
   const cities = readJson(SAVED_CITIES_KEY, ['Москва']);
   return Array.isArray(cities) && cities.length ? cities : ['Москва'];
 };
-const loadMusicServer = () => ({ ...defaultMusicServer, ...readJson(MUSIC_SERVER_KEY, defaultMusicServer) });
 const focusStorageKey = (userId) => `${FOCUS_KEY}-${userId || 'guest'}`;
 const calendarStorageKey = (userId) => `${CALENDAR_KEY}-${userId || 'guest'}`;
 
 function WeatherIcon({ code, className = 'h-12 w-12' }) {
   const type = code === 0
     ? 'sun'
-    : [80, 81, 82, 95, 96, 99].includes(code)
+    : [95, 96, 99].includes(code)
       ? 'storm'
-      : [61, 63, 65].includes(code)
+      : [51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code)
         ? 'rain'
         : [71, 73, 75, 77, 85, 86].includes(code)
           ? 'snow'
@@ -130,95 +143,224 @@ function WeatherIcon({ code, className = 'h-12 w-12' }) {
   );
 }
 
-function ServiceDock({ services, activeId, onSelect, onReorder }) {
+const formatWeatherHour = (time) => {
+  if (!time) return '';
+  return new Date(time).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+};
+
+const weatherDateKey = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value).slice(0, 10);
+  return date.toLocaleDateString('sv-SE');
+};
+
+const getTodayHourly = (weather) => {
+  const hours = Array.isArray(weather?.hourly) ? weather.hourly : [];
+  const todayKey = weatherDateKey(weather?.daily?.[0]?.day || hours[0]?.time);
+  return hours.filter((hour) => weatherDateKey(hour.time) === todayKey).slice(0, 24);
+};
+
+function ServiceDock({ services, activeId, onSelect, onReorder, isAuthenticated }) {
   const [draggingId, setDraggingId] = useState(null);
 
   return (
     <div className="sticky top-3 z-20 overflow-x-auto rounded-3xl border border-x-border/70 bg-x-panel/65 p-2 shadow-panel backdrop-blur-xl">
       <div className="flex min-w-max items-center gap-2">
-        {services.map((service) => (
-          <button
-            key={service.id}
-            type="button"
-            draggable
-            onDragStart={() => setDraggingId(service.id)}
-            onDragOver={(event) => event.preventDefault()}
-            onDrop={() => {
-              if (draggingId) onReorder(draggingId, service.id);
-              setDraggingId(null);
-            }}
-            onDragEnd={() => setDraggingId(null)}
-            onClick={() => onSelect(service.id)}
-            className={`flex items-center gap-2 rounded-2xl px-3 py-2 text-sm font-black transition ${
-              service.id === activeId
-                ? 'bg-cyan-300/12 text-x-accent shadow-neon'
-                : 'text-x-muted hover:bg-cyan-300/10 hover:text-x-text'
-            }`}
-          >
-            <span className={`flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br ${service.accent} text-slate-950`}>
-              <NavIcon name={service.icon} className="h-4 w-4" />
-            </span>
-            <span>{service.title}</span>
-          </button>
-        ))}
+        {services.map((service) => {
+          const isLocked = !isAuthenticated && !PUBLIC_SERVICE_IDS.has(service.id);
+          return (
+            <button
+              key={service.id}
+              type="button"
+              draggable={!isLocked}
+              onDragStart={() => setDraggingId(service.id)}
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={() => {
+                if (draggingId) onReorder(draggingId, service.id);
+                setDraggingId(null);
+              }}
+              onDragEnd={() => setDraggingId(null)}
+              onClick={() => onSelect(service.id)}
+              className={`flex items-center gap-2 rounded-2xl px-3 py-2 text-sm font-black transition ${
+                service.id === activeId
+                  ? 'bg-cyan-300/12 text-x-accent shadow-neon'
+                  : 'text-x-muted hover:bg-cyan-300/10 hover:text-x-text'
+              } ${isLocked ? 'opacity-60' : ''}`}
+            >
+              <span className={`flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br ${service.accent} text-slate-950`}>
+                <NavIcon name={service.icon} className="h-4 w-4" />
+              </span>
+              <span>{service.title}</span>
+              {isLocked && <span className="rounded-full border border-x-border px-2 py-0.5 text-[10px] uppercase tracking-normal text-x-muted">вход</span>}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
 }
 
+function AuthRequiredPanel({ title = 'Нужна регистрация' }) {
+  const navigate = useNavigate();
+  return (
+    <section className="rounded-3xl border border-cyan-300/25 bg-x-panel/55 p-5 text-center shadow-panel">
+      <p className="nebula-section-heading">account</p>
+      <h2 className="text-2xl font-black text-x-text">{title}</h2>
+      <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-x-muted">
+        Без аккаунта можно смотреть ленту, слушать музыку и проверять погоду. Для личных сервисов, постов и сохранений создайте профиль.
+      </p>
+      <div className="mt-5 flex flex-wrap justify-center gap-3">
+        <button type="button" onClick={() => navigate('/register')} className="btn-accent px-5 py-2 text-sm">
+          Зарегистрироваться
+        </button>
+        <button type="button" onClick={() => navigate('/login')} className="btn-outline px-5 py-2 text-sm">
+          Войти
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function TrackThumbnail({ track }) {
+  const [failed, setFailed] = useState(false);
+  if (track.thumbnailUrl && !failed) {
+    return <img src={track.thumbnailUrl} alt="" onError={() => setFailed(true)} className="h-16 w-24 flex-shrink-0 rounded-xl object-cover" />;
+  }
+  return (
+    <div className="flex h-16 w-24 flex-shrink-0 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-300/10 text-x-accent">
+      <NavIcon name="music" className="h-6 w-6" />
+    </div>
+  );
+}
+
 function MusicPanel() {
-  const [query, setQuery] = useState('Lady Gaga');
-  const [musicServer, setMusicServer] = useState(loadMusicServer);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [query, setQuery] = useState('');
   const [selectedTrackId, setSelectedTrackId] = useState('');
   const [playlistName, setPlaylistName] = useState('');
   const [selectedPlaylistId, setSelectedPlaylistId] = useState('');
+  const [editingPlaylistId, setEditingPlaylistId] = useState('');
+  const [editingPlaylistName, setEditingPlaylistName] = useState('');
   const {
     playTrack,
     currentTrack,
     isPlaying,
     playlists,
     activePlaylistId,
+    renamePlaylist,
     createPlaylist,
     deletePlaylist,
     addToPlaylist,
     removeFromPlaylist,
     playPlaylist,
+    importSharedPlaylist,
   } = useMusicStore();
+  const importedPlaylistRef = useRef('');
+  const searchText = query.trim();
+  const runSearch = (value) => {
+    const nextQuery = value.trim();
+    if (!nextQuery) return;
+    setQuery(nextQuery);
+  };
+  const sharedQuery = searchParams.get('musicQuery') || '';
+  const sharedTrackId = searchParams.get('musicTrack') || '';
+  const sharedPlaylistToken = searchParams.get('musicPlaylist') || '';
 
-  const musicReady = Boolean(musicServer.serverUrl.trim() && musicServer.username.trim() && musicServer.password);
   const tracksQuery = useQuery({
-    queryKey: ['subsonic-music', query, musicServer.serverUrl, musicServer.username],
-    queryFn: () => api.post('/music/subsonic/search', {
-      q: query,
-      serverUrl: musicServer.serverUrl.trim(),
-      username: musicServer.username.trim(),
-      password: musicServer.password,
+    queryKey: ['music-search', searchText],
+    queryFn: () => api.post('/music/search', {
+      q: searchText,
     }).then((response) => response.data),
-    enabled: musicReady,
+    enabled: Boolean(searchText),
     staleTime: 1000 * 60 * 10,
   });
 
   const tracks = (tracksQuery.data?.tracks || []).map((track) => ({
     ...track,
-    year: track.artist || track.channelTitle || 'OpenSubsonic',
+    year: track.artist || track.channelTitle || track.providerLabel || 'Muffon',
   }));
   const selectedTrack = tracks.find((track) => track.id === selectedTrackId) || tracks[0];
+  const musicMessage = tracksQuery.error?.response?.data?.message || tracksQuery.data?.message;
 
   useEffect(() => {
     if (!selectedTrackId && tracks[0]?.id) setSelectedTrackId(tracks[0].id);
   }, [selectedTrackId, tracks]);
 
   useEffect(() => {
+    if (sharedQuery && sharedQuery !== query) setQuery(sharedQuery);
+  }, [query, sharedQuery]);
+
+  useEffect(() => {
+    setSelectedTrackId('');
+  }, [searchText]);
+
+  useEffect(() => {
     if (!selectedPlaylistId && playlists[0]?.id) setSelectedPlaylistId(playlists[0].id);
   }, [playlists, selectedPlaylistId]);
 
-  const updateMusicServer = (field, value) => {
-    setMusicServer((current) => ({ ...current, [field]: value }));
+  useEffect(() => {
+    if (!sharedTrackId) return;
+    const sharedTrack = tracks.find((track) => track.id === sharedTrackId);
+    if (sharedTrack) setSelectedTrackId(sharedTrack.id);
+  }, [sharedTrackId, tracks]);
+
+  useEffect(() => {
+    if (!sharedPlaylistToken || importedPlaylistRef.current === sharedPlaylistToken) return;
+    importedPlaylistRef.current = sharedPlaylistToken;
+    const sharedPlaylist = decodeSharedPlaylist(sharedPlaylistToken);
+    if (!sharedPlaylist) {
+      toast.error('Не удалось открыть плейлист из ссылки');
+      return;
+    }
+    const newPlaylistId = importSharedPlaylist(sharedPlaylist);
+    if (newPlaylistId) {
+      setSelectedPlaylistId(newPlaylistId);
+      toast.success('Плейлист добавлен в библиотеку');
+    }
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('musicPlaylist');
+    setSearchParams(nextParams, { replace: true });
+  }, [importSharedPlaylist, searchParams, setSearchParams, sharedPlaylistToken]);
+
+  const shareTrack = async (track) => {
+    try {
+      const url = buildTrackShareUrl(track);
+      if (navigator.share) {
+        await navigator.share({ title: track.title, text: `${track.artist} - ${track.title}`, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast.success('Ссылка на трек скопирована');
+      }
+    } catch {
+      toast.error('Не удалось поделиться треком');
+    }
   };
 
-  const saveMusicServer = () => {
-    localStorage.setItem(MUSIC_SERVER_KEY, JSON.stringify(musicServer));
-    if (musicReady) tracksQuery.refetch();
+  const sharePlaylist = async (playlist) => {
+    try {
+      const url = buildPlaylistShareUrl(playlist);
+      if (navigator.share) {
+        await navigator.share({ title: playlist.name, text: `Плейлист ${playlist.name}`, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast.success('Ссылка на плейлист скопирована');
+      }
+    } catch {
+      toast.error('Не удалось поделиться плейлистом');
+    }
+  };
+
+  const startPlaylistRename = (playlist) => {
+    setEditingPlaylistId(playlist.id);
+    setEditingPlaylistName(playlist.name);
+  };
+
+  const submitPlaylistRename = (playlistId) => {
+    renamePlaylist(playlistId, editingPlaylistName);
+    setEditingPlaylistId('');
+    setEditingPlaylistName('');
+    toast.success('Название плейлиста обновлено');
   };
 
   return (
@@ -227,18 +369,8 @@ function MusicPanel() {
         <div>
           <p className="nebula-section-heading">music</p>
           <h2 className="text-2xl font-black text-x-text">Фоновая музыка</h2>
-          <p className="mt-1 text-sm text-x-muted">Поиск по Navidrome/OpenSubsonic и запуск через новый плеер на Howler и WaveSurfer.</p>
+          <p className="mt-1 text-sm text-x-muted">Поиск через muffon и воспроизведение в скрытом аудиоплеере.</p>
         </div>
-        <a href="http://localhost:4533" target="_blank" rel="noreferrer" className="btn-outline inline-flex justify-center px-4 py-2 text-sm">
-          Открыть Navidrome
-        </a>
-      </div>
-
-      <div className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_180px_180px_auto]">
-        <input value={musicServer.serverUrl} onChange={(event) => updateMusicServer('serverUrl', event.target.value)} className="input-field" placeholder="http://localhost:4533" />
-        <input value={musicServer.username} onChange={(event) => updateMusicServer('username', event.target.value)} className="input-field" placeholder="Логин" />
-        <input value={musicServer.password} onChange={(event) => updateMusicServer('password', event.target.value)} type="password" className="input-field" placeholder="Пароль" />
-        <button type="button" onClick={saveMusicServer} className="btn-outline px-4 py-2 text-sm">Сохранить</button>
       </div>
 
       <div className="mt-3 grid gap-2 lg:grid-cols-[minmax(0,1fr)_auto]">
@@ -246,14 +378,48 @@ function MusicPanel() {
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === 'Enter' && musicReady) tracksQuery.refetch();
+            if (event.key === 'Enter' && searchText) tracksQuery.refetch();
           }}
           className="input-field"
           placeholder="Найти музыку..."
         />
-        <button type="button" disabled={!musicReady} onClick={() => tracksQuery.refetch()} className="btn-accent px-5 py-2 text-sm disabled:opacity-50">
+        <button type="button" disabled={!searchText} onClick={() => tracksQuery.refetch()} className="btn-accent px-5 py-2 text-sm disabled:opacity-50">
           Найти
         </button>
+      </div>
+      {musicMessage && <p className="mt-2 text-xs font-bold text-amber-200">{musicMessage}</p>}
+
+      <div className="mt-4">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-x-muted">Популярные артисты</p>
+          <p className="text-xs font-bold text-x-muted">нажми песню, чтобы сразу найти</p>
+        </div>
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+          {featuredArtists.map((artist) => (
+            <article key={artist.name} className="rounded-2xl border border-x-border bg-slate-950/55 p-3">
+              <button
+                type="button"
+                onClick={() => runSearch(artist.name)}
+                className={`mb-3 flex w-full items-center justify-between rounded-xl bg-gradient-to-r ${artist.accent} px-3 py-2 text-left text-sm font-black text-slate-950`}
+              >
+                <span className="truncate">{artist.name}</span>
+                <NavIcon name="music" className="h-4 w-4 flex-shrink-0" />
+              </button>
+              <div className="grid gap-1">
+                {artist.songs.map((song) => (
+                  <button
+                    key={`${artist.name}-${song}`}
+                    type="button"
+                    onClick={() => runSearch(`${artist.name} ${song}`)}
+                    className="truncate rounded-xl border border-cyan-300/15 bg-x-bg/55 px-3 py-2 text-left text-xs font-bold text-x-muted transition hover:border-cyan-300/45 hover:text-x-text"
+                  >
+                    {song}
+                  </button>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
 
       <div className="mt-4 rounded-3xl border border-x-border bg-slate-950/70 p-4">
@@ -264,7 +430,9 @@ function MusicPanel() {
           <button type="button" disabled={!selectedTrack} onClick={() => playTrack(selectedTrack)} className="btn-accent px-4 py-2 text-sm disabled:opacity-50">
             {isPlaying && currentTrack?.id === selectedTrack?.id ? 'Играет' : 'Слушать'}
           </button>
-          {!musicReady && <span className="text-xs font-bold text-amber-200">Чтобы включить сервис, укажите адрес, логин и пароль.</span>}
+          <button type="button" disabled={!selectedTrack} onClick={() => shareTrack(selectedTrack)} className="btn-outline px-4 py-2 text-sm disabled:opacity-50">
+            Поделиться треком
+          </button>
         </div>
       </div>
 
@@ -306,12 +474,35 @@ function MusicPanel() {
             <article key={playlist.id} className={`rounded-2xl border p-3 ${activePlaylistId === playlist.id ? 'border-cyan-300/60 bg-cyan-300/10' : 'border-x-border bg-x-bg/45'}`}>
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="truncate font-black text-x-text">{playlist.name}</p>
+                  {editingPlaylistId === playlist.id ? (
+                    <div className="flex gap-2">
+                      <input
+                        value={editingPlaylistName}
+                        onChange={(event) => setEditingPlaylistName(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') submitPlaylistRename(playlist.id);
+                        }}
+                        className="input-field h-9 py-2 text-sm"
+                        autoFocus
+                      />
+                      <button type="button" onClick={() => submitPlaylistRename(playlist.id)} className="rounded-full border border-cyan-300/35 px-3 py-1 text-xs font-black text-x-accent">
+                        OK
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="truncate font-black text-x-text">{playlist.name}</p>
+                  )}
                   <p className="text-xs text-x-muted">{playlist.tracks.length} треков</p>
                 </div>
                 <div className="flex gap-2">
                   <button type="button" disabled={playlist.tracks.length === 0} onClick={() => playPlaylist(playlist.id)} className="rounded-full border border-cyan-300/35 px-3 py-1 text-xs font-black text-x-accent disabled:opacity-50">
                     Старт
+                  </button>
+                  <button type="button" onClick={() => startPlaylistRename(playlist)} className="rounded-full border border-x-border px-3 py-1 text-xs font-black text-x-muted">
+                    Имя
+                  </button>
+                  <button type="button" onClick={() => sharePlaylist(playlist)} className="rounded-full border border-cyan-300/25 px-3 py-1 text-xs font-black text-x-muted">
+                    Поделиться
                   </button>
                   <button type="button" onClick={() => deletePlaylist(playlist.id)} className="rounded-full border border-red-400/35 px-3 py-1 text-xs font-black text-red-300">
                     Удалить
@@ -339,25 +530,38 @@ function MusicPanel() {
       <div className="mt-4 grid gap-2 lg:grid-cols-2">
         {tracksQuery.isLoading && <p className="text-sm text-x-muted">Ищу треки...</p>}
         {tracks.map((track) => (
-          <button
+          <article
             key={track.id}
-            type="button"
-            onClick={() => {
-              setSelectedTrackId(track.id);
-              playTrack(track);
-            }}
-            className={`flex items-center justify-between gap-3 overflow-hidden rounded-2xl border px-4 py-3 text-left transition ${
+            className={`flex items-center gap-3 overflow-hidden rounded-2xl border px-4 py-3 text-left transition ${
               selectedTrack?.id === track.id
                 ? 'border-cyan-300/60 bg-cyan-300/12 text-x-text shadow-neon'
                 : 'border-x-border bg-x-bg/55 text-x-muted hover:border-cyan-300/45 hover:text-x-text'
             }`}
           >
-            <span className="min-w-0">
-              <span className="block truncate font-black">{track.title}</span>
-              <span className="block truncate text-xs text-x-muted">{track.artist || track.channelTitle}</span>
-            </span>
-            {track.thumbnailUrl && <img src={track.thumbnailUrl} alt="" className="h-12 w-16 flex-shrink-0 rounded-xl object-cover" />}
-          </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedTrackId(track.id);
+                playTrack(track);
+              }}
+              className="flex min-w-0 flex-1 items-center gap-3 text-left"
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-black">{track.title}</span>
+                <span className="block truncate text-xs text-x-muted">{track.artist || track.channelTitle}</span>
+                <span className="mt-1 block text-[10px] font-black uppercase tracking-[0.12em] text-cyan-200/80">{track.providerLabel || 'Muffon'}</span>
+                {track.previewOnly && <span className="mt-1 block text-[10px] font-black uppercase tracking-[0.12em] text-amber-200/90">превью 30 сек</span>}
+              </span>
+              <TrackThumbnail track={track} />
+            </button>
+            <button
+              type="button"
+              onClick={() => shareTrack(track)}
+              className="rounded-full border border-cyan-300/20 px-3 py-2 text-[11px] font-black text-x-muted transition hover:text-x-text"
+            >
+              Поделиться
+            </button>
+          </article>
         ))}
       </div>
     </section>
@@ -673,6 +877,10 @@ function WeatherPanel() {
   };
 
   const weather = weatherQuery.data;
+  const todayHourly = useMemo(() => getTodayHourly(weather), [weather]);
+  const weatherGridClass = todayHourly.length > 0
+    ? 'xl:grid-cols-[minmax(300px,0.85fr)_minmax(0,1fr)_minmax(230px,0.55fr)]'
+    : 'xl:grid-cols-[minmax(320px,0.9fr)_minmax(0,1.1fr)]';
   return (
     <section className="rounded-3xl border border-sky-300/25 bg-x-panel/55 p-4 shadow-panel">
       <div className="mb-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,520px)] lg:items-end">
@@ -699,7 +907,7 @@ function WeatherPanel() {
       {weatherQuery.isLoading && <p className="text-sm text-x-muted">Смотрю прогноз...</p>}
       {weatherQuery.error && <p className="text-sm font-bold text-red-300">Город не найден или сервис временно недоступен.</p>}
       {weather && (
-        <div className="grid gap-3 xl:grid-cols-[minmax(320px,0.9fr)_minmax(0,1.1fr)]">
+        <div className={`grid gap-3 ${weatherGridClass}`}>
           <div className="rounded-3xl border border-cyan-300/25 bg-slate-950/70 p-5">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -728,6 +936,27 @@ function WeatherPanel() {
               </div>
             ))}
           </div>
+          {todayHourly.length > 0 && (
+            <aside className="rounded-3xl border border-sky-300/25 bg-slate-950/65 p-4 xl:max-h-[420px] xl:overflow-y-auto">
+              <div className="mb-3">
+                <p className="text-xs font-black uppercase tracking-[0.12em] text-x-muted">сегодня</p>
+                <h3 className="text-lg font-black text-x-text">По часам</h3>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+                {todayHourly.map((hour) => (
+                  <div key={hour.time} className="grid grid-cols-[44px_34px_minmax(0,1fr)_auto] items-center gap-2 rounded-2xl border border-x-border/70 bg-x-bg/55 px-3 py-2 text-sm">
+                    <p className="font-black text-x-text">{formatWeatherHour(hour.time)}</p>
+                    <WeatherIcon code={hour.code} className="h-8 w-8 opacity-85" />
+                    <div className="min-w-0">
+                      <p className="truncate font-bold text-x-text">{hour.label}</p>
+                      <p className="text-xs text-x-muted">{hour.precipitationProbability ?? 0}% осадки</p>
+                    </div>
+                    <p className="text-base font-black text-x-text">{hour.temperature}°</p>
+                  </div>
+                ))}
+              </div>
+            </aside>
+          )}
         </div>
       )}
     </section>
@@ -934,6 +1163,7 @@ function CalendarPanel() {
   const saveEvents = (next) => {
     setEvents(next);
     localStorage.setItem(calendarStorageKey(user?.id), JSON.stringify(next));
+    window.dispatchEvent(new Event('zwitter:calendar-updated'));
   };
 
   const addEvent = () => {
@@ -1002,17 +1232,265 @@ function CalendarPanel() {
   );
 }
 
-function ActivePanel({ activeId }) {
-  if (activeId === 'music') return <MusicPanel />;
+function AccountSummaryPanel() {
+  const { user } = useAuthStore();
+  const plusActive = hasPlusAccess(user);
+  const [username, setUsername] = useState(user?.username || '');
+  const targetUsername = (plusActive ? username : user?.username || '').trim();
+  const profileQuery = useQuery({
+    queryKey: ['account-summary-profile', targetUsername],
+    queryFn: () => api.get(`/users/${targetUsername}`).then((response) => response.data.user),
+    enabled: Boolean(targetUsername),
+  });
+  const tweetsQuery = useQuery({
+    queryKey: ['account-summary-tweets', targetUsername],
+    queryFn: () => api.get(`/users/${targetUsername}/tweets?tab=tweets`).then((response) => response.data.tweets || []),
+    enabled: Boolean(targetUsername),
+  });
+
+  const tweets = tweetsQuery.data || [];
+  const totalWords = tweets.reduce((sum, tweet) => sum + ((tweet.content || '').replace(/\[\[(link|poll|file):.+?\]\]/g, '').trim().split(/\s+/).filter(Boolean).length), 0);
+  const mediaPosts = tweets.filter((tweet) => Boolean(tweet.imageUrl)).length;
+  const linkPosts = tweets.filter((tweet) => tweet.content?.includes('[[link:')).length;
+  const pollPosts = tweets.filter((tweet) => tweet.content?.includes('[[poll:')).length;
+  const likes = tweets.reduce((sum, tweet) => sum + (tweet._count?.likes || 0), 0);
+  const replies = tweets.reduce((sum, tweet) => sum + (tweet._count?.replies || 0), 0);
+  const views = tweets.reduce((sum, tweet) => sum + (tweet.viewsCount || 0), 0);
+  const reposts = tweets.reduce((sum, tweet) => sum + (tweet._count?.retweets || 0), 0);
+  const topTweet = [...tweets].sort((a, b) => ((b._count?.likes || 0) + (b.viewsCount || 0)) - ((a._count?.likes || 0) + (a.viewsCount || 0)))[0];
+  const firstTweetDate = tweets.at(-1)?.createdAt;
+  const latestTweetDate = tweets[0]?.createdAt;
+  const stats = {
+    posts: profileQuery.data?._count?.tweets || 0,
+    followers: profileQuery.data?._count?.followers || 0,
+    following: profileQuery.data?._count?.following || 0,
+    likes,
+    replies,
+    views,
+    reposts,
+  };
+  const avgLikes = stats.posts ? (likes / stats.posts).toFixed(1) : '0.0';
+  const avgViews = stats.posts ? Math.round(views / stats.posts) : 0;
+  const engagement = stats.posts ? (((likes + replies + reposts) / Math.max(1, views)) * 100).toFixed(1) : '0.0';
+
+  return (
+    <section className="rounded-3xl border border-cyan-300/25 bg-x-panel/55 p-4 shadow-panel">
+      <div className="mb-4">
+        <p className="nebula-section-heading">account summary</p>
+        <h2 className="text-2xl font-black text-x-text">Сводка аккаунта</h2>
+        <p className="mt-1 text-sm text-x-muted">Базовая статистика по вашему профилю. С Plus можно смотреть и другие аккаунты.</p>
+      </div>
+
+      <div className="rounded-3xl border border-x-border bg-slate-950/70 p-4">
+        <label className="settings-label">Аккаунт</label>
+        <input
+          value={plusActive ? username : (user?.username || '')}
+          onChange={(event) => setUsername(event.target.value.replace('@', ''))}
+          disabled={!plusActive}
+          className="input-field mt-2"
+          placeholder="@username"
+        />
+        {!plusActive && <p className="mt-2 text-xs text-x-muted">Для просмотра чужих аккаунтов нужен Plus.</p>}
+      </div>
+
+      {profileQuery.data && (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {[
+            ['Посты', stats.posts],
+            ['Подписчики', stats.followers],
+            ['Подписки', stats.following],
+            ['Лайки', stats.likes],
+            ['Ответы', stats.replies],
+            ['Просмотры', stats.views],
+            ['Репосты', stats.reposts],
+            ['Медиа-посты', mediaPosts],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-3xl border border-x-border bg-x-bg/45 p-4">
+              <p className="text-xs font-black uppercase tracking-[0.12em] text-x-muted">{label}</p>
+              <p className="mt-2 text-3xl font-black text-x-text">{value}</p>
+            </div>
+          ))}
+        </div>
+      )}
+      {profileQuery.data && (
+        <div className="mt-4 grid gap-3 lg:grid-cols-3">
+          <div className="rounded-3xl border border-x-border bg-x-bg/45 p-4">
+            <p className="text-xs font-black uppercase tracking-[0.12em] text-x-muted">Качество ленты</p>
+            <div className="mt-3 grid gap-2 text-sm text-x-muted">
+              <p>Среднее лайков на пост: <span className="font-black text-x-text">{avgLikes}</span></p>
+              <p>Среднее просмотров на пост: <span className="font-black text-x-text">{avgViews}</span></p>
+              <p>Engagement: <span className="font-black text-x-text">{engagement}%</span></p>
+              <p>Средняя длина поста: <span className="font-black text-x-text">{stats.posts ? Math.round(totalWords / stats.posts) : 0} слов</span></p>
+            </div>
+          </div>
+          <div className="rounded-3xl border border-x-border bg-x-bg/45 p-4">
+            <p className="text-xs font-black uppercase tracking-[0.12em] text-x-muted">Форматы</p>
+            <div className="mt-3 grid gap-2 text-sm text-x-muted">
+              <p>Посты с фото: <span className="font-black text-x-text">{mediaPosts}</span></p>
+              <p>Посты со ссылкой: <span className="font-black text-x-text">{linkPosts}</span></p>
+              <p>Посты с опросом: <span className="font-black text-x-text">{pollPosts}</span></p>
+              <p>Последний пост: <span className="font-black text-x-text">{latestTweetDate ? new Date(latestTweetDate).toLocaleDateString('ru-RU') : 'нет'}</span></p>
+            </div>
+          </div>
+          <div className="rounded-3xl border border-x-border bg-x-bg/45 p-4">
+            <p className="text-xs font-black uppercase tracking-[0.12em] text-x-muted">Пик активности</p>
+            <div className="mt-3 grid gap-2 text-sm text-x-muted">
+              <p>Первый пост: <span className="font-black text-x-text">{firstTweetDate ? new Date(firstTweetDate).toLocaleDateString('ru-RU') : 'нет'}</span></p>
+              <p>Лучший пост: <span className="font-black text-x-text">{topTweet ? `#${topTweet.id.slice(0, 6)}` : 'нет'}</span></p>
+              <p>Лайки у лучшего: <span className="font-black text-x-text">{topTweet?._count?.likes || 0}</span></p>
+              <p>Просмотры лучшего: <span className="font-black text-x-text">{topTweet?.viewsCount || 0}</span></p>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function AnonymousQuestionsPanel() {
+  const { user } = useAuthStore();
+  const [targetUsername, setTargetUsername] = useState('');
+  const [questionDraft, setQuestionDraft] = useState('');
+  const [answerDrafts, setAnswerDrafts] = useState({});
+  const qc = useQueryClient();
+  const searchUsersQuery = useQuery({
+    queryKey: ['anonymous-question-users', targetUsername],
+    queryFn: () => api.get(`/users/search?q=${targetUsername}`).then((response) => response.data.users || []),
+    enabled: targetUsername.trim().length > 0,
+  });
+  const followingQuery = useQuery({
+    queryKey: ['anonymous-following', user?.username],
+    queryFn: () => api.get(`/users/${user.username}/following`).then((response) => response.data.users || []),
+    enabled: Boolean(user?.username),
+    staleTime: 30000,
+  });
+  const followersQuery = useQuery({
+    queryKey: ['anonymous-followers', user?.username],
+    queryFn: () => api.get(`/users/${user.username}/followers`).then((response) => response.data.users || []),
+    enabled: Boolean(user?.username),
+    staleTime: 30000,
+  });
+
+  const questionsQuery = useQuery({
+    queryKey: ['anonymous-questions'],
+    queryFn: () => api.get('/services/anonymous-questions').then((response) => response.data.questions),
+  });
+
+  const sendQuestionMutation = useMutation({
+    mutationFn: () => api.post('/services/anonymous-questions/send', {
+      targetUsername,
+      question: questionDraft,
+    }),
+    onSuccess: () => {
+      setTargetUsername('');
+      setQuestionDraft('');
+    },
+  });
+
+  const answerQuestionMutation = useMutation({
+    mutationFn: ({ questionId, answer }) => api.patch(`/services/anonymous-questions/${questionId}`, { answer }),
+    onSuccess: () => {
+      setAnswerDrafts({});
+      qc.invalidateQueries({ queryKey: ['anonymous-questions'] });
+    },
+  });
+
+  const questions = questionsQuery.data || [];
+  const suggestedUsers = [...(followingQuery.data || []), ...(followersQuery.data || []), ...(searchUsersQuery.data || [])]
+    .filter((item, index, items) => item?.id && item.id !== user?.id && items.findIndex((candidate) => candidate.id === item.id) === index)
+    .slice(0, 8);
+
+  return (
+    <section className="rounded-3xl border border-rose-300/25 bg-x-panel/55 p-4 shadow-panel">
+      <div className="mb-4">
+        <p className="nebula-section-heading">anonymous questions</p>
+        <h2 className="text-2xl font-black text-x-text">Анонимные вопросы</h2>
+        <p className="mt-1 text-sm text-x-muted">Можно анонимно спросить другого пользователя по нику, а входящие вопросы приходят сюда без имени отправителя.</p>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <div className="rounded-3xl border border-x-border bg-slate-950/70 p-4">
+          <p className="text-sm font-black text-x-text">Задать вопрос</p>
+          <input value={targetUsername} onChange={(event) => setTargetUsername(event.target.value.replace('@', ''))} className="input-field mt-3" placeholder="Выберите пользователя" maxLength={50} />
+          {suggestedUsers.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {suggestedUsers.map((item) => (
+                <button key={item.id} type="button" onClick={() => setTargetUsername(item.username)} className={`rounded-full border px-3 py-1 text-xs font-black ${targetUsername === item.username ? 'border-cyan-300/70 bg-cyan-300/15 text-x-accent' : 'border-x-border bg-x-bg/45 text-x-muted hover:text-x-text'}`}>
+                  @{item.username}
+                </button>
+              ))}
+            </div>
+          )}
+          <textarea value={questionDraft} onChange={(event) => setQuestionDraft(event.target.value)} className="input-field mt-3 min-h-28 resize-none" placeholder="Ваш анонимный вопрос..." maxLength={500} />
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <span className="text-xs text-x-muted">{questionDraft.length}/500</span>
+            <button type="button" disabled={!targetUsername.trim() || !questionDraft.trim() || sendQuestionMutation.isPending} onClick={() => sendQuestionMutation.mutate()} className="btn-accent px-5 py-2 text-sm disabled:opacity-50">
+              Отправить
+            </button>
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-x-border bg-x-bg/45 p-4">
+          <p className="text-sm font-black uppercase tracking-[0.14em] text-x-muted">Входящие</p>
+          <div className="mt-3 grid gap-3">
+            {questions.map((item) => (
+              <article key={item.id} className="rounded-2xl border border-x-border bg-slate-950/45 p-4">
+                <p className="text-sm font-bold text-x-text">{item.question}</p>
+                <p className="mt-1 text-xs text-x-muted">{new Date(item.createdAt).toLocaleString('ru-RU')}</p>
+                {item.status === 'answered' ? (
+                  <div className="mt-3 rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-3">
+                    <p className="text-xs font-black uppercase tracking-[0.12em] text-x-accent">Ваш ответ</p>
+                    <p className="mt-1 text-sm text-x-text">{item.answer}</p>
+                  </div>
+                ) : (
+                  <div className="mt-3">
+                    <textarea
+                      value={answerDrafts[item.id] || ''}
+                      onChange={(event) => setAnswerDrafts((current) => ({ ...current, [item.id]: event.target.value }))}
+                      className="input-field min-h-24 resize-none"
+                      placeholder="Ответить на вопрос..."
+                      maxLength={1000}
+                    />
+                    <div className="mt-2 flex justify-end">
+                      <button
+                        type="button"
+                        disabled={!answerDrafts[item.id]?.trim() || answerQuestionMutation.isPending}
+                        onClick={() => answerQuestionMutation.mutate({ questionId: item.id, answer: answerDrafts[item.id] })}
+                        className="btn-outline px-4 py-2 text-sm disabled:opacity-50"
+                      >
+                        Ответить
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </article>
+            ))}
+            {!questionsQuery.isLoading && questions.length === 0 && <p className="text-sm text-x-muted">Пока нет анонимных вопросов.</p>}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ActivePanel({ activeId, isAuthenticated }) {
+  if (!isAuthenticated && !PUBLIC_SERVICE_IDS.has(activeId)) {
+    return <AuthRequiredPanel title="Этот сервис доступен после регистрации" />;
+  }
   if (activeId === 'notes') return <NotesPanel />;
   if (activeId === 'tasks') return <TasksPanel />;
   if (activeId === 'weather') return <WeatherPanel />;
   if (activeId === 'focus') return <FocusPanel />;
   if (activeId === 'calendar') return <CalendarPanel />;
+  if (activeId === 'account') return <AccountSummaryPanel />;
+  if (activeId === 'anonymous') return <AnonymousQuestionsPanel />;
   return null;
 }
 
 export default function ServicesPage() {
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const isAuthenticated = Boolean(user);
   const [services, setServices] = useState(() => {
     const order = loadDockOrder();
     const byId = new Map(servicesCatalog.map((service) => [service.id, service]));
@@ -1020,11 +1498,17 @@ export default function ServicesPage() {
     const missing = servicesCatalog.filter((service) => !order.includes(service.id));
     return [...ordered, ...missing];
   });
-  const [activeId, setActiveId] = useState(services[0]?.id || 'music');
+  const [activeId, setActiveId] = useState(() => (isAuthenticated ? services[0]?.id || 'notes' : 'weather'));
 
   useEffect(() => {
     saveDockOrder(services);
   }, [services]);
+
+  useEffect(() => {
+    if (!isAuthenticated && !PUBLIC_SERVICE_IDS.has(activeId)) {
+      setActiveId('weather');
+    }
+  }, [activeId, isAuthenticated]);
 
   const activeService = useMemo(
     () => services.find((service) => service.id === activeId) || services[0],
@@ -1047,8 +1531,18 @@ export default function ServicesPage() {
         <ServiceDock
           services={services}
           activeId={activeService?.id}
-          onSelect={setActiveId}
-          onReorder={(fromId, toId) => setServices((current) => moveItem(current, fromId, toId))}
+          isAuthenticated={isAuthenticated}
+          onSelect={(serviceId) => {
+            if (!isAuthenticated && !PUBLIC_SERVICE_IDS.has(serviceId)) {
+              navigate('/register');
+              return;
+            }
+            setActiveId(serviceId);
+          }}
+          onReorder={(fromId, toId) => {
+            if (!isAuthenticated) return;
+            setServices((current) => moveItem(current, fromId, toId));
+          }}
         />
 
         <section className="rounded-3xl border border-x-border/70 bg-x-panel/55 p-5 shadow-panel">
@@ -1062,7 +1556,7 @@ export default function ServicesPage() {
           </div>
         </section>
 
-        <ActivePanel activeId={activeService?.id} />
+        <ActivePanel activeId={activeService?.id} isAuthenticated={isAuthenticated} />
       </div>
     </div>
   );

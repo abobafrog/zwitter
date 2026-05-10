@@ -1,5 +1,5 @@
 // src/pages/ChatsPage.jsx
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, isSameDay, isToday, isYesterday } from 'date-fns';
@@ -9,9 +9,11 @@ import api from '../services/api';
 import { getSocket } from '../services/socket';
 import useAuthStore from '../store/authStore';
 import useChatStore from '../store/chatStore';
+import useLanguageStore from '../store/languageStore';
 import PhotoViewer from '../components/ui/PhotoViewer';
 import * as faceapi from 'face-api.js';
 import { hasPlusAccess } from '../utils/plus';
+import { translate } from '../i18n/translations';
 
 const QUICK_REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '👏', '💯'];
 const FAVORITE_CHAT_ID = 'favorites';
@@ -22,7 +24,8 @@ const CALL_STICKERS = [
   { id: 'heart', label: 'Сердце', icon: '💙' },
   { id: 'spark', label: 'Искра', icon: '✨' },
   { id: 'alien', label: 'Космос', icon: '👽' },
-  { id: 'mouse', label: 'Мышь', icon: '🐭' }
+  { id: 'mouse', label: 'Мышь', icon: '🐭' },
+  { id: 'pig', label: 'Свинья', icon: '🐷' }
 ];
 
 const EMOJI_CATEGORIES = [
@@ -222,6 +225,7 @@ function ChatItem({ chat, isActive, onClick }) {
 }
 
 const favoriteStorageKey = (userId) => `zwitter-favorite-chat-${userId || 'guest'}`;
+const pinnedMessageStorageKey = (userId) => `zwitter-chat-pins-${userId || 'guest'}`;
 
 const loadFavoriteMessages = (userId) => {
   try {
@@ -234,6 +238,19 @@ const loadFavoriteMessages = (userId) => {
 
 const saveFavoriteMessages = (userId, nextMessages) => {
   localStorage.setItem(favoriteStorageKey(userId), JSON.stringify(nextMessages));
+};
+
+const loadPinnedMessages = (userId) => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(pinnedMessageStorageKey(userId)) || '{}');
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const savePinnedMessages = (userId, nextPins) => {
+  localStorage.setItem(pinnedMessageStorageKey(userId), JSON.stringify(nextPins));
 };
 
 const fileToDataUrl = (file) => new Promise((resolve, reject) => {
@@ -253,7 +270,7 @@ const parseFileMarker = (content = '') => {
 };
 
 // ─── Message Bubble ──────────────────────────────────────────────────────────
-function MessageBubble({ message, isOwn, showSender, currentUserId, onReact, onEdit, onDelete }) {
+function MessageBubble({ message, isOwn, showSender, currentUserId, onReact, onEdit, onDelete, onPin, isPinned, translationLanguage, canTranslateLive }) {
   const [showEmojiMenu, setShowEmojiMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [viewingImage, setViewingImage] = useState(null);
@@ -262,6 +279,10 @@ function MessageBubble({ message, isOwn, showSender, currentUserId, onReact, onE
   const isCallMessage = message.content?.startsWith('Звонок ');
   const reactionGroups = Object.values(getReactionGroups(message.reactions, currentUserId));
   const parsedMessage = parseFileMarker(message.content || '');
+  const translatedText = canTranslateLive && translationLanguage && translationLanguage !== 'ru'
+    ? translate(parsedMessage.text, translationLanguage)
+    : '';
+  const showTranslation = translatedText && translatedText !== parsedMessage.text;
 
   const saveEdit = () => {
     const trimmed = draft.trim();
@@ -329,6 +350,11 @@ function MessageBubble({ message, isOwn, showSender, currentUserId, onReact, onE
             ) : (
               <div>
                 <p className="break-words">{parsedMessage.text}</p>
+                {showTranslation && (
+                  <p className={`mt-2 break-words rounded-xl border px-3 py-2 text-xs ${isOwn ? 'border-slate-900/15 bg-slate-950/10 text-slate-900/80' : 'border-cyan-300/20 bg-cyan-300/10 text-cyan-100'}`}>
+                    Перевод: {translatedText}
+                  </p>
+                )}
                 {parsedMessage.file && (
                   <a
                     href={parsedMessage.file.url}
@@ -350,6 +376,11 @@ function MessageBubble({ message, isOwn, showSender, currentUserId, onReact, onE
               </button>
               {isOwn && (
                 <>
+                  <button type="button" onClick={() => onPin?.(message)} className={`rounded-full border bg-x-panel/95 p-1.5 ${isPinned ? 'border-cyan-300/40 text-x-accent' : 'border-x-border text-x-muted hover:text-x-accent'}`} aria-label={isPinned ? 'Открепить сообщение' : 'Закрепить сообщение'}>
+                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current">
+                      <path d="M16 3l5 5-2 2-2-2-3.5 3.5V15l-1 1v5h-1v-5l-1-1v-3.5L7 10l-2 2-2-2 5-5h8z" />
+                    </svg>
+                  </button>
                   <button type="button" onClick={() => setIsEditing(true)} className="rounded-full border border-x-border bg-x-panel/95 p-1.5 text-x-muted hover:text-x-accent" aria-label="Редактировать">
                     <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current">
                       <path d="M4 17.25V20h2.75L17.81 8.94l-2.75-2.75L4 17.25zm15.71-10.04a.996.996 0 000-1.41L18.2 4.29a.996.996 0 00-1.41 0l-1.18 1.18 2.75 2.75 1.35-1.01z" />
@@ -412,6 +443,7 @@ function MessageBubble({ message, isOwn, showSender, currentUserId, onReact, onE
 
 // ─── New Chat Modal ──────────────────────────────────────────────────────────
 function NewChatModal({ onClose, onSelect, onCreateGroup }) {
+  const { user } = useAuthStore();
   const [q, setQ] = useState('');
   const [mode, setMode] = useState('direct');
   const [groupName, setGroupName] = useState('');
@@ -421,6 +453,27 @@ function NewChatModal({ onClose, onSelect, onCreateGroup }) {
     queryFn: () => api.get(`/users/search?q=${q}`).then((r) => r.data.users),
     enabled: q.trim().length > 0,
   });
+  const followingQuery = useQuery({
+    queryKey: ['chat-suggested-following', user?.username],
+    queryFn: () => api.get(`/users/${user.username}/following`).then((r) => r.data.users),
+    enabled: Boolean(user?.username),
+    staleTime: 30000,
+  });
+  const followersQuery = useQuery({
+    queryKey: ['chat-suggested-followers', user?.username],
+    queryFn: () => api.get(`/users/${user.username}/followers`).then((r) => r.data.users),
+    enabled: Boolean(user?.username),
+    staleTime: 30000,
+  });
+  const suggestedUsers = useMemo(() => {
+    const merged = [...(followingQuery.data || []), ...(followersQuery.data || [])];
+    const seen = new Set();
+    return merged.filter((item) => {
+      if (!item?.id || item.id === user?.id || seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    }).slice(0, 10);
+  }, [followersQuery.data, followingQuery.data, user?.id]);
   const toggleSelected = (u) => {
     if (u.blockGroupInvites) return;
     setSelected((current) =>
@@ -478,6 +531,35 @@ function NewChatModal({ onClose, onSelect, onCreateGroup }) {
           )}
         </div>
         <div className="max-h-64 overflow-y-auto">
+          {!q.trim() && suggestedUsers.length > 0 && (
+            <div className="border-b border-x-border/70 px-4 py-3">
+              <p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-x-muted">Предложенные</p>
+              <div className="grid gap-2">
+                {suggestedUsers.map((u) => {
+                  const selectedInGroup = mode === 'group' && selected.some((item) => item.id === u.id);
+                  return (
+                    <button
+                      key={`suggested-${u.id}`}
+                      type="button"
+                      onClick={() => mode === 'direct' ? onSelect(u) : toggleSelected(u)}
+                      className="flex items-center gap-3 rounded-2xl px-2 py-2 text-left cosmic-hover"
+                    >
+                      <div className="w-10 h-10 rounded-full cosmic-avatar flex-shrink-0">
+                        {u.avatarUrl ? <img src={u.avatarUrl} alt={u.displayName} className="w-full h-full object-cover" /> : (
+                          <div className="w-full h-full flex items-center justify-center font-bold">{u.displayName?.[0]?.toUpperCase()}</div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-sm">{u.displayName}</p>
+                        <p className="text-x-muted text-sm">@{u.username}</p>
+                      </div>
+                      {selectedInGroup && <span className="rounded-full bg-x-accent px-2 py-0.5 text-xs font-black text-slate-950">Выбран</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {isLoading && <div className="px-4 py-3 text-x-muted text-sm">Поиск...</div>}
           {data?.map((u) => {
             const groupInviteBlocked = mode === 'group' && u.blockGroupInvites;
@@ -544,10 +626,28 @@ function GroupSettingsModal({ chat, currentUserId, plusActive, onClose, onSave, 
         forumTags: '',
         slowMode: 'off',
         rules: '',
+        joinApproval: 'off',
+        historyVisibility: 'visible',
+        mediaVisibility: 'all',
+        reactionMode: 'all',
+        pinMode: 'admins',
+        voiceChatMode: 'all',
         ...JSON.parse(localStorage.getItem(`zwitter-group-settings-${chat.id}`) || '{}'),
       };
     } catch {
-      return { inviteMode: 'owner', topic: '', slowMode: 'off', rules: '' };
+      return {
+        inviteMode: 'owner',
+        topic: '',
+        forumTags: '',
+        slowMode: 'off',
+        rules: '',
+        joinApproval: 'off',
+        historyVisibility: 'visible',
+        mediaVisibility: 'all',
+        reactionMode: 'all',
+        pinMode: 'admins',
+        voiceChatMode: 'all',
+      };
     }
   });
   const ownerId = chat.ownerId || chat.participants?.[0]?.id;
@@ -652,6 +752,55 @@ function GroupSettingsModal({ chat, currentUserId, plusActive, onClose, onSave, 
                   <option value="off">Выключена</option>
                   <option value="15s" disabled={!plusActive}>15 секунд Plus</option>
                   <option value="60s" disabled={!plusActive}>1 минута Plus</option>
+                </select>
+              </label>
+              <label className="block">
+                <span className="settings-label">Одобрение вступления</span>
+                <select disabled={!canManage} value={advanced.joinApproval} onChange={(event) => setAdvanced((current) => ({ ...current, joinApproval: event.target.value }))} className="input-field">
+                  <option value="off">Не нужно</option>
+                  <option value="admins">Только админы</option>
+                  <option value="owner">Только создатель</option>
+                </select>
+              </label>
+              <label className="block">
+                <span className="settings-label">История для новых участников</span>
+                <select disabled={!canManage} value={advanced.historyVisibility} onChange={(event) => setAdvanced((current) => ({ ...current, historyVisibility: event.target.value }))} className="input-field">
+                  <option value="visible">Видна вся</option>
+                  <option value="recent">Только недавняя</option>
+                  <option value="hidden">Скрыта</option>
+                </select>
+              </label>
+            </div>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <label className="block">
+                <span className="settings-label">Кто шлёт медиа</span>
+                <select disabled={!canManage} value={advanced.mediaVisibility} onChange={(event) => setAdvanced((current) => ({ ...current, mediaVisibility: event.target.value }))} className="input-field">
+                  <option value="all">Все участники</option>
+                  <option value="admins">Только админы</option>
+                  <option value="owner">Только создатель</option>
+                </select>
+              </label>
+              <label className="block">
+                <span className="settings-label">Реакции</span>
+                <select disabled={!canManage} value={advanced.reactionMode} onChange={(event) => setAdvanced((current) => ({ ...current, reactionMode: event.target.value }))} className="input-field">
+                  <option value="all">Разрешены всем</option>
+                  <option value="basic">Только базовые</option>
+                  <option value="off">Выключены</option>
+                </select>
+              </label>
+              <label className="block">
+                <span className="settings-label">Закрепление сообщений</span>
+                <select disabled={!canManage} value={advanced.pinMode} onChange={(event) => setAdvanced((current) => ({ ...current, pinMode: event.target.value }))} className="input-field">
+                  <option value="admins">Админы и создатель</option>
+                  <option value="owner">Только создатель</option>
+                </select>
+              </label>
+              <label className="block">
+                <span className="settings-label">Голосовые комнаты</span>
+                <select disabled={!canManage} value={advanced.voiceChatMode} onChange={(event) => setAdvanced((current) => ({ ...current, voiceChatMode: event.target.value }))} className="input-field">
+                  <option value="all">Все участники</option>
+                  <option value="admins">Только админы</option>
+                  <option value="owner">Только создатель</option>
                 </select>
               </label>
             </div>
@@ -1026,6 +1175,7 @@ export default function ChatsPage() {
   const { chatId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const language = useLanguageStore((state) => state.language);
   const {
     chats,
     setChats,
@@ -1086,10 +1236,12 @@ export default function ChatsPage() {
   const [faceEffectAvailable, setFaceEffectAvailable] = useState(false);
   const [remoteVolumes, setRemoteVolumes] = useState({});
   const [favoriteMessages, setFavoriteMessages] = useState(() => loadFavoriteMessages(user?.id));
+  const [pinnedMessages, setPinnedMessages] = useState(() => loadPinnedMessages(user?.id));
   const faceApiLoadedRef = useRef(false);
   const faceDetectionRunningRef = useRef(false);
   const lastFaceDetectionTimeRef = useRef(0);
   const lastFaceSeenAtRef = useRef(0);
+  const previousChatIdRef = useRef(chatId);
 
   // Load chats
   const { isLoading: chatsLoading } = useQuery({
@@ -1111,7 +1263,22 @@ export default function ChatsPage() {
 
   useEffect(() => {
     setFavoriteMessages(loadFavoriteMessages(user?.id));
+    setPinnedMessages(loadPinnedMessages(user?.id));
   }, [user?.id]);
+
+  const isFavoriteChat = chatId === FAVORITE_CHAT_ID;
+  const currentMessages = isFavoriteChat ? favoriteMessages : messages[chatId] || [];
+  const chatTyping = isFavoriteChat ? [] : (typingUsers[chatId] || []).filter((id) => id !== user?.id);
+  const favoriteChat = {
+    id: FAVORITE_CHAT_ID,
+    isFavorite: true,
+    isGroup: false,
+    unreadCount: 0,
+    updatedAt: favoriteMessages.at(-1)?.createdAt || new Date().toISOString(),
+    lastMessage: favoriteMessages.at(-1) || null,
+    otherUser: { id: user?.id, username: user?.username, displayName: 'Избранное', avatarUrl: user?.avatarUrl },
+    participants: user ? [user] : [],
+  };
 
   // Set active chat when chatId changes
   useEffect(() => {
@@ -1148,10 +1315,25 @@ export default function ChatsPage() {
     return () => socket.emit('chat:leave', chatId);
   }, [chatId]);
 
-  // Auto scroll
+  const updatePinnedMessage = useCallback((nextPinned) => {
+    setPinnedMessages((current) => {
+      const next = typeof nextPinned === 'function' ? nextPinned(current) : nextPinned;
+      savePinnedMessages(user?.id, next);
+      return next;
+    });
+  }, [user?.id]);
+
+  const scrollToBottom = useCallback((behavior = 'auto') => {
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior, block: 'end' });
+    });
+  }, []);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages[chatId]?.length, favoriteMessages.length]);
+    const changedChat = previousChatIdRef.current !== chatId;
+    previousChatIdRef.current = chatId;
+    scrollToBottom(changedChat ? 'auto' : 'smooth');
+  }, [chatId, messages[chatId]?.length, favoriteMessages.length, scrollToBottom]);
 
   // Send message mutation
   const sendMutation = useMutation({
@@ -1281,6 +1463,26 @@ export default function ChatsPage() {
     sendMutation.mutate();
   };
 
+  const togglePinnedMessage = (message) => {
+    if (!chatId) return;
+    updatePinnedMessage((current) => {
+      const existing = current[chatId];
+      if (existing?.id === message.id) {
+        const { [chatId]: _, ...rest } = current;
+        return rest;
+      }
+      return {
+        ...current,
+        [chatId]: {
+          id: message.id,
+          content: message.content,
+          sender: message.sender,
+          createdAt: message.createdAt,
+        },
+      };
+    });
+  };
+
   const appendEmoji = (emoji) => {
     setMsgInput((current) => current + emoji);
   };
@@ -1381,7 +1583,6 @@ export default function ChatsPage() {
     };
 
     const faceApiReady = await ensureFaceApiLoaded();
-    console.log('faceApiReady:', faceApiReady);
     let lastFace = null;
 
     const drawSticker = (box) => {
@@ -1562,12 +1763,34 @@ export default function ChatsPage() {
     });
   }, [selectedSticker]);
 
-  const getLocalStream = async (mode = 'audio', cameraEnabled = mode === 'video') => {
+  const createListenOnlyStream = () => {
+    const outgoingStream = new MediaStream();
+    localStreamRef.current = outgoingStream;
+    rawLocalStreamRef.current = null;
+    setLocalStream(outgoingStream);
+    setIsCameraOn(false);
+    return outgoingStream;
+  };
+
+  const getLocalStream = async (
+    mode = 'audio',
+    cameraEnabled = mode === 'video',
+    options = {}
+  ) => {
+    const { allowListenOnly = false } = options;
     if (localStreamRef.current) return localStreamRef.current;
-    const rawStream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: cameraEnabled,
-    });
+    let rawStream;
+    try {
+      rawStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: cameraEnabled,
+      });
+    } catch (error) {
+      if (allowListenOnly) {
+        return createListenOnlyStream();
+      }
+      throw error;
+    }
     rawLocalStreamRef.current = rawStream;
 
     const outgoingStream = new MediaStream();
@@ -1682,7 +1905,7 @@ export default function ChatsPage() {
     }
     const cameraEnabled = mode === 'video';
     setIsCameraOn(cameraEnabled);
-    getLocalStream(mode, cameraEnabled)
+    getLocalStream(mode, cameraEnabled, { allowListenOnly: true })
       .then(() => {
         socket.emit('chat:join', activeChat.id);
         socket.emit('call:start', { chatId: activeChat.id, mode });
@@ -1696,11 +1919,14 @@ export default function ChatsPage() {
     if (!socket || !call) return;
     const cameraEnabled = call.mode === 'video';
     setIsCameraOn(cameraEnabled);
-    getLocalStream(call.mode, cameraEnabled)
-      .then(() => {
+    getLocalStream(call.mode, cameraEnabled, { allowListenOnly: true })
+      .then((stream) => {
         socket.emit('chat:join', call.chatId);
         socket.emit('call:join', { callId: call.id, chatId: call.chatId });
         setActiveCall({ call, status: 'connected', peers: [call.caller] });
+        if (!stream.getTracks().length) {
+          toast('Вход в звонок выполнен без микрофона и камеры');
+        }
       })
       .catch(() => toast.error('Не удалось получить доступ к микрофону или камере'));
   };
@@ -1954,19 +2180,16 @@ export default function ChatsPage() {
     setFavoriteMessages(next);
   };
 
-  const isFavoriteChat = chatId === FAVORITE_CHAT_ID;
-  const currentMessages = isFavoriteChat ? favoriteMessages : messages[chatId] || [];
-  const chatTyping = isFavoriteChat ? [] : (typingUsers[chatId] || []).filter((id) => id !== user?.id);
-  const favoriteChat = {
-    id: FAVORITE_CHAT_ID,
-    isFavorite: true,
-    isGroup: false,
-    unreadCount: 0,
-    updatedAt: favoriteMessages.at(-1)?.createdAt || new Date().toISOString(),
-    lastMessage: favoriteMessages.at(-1) || null,
-    otherUser: { id: user?.id, username: user?.username, displayName: 'Избранное', avatarUrl: user?.avatarUrl },
-    participants: user ? [user] : [],
-  };
+  const pinnedForCurrentChat = pinnedMessages[chatId];
+  const pinnedMessage = pinnedForCurrentChat ? currentMessages.find((message) => message.id === pinnedForCurrentChat.id) || pinnedForCurrentChat : null;
+
+  useEffect(() => {
+    if (!chatId || !pinnedForCurrentChat || currentMessages.some((message) => message.id === pinnedForCurrentChat.id)) return;
+    updatePinnedMessage((current) => {
+      const { [chatId]: _, ...rest } = current;
+      return rest;
+    });
+  }, [chatId, currentMessages, pinnedForCurrentChat, updatePinnedMessage]);
 
   return (
     <div className="flex h-full min-h-0 overflow-hidden">
@@ -2067,6 +2290,28 @@ export default function ChatsPage() {
               )}
             </div>
           </div>
+          {pinnedMessage && (
+            <div className="border-b border-x-border/70 bg-cyan-300/8 px-4 py-2">
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-cyan-300/20 bg-x-panel/40 px-3 py-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const node = document.getElementById(`message-${pinnedMessage.id}`);
+                    node?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }}
+                  className="min-w-0 text-left"
+                >
+                  <p className="text-[11px] font-black uppercase tracking-[0.14em] text-x-accent">Закреплённое сообщение</p>
+                  <p className="truncate text-sm text-x-text">
+                    {parseFileMarker(pinnedMessage.content || '').text || 'Вложение'}
+                  </p>
+                </button>
+                <button type="button" onClick={() => togglePinnedMessage(pinnedMessage)} className="rounded-full border border-x-border px-3 py-1 text-xs font-black text-x-muted hover:text-x-text">
+                  Убрать
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto bg-x-bg/20 px-4 py-4">
@@ -2087,7 +2332,7 @@ export default function ChatsPage() {
                   const showDateSeparator = currentDate && (!previousDate || !isSameDay(currentDate, previousDate));
 
                   return (
-                    <div key={msg.id} className="contents">
+                    <div key={msg.id} id={`message-${msg.id}`} className="contents">
                       {showDateSeparator && <ChatDateSeparator date={msg.createdAt} />}
                       <MessageBubble
                         message={msg}
@@ -2097,6 +2342,10 @@ export default function ChatsPage() {
                         onReact={(messageId, emoji) => isFavoriteChat ? toggleFavoriteReaction(messageId, emoji) : reactMutation.mutate({ messageId, emoji })}
                         onEdit={(messageId, content) => isFavoriteChat ? updateFavoriteMessage(messageId, content) : editMutation.mutate({ messageId, content })}
                         onDelete={(messageId) => isFavoriteChat ? deleteFavoriteMessage(messageId) : deleteMutation.mutate(messageId)}
+                        onPin={togglePinnedMessage}
+                        isPinned={pinnedMessage?.id === msg.id}
+                        translationLanguage={language}
+                        canTranslateLive={hasPlusAccess(user)}
                       />
                     </div>
                   );

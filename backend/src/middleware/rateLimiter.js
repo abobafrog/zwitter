@@ -18,7 +18,7 @@ const createLimiter = (windowMs, max, message, keyPrefix) =>
 
 const authLimiter = createLimiter(
   15 * 60 * 1000, // 15 минут
-  10,
+  parseInt(process.env.AUTH_RATE_LIMIT_MAX, 10) || 60,
   'Слишком много попыток входа, попробуйте через 15 минут',
   'auth'
 );

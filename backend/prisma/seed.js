@@ -153,8 +153,8 @@ async function main() {
   for (const item of usersSeed) {
     users[item.username] = await prisma.user.upsert({
       where: { username: item.username },
-      update: { ...item, passwordHash },
-      create: { ...item, passwordHash },
+      update: { ...item, passwordHash, emailVerified: true, emailVerifiedAt: new Date() },
+      create: { ...item, passwordHash, emailVerified: true, emailVerifiedAt: new Date() },
     });
   }
 

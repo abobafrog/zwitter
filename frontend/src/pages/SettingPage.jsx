@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import api from '../services/api';
 import useAuthStore from '../store/authStore';
 import useLanguageStore, { languages } from '../store/languageStore';
+import useMusicStore from '../store/musicStore';
 import NavIcon from '../components/layout/NavIcon';
 import { activatePlusForUser, hasPlusAccess, isPlusUser, savePlusTheme } from '../utils/plus';
 
@@ -14,6 +15,7 @@ const settingsSections = [
   ['username', 'Никнейм', 'Профиль', 'user'],
   ['privacy', 'Приватность', 'Аккаунт', 'settings'],
   ['notifications', 'Уведомления', 'Аккаунт', 'bell'],
+  ['music', 'Музыка', 'Аккаунт', 'music'],
   ['language', 'Язык', 'Аккаунт', 'compass'],
   ['email', 'Email', 'Аккаунт', 'messages'],
   ['password', 'Пароль', 'Аккаунт', 'settings'],
@@ -142,6 +144,7 @@ const ToggleButton = ({ enabled, onClick, label, disabled }) => (
 export default function SettingsPage() {
   const { user, updateUser, logout } = useAuthStore();
   const { language, setLanguage } = useLanguageStore();
+  const { hideExplicit, setHideExplicit } = useMusicStore();
   const navigate = useNavigate();
   const location = useLocation();
   const qc = useQueryClient();
@@ -799,6 +802,30 @@ export default function SettingsPage() {
               {label}
             </button>
           ))}
+        </div>
+      </Section>
+      )}
+
+      {activeSection === 'music' && (
+      <Section
+        id="music"
+        title="Музыка"
+        description="Быстрые музыкальные настройки для поиска, радио и карточек артистов."
+      >
+        <div className="rounded-2xl border border-x-border/75 bg-x-panel/55 px-4 shadow-panel">
+          <SecurityRow
+            title="Скрывать explicit-треки"
+            description="Такие треки помечаются отдельно в музыке. Если включить этот переключатель, они пропадут из поиска, радио и страниц артистов."
+          >
+            <ToggleButton
+              enabled={hideExplicit}
+              onClick={() => {
+                setHideExplicit(!hideExplicit);
+                toast.success(hideExplicit ? 'Explicit-треки снова показываются' : 'Explicit-треки скрыты');
+              }}
+              label="Скрывать explicit-треки"
+            />
+          </SecurityRow>
         </div>
       </Section>
       )}

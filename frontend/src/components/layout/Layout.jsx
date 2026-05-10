@@ -42,14 +42,17 @@ function MobileNav() {
   const { user } = useAuthStore();
   const { chats } = useChatStore();
   const totalUnread = chats.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+  const protectedAction = (path = '/register') => {
+    navigate(user ? path : '/register');
+  };
 
   const items = [
     { to: '/home', icon: 'home', label: 'Главная' },
-    { to: '/messages', icon: 'messages', label: 'Чаты', badge: totalUnread },
-    { action: () => navigate('/home'), icon: 'plus', label: 'Создать', primary: true },
-    { to: '/services', icon: 'services', label: 'Сервисы' },
-    { to: '/notifications', icon: 'bell', label: 'Уведомления' },
-    { to: user ? `/${user.username}` : '/login', icon: 'user', label: 'Профиль' },
+    { action: () => protectedAction('/messages'), icon: 'messages', label: 'Чаты', badge: user ? totalUnread : 0 },
+    { action: () => protectedAction('/home'), icon: 'plus', label: 'Создать', primary: true },
+    { to: '/music', icon: 'music', label: 'Музыка' },
+    { to: '/services', icon: 'compass', label: 'Погода' },
+    { action: () => protectedAction(user ? `/${user.username}` : '/register'), icon: 'user', label: 'Профиль' },
   ];
 
   return (

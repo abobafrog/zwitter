@@ -36,6 +36,7 @@ services:
       redis:
         condition: service_started
     environment:
+      MUFFON_API_TOKEN: my_secret_token
       DATABASE_URL: postgresql://postgres:password@postgres:5432/twitter_clone
       REDIS_URL: redis://redis:6379
       JWT_SECRET: dev-jwt-secret-change-in-production-min-32-chars
@@ -56,11 +57,15 @@ services:
       YOOKASSA_PLUS_MONTH_AMOUNT: ${YOOKASSA_PLUS_MONTH_AMOUNT:-299.00}
       YOOKASSA_PLUS_YEAR_AMOUNT: ${YOOKASSA_PLUS_YEAR_AMOUNT:-2990.00}
       RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-2000}
+      AUTH_RATE_LIMIT_MAX: ${AUTH_RATE_LIMIT_MAX:-120}
       TWEET_RATE_LIMIT_MAX: ${TWEET_RATE_LIMIT_MAX:-40}
       MESSAGE_RATE_LIMIT_MAX: ${MESSAGE_RATE_LIMIT_MAX:-90}
       UPLOAD_RATE_LIMIT_MAX: ${UPLOAD_RATE_LIMIT_MAX:-30}
       JOB_QUEUE_ENABLED: ${JOB_QUEUE_ENABLED:-true}
       SLOW_QUERY_MS: ${SLOW_QUERY_MS:-250}
+      MUFFON_API_URL: ${MUFFON_API_URL:-http://host.docker.internal:4000/api}
+      MUFFON_API_VERSION: ${MUFFON_API_VERSION:-2.4.0}
+      MUFFON_SOURCES: ${MUFFON_SOURCES:-soundcloud}
     ports:
       - "5001:5000"
     volumes:
@@ -101,20 +106,6 @@ services:
       VITE_SOCKET_URL: http://localhost:5001
     ports:
       - "3000:80"
-
-  navidrome:
-    image: deluan/navidrome:latest
-    container_name: zwitter_navidrome
-    restart: unless-stopped
-    ports:
-      - "4533:4533"
-    environment:
-      ND_SCANSCHEDULE: 1h
-      ND_LOGLEVEL: info
-      ND_SESSIONTIMEOUT: 24h
-    volumes:
-      - ./navidrome-data:/data
-      - ./music:/music:ro
 
 volumes:
   pgdata:

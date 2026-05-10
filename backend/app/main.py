@@ -1,12 +1,10 @@
 from __future__ import annotations
 
 import hashlib
-import hmac
 import json
 import os
 import secrets
 import uuid
-import base64
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -16,7 +14,6 @@ import requests
 import socketio
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from passlib.context import CryptContext
 from requests import RequestException
@@ -244,21 +241,65 @@ def make_account_token(db: Session, user_id: str, kind: str, raw: str | None = N
     return raw
 
 
-def weather_label(code: int | None) -> str:
+def weather_label(code: int | None, temperature: float | None = None) -> str:
+    if code in [51, 53, 55, 61, 63, 65, 80, 81] and temperature is not None and temperature <= 2:
+        return "Слякоть"
     if code == 0:
         return "Ясно"
-    if code in [1, 2, 3]:
+    if code == 1:
+        return "Преимущественно ясно"
+    if code == 2:
         return "Переменная облачность"
-    if code in [45, 48]:
+    if code == 3:
+        return "Пасмурно"
+    if code == 45:
         return "Туман"
-    if code in [51, 53, 55, 56, 57]:
+    if code == 48:
+        return "Инейный туман"
+    if code == 51:
+        return "Лёгкая морось"
+    if code == 53:
         return "Морось"
-    if code in [61, 63, 65, 66, 67, 80, 81, 82]:
+    if code == 55:
+        return "Сильная морось"
+    if code == 56:
+        return "Ледяная морось"
+    if code == 57:
+        return "Сильная ледяная морось"
+    if code == 61:
+        return "Небольшой дождь"
+    if code == 63:
         return "Дождь"
-    if code in [71, 73, 75, 77, 85, 86]:
+    if code == 65:
+        return "Сильный дождь"
+    if code == 66:
+        return "Ледяной дождь"
+    if code == 67:
+        return "Сильный ледяной дождь"
+    if code == 71:
+        return "Лёгкий снег"
+    if code == 73:
         return "Снег"
-    if code in [95, 96, 99]:
+    if code == 75:
+        return "Снегопад"
+    if code == 77:
+        return "Снежная крупа"
+    if code == 80:
+        return "Кратковременный дождь"
+    if code == 81:
+        return "Ливень"
+    if code == 82:
+        return "Сильный ливень"
+    if code == 85:
+        return "Снежный заряд"
+    if code == 86:
+        return "Сильный снегопад"
+    if code == 95:
         return "Гроза"
+    if code == 96:
+        return "Гроза с градом"
+    if code == 99:
+        return "Сильная гроза с градом"
     return "Погода"
 
 
@@ -271,6 +312,19 @@ def fallback_weather(city: str = "Москва", lat: float | None = None, lon: 
             "day": (today + timedelta(days=index)).isoformat(),
             "min": temp - 4,
             "max": temp + 3,
+            "code": 2,
+            "label": "Переменная облачность",
+        })
+    hourly = []
+    for index in range(24):
+        temp = 18 + (index % 5) - 2
+        hourly.append({
+            "time": (datetime.combine(today, datetime.min.time()) + timedelta(hours=index)).isoformat(),
+            "temperature": temp,
+            "feelsLike": temp - 1,
+            "humidity": 60 + (index % 8),
+            "windSpeed": 8 + (index % 4),
+            "precipitationProbability": 15,
             "code": 2,
             "label": "Переменная облачность",
         })
@@ -291,6 +345,7 @@ def fallback_weather(city: str = "Москва", lat: float | None = None, lon: 
             "code": 2,
             "label": "Переменная облачность",
         },
+        "hourly": hourly,
         "daily": daily,
     }
 
@@ -1133,7 +1188,7 @@ def delete_task(task_id: str, user=Depends(current_user), db: Session = Depends(
 
 
 @app.get("/api/services/weather")
-def weather(city: str = "Moscow", lat: float | None = None, lon: float | None = None, user=Depends(current_user)):
+def weather(city: str = "Moscow", lat: float | None = None, lon: float | None = None, user=Depends(optional_user)):
     try:
         if lat is None or lon is None:
             geo = requests.get(
@@ -1154,6 +1209,7 @@ def weather(city: str = "Moscow", lat: float | None = None, lon: float | None = 
                 "latitude": lat,
                 "longitude": lon,
                 "current": "temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m",
+                "hourly": "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,precipitation_probability",
                 "daily": "temperature_2m_max,temperature_2m_min,weather_code",
                 "forecast_days": 5,
                 "timezone": "auto",
@@ -1161,6 +1217,7 @@ def weather(city: str = "Moscow", lat: float | None = None, lon: float | None = 
             timeout=(3, 5),
         ).json()
         current = forecast.get("current") or {}
+        hourly = forecast.get("hourly") or {}
         daily = forecast.get("daily") or {}
         return {
             "city": city,
@@ -1175,15 +1232,34 @@ def weather(city: str = "Moscow", lat: float | None = None, lon: float | None = 
                 "humidity": current.get("relative_humidity_2m", 0),
                 "windSpeed": round(current.get("wind_speed_10m", 0)),
                 "code": current.get("weather_code", 0),
-                "label": weather_label(current.get("weather_code")),
+                "label": weather_label(current.get("weather_code"), current.get("temperature_2m")),
             },
+            "hourly": [
+                {
+                    "time": hour,
+                    "temperature": round((hourly.get("temperature_2m") or [0])[i]),
+                    "feelsLike": round((hourly.get("apparent_temperature") or hourly.get("temperature_2m") or [0])[i]),
+                    "humidity": (hourly.get("relative_humidity_2m") or [0])[i],
+                    "windSpeed": round((hourly.get("wind_speed_10m") or [0])[i]),
+                    "precipitationProbability": (hourly.get("precipitation_probability") or [0])[i],
+                    "code": (hourly.get("weather_code") or [0])[i],
+                    "label": weather_label(
+                        (hourly.get("weather_code") or [0])[i],
+                        (hourly.get("temperature_2m") or [None])[i],
+                    ),
+                }
+                for i, hour in enumerate(hourly.get("time") or [])
+            ],
             "daily": [
                 {
                     "day": day,
                     "min": round((daily.get("temperature_2m_min") or [0])[i]),
                     "max": round((daily.get("temperature_2m_max") or [0])[i]),
                     "code": (daily.get("weather_code") or [0])[i],
-                    "label": weather_label((daily.get("weather_code") or [0])[i]),
+                    "label": weather_label(
+                        (daily.get("weather_code") or [0])[i],
+                        ((daily.get("temperature_2m_min") or [0])[i] + (daily.get("temperature_2m_max") or [0])[i]) / 2,
+                    ),
                 }
                 for i, day in enumerate(daily.get("time") or [])
             ],
@@ -1192,203 +1268,23 @@ def weather(city: str = "Moscow", lat: float | None = None, lon: float | None = 
         return fallback_weather(city=city, lat=lat, lon=lon, reason=error.__class__.__name__)
 
 
-MUSIC_CLIENT = "zwitter-feishin-music"
-MUSIC_API_VERSION = "1.16.1"
-MUSIC_STREAM_TTL_MS = 1000 * 60 * 20
-
-
-def music_config(server_url: str = "", username: str = "", password: str = ""):
-    if server_url and username and password:
-        return {"base_url": server_url.rstrip("/"), "username": username, "password": password, "source": "request"}
-    base_url = os.getenv("SUBSONIC_URL") or os.getenv("NAVIDROME_URL") or os.getenv("MUSIC_SERVER_URL")
-    username = os.getenv("SUBSONIC_USERNAME") or os.getenv("NAVIDROME_USERNAME") or os.getenv("MUSIC_SERVER_USERNAME")
-    password = os.getenv("SUBSONIC_PASSWORD") or os.getenv("NAVIDROME_PASSWORD") or os.getenv("MUSIC_SERVER_PASSWORD")
-    if not base_url or not username or not password:
-        return None
-    return {"base_url": base_url.rstrip("/"), "username": username, "password": password, "source": "env"}
-
-
-def music_fallback_tracks():
-    return [
-        {"id": "glam-synth", "title": "Glam Synth", "artist": "Zwitter Audio", "album": "Local Library", "channelTitle": "Zwitter Audio", "duration": "0:04", "source": "local", "audioUrl": "/audio/glam-synth.wav"},
-        {"id": "neon-dance", "title": "Neon Dance", "artist": "Zwitter Audio", "album": "Local Library", "channelTitle": "Zwitter Audio", "duration": "0:04", "source": "local", "audioUrl": "/audio/neon-dance.wav"},
-        {"id": "space-ballad", "title": "Space Ballad", "artist": "Zwitter Audio", "album": "Local Library", "channelTitle": "Zwitter Audio", "duration": "0:04", "source": "local", "audioUrl": "/audio/space-ballad.wav"},
-    ]
-
-
-def music_signing_secret():
-    return os.getenv("MUSIC_PROXY_SECRET") or JWT_SECRET or "dev-music-secret"
-
-
-def pack_music_config(config: dict[str, str] | None) -> str:
-    if not config or config.get("source") != "request":
-        return ""
-    payload = json.dumps(
-        {"base_url": config["base_url"], "username": config["username"], "password": config["password"]},
-        separators=(",", ":"),
-    ).encode()
-    return base64.urlsafe_b64encode(payload).decode().rstrip("=")
-
-
-def unpack_music_config(token: str) -> dict[str, str] | None:
-    if not token:
-        return None
-    try:
-        padded = token + ("=" * (-len(token) % 4))
-        payload = json.loads(base64.urlsafe_b64decode(padded.encode()).decode())
-        return music_config(payload.get("base_url", ""), payload.get("username", ""), payload.get("password", ""))
-    except (ValueError, TypeError, json.JSONDecodeError):
-        return None
-
-
-def sign_music_url(track_id: str, expires: int, config_token: str = "") -> str:
-    return hmac.new(music_signing_secret().encode(), f"{track_id}:{expires}:{config_token}".encode(), hashlib.sha256).hexdigest()
-
-
-def valid_music_signature(track_id: str, expires: str, signature: str, config_token: str = "") -> bool:
-    if not track_id or not expires or not signature:
-        return False
-    try:
-        expires_value = int(expires)
-    except ValueError:
-        return False
-    if expires_value < int(datetime.now(timezone.utc).timestamp() * 1000):
-        return False
-    return hmac.compare_digest(sign_music_url(track_id, expires_value, config_token), signature)
-
-
-def music_auth_params(config: dict[str, str]) -> dict[str, str]:
-    salt = secrets.token_hex(6)
-    token = hashlib.md5(f"{config['password']}{salt}".encode()).hexdigest()
-    return {"u": config["username"], "t": token, "s": salt, "v": MUSIC_API_VERSION, "c": MUSIC_CLIENT, "f": "json"}
-
-
-def subsonic_url(config: dict[str, str], endpoint: str) -> str:
-    return f"{config['base_url']}/rest/{endpoint}.view"
-
-
-def format_music_duration(seconds: Any) -> str:
-    value = int(seconds or 0)
-    if value <= 0:
-        return ""
-    return f"{value // 60}:{value % 60:02d}"
-
-
-def signed_music_path(request: Request, kind: str, item_id: str, config: dict[str, str] | None) -> str:
-    expires = int(datetime.now(timezone.utc).timestamp() * 1000) + MUSIC_STREAM_TTL_MS
-    config_token = pack_music_config(config)
-    signature = sign_music_url(item_id, expires, config_token)
-    extra = f"&config={config_token}" if config_token else ""
-    return f"{request.url_for(f'music_{kind}', item_id=item_id)}?expires={expires}&signature={signature}{extra}"
-
-
-def normalize_subsonic_song(request: Request, song: dict[str, Any], config: dict[str, str]) -> dict[str, Any]:
-    item_id = song.get("id")
-    artist = song.get("artist") or song.get("albumArtist") or "Unknown artist"
+def music_search_response(q: str = "", limit: int = 24):
     return {
-        "id": item_id,
-        "title": song.get("title") or "Untitled track",
-        "artist": artist,
-        "album": song.get("album") or "",
-        "channelTitle": artist,
-        "duration": format_music_duration(song.get("duration")),
-        "source": "opensubsonic",
-        "audioUrl": signed_music_path(request, "stream", item_id, config),
-        "thumbnailUrl": signed_music_path(request, "cover", song["coverArt"], config) if song.get("coverArt") else "",
+        "tracks": [],
+        "source": "muffon",
+        "message": "Музыка теперь обслуживается Node backend через muffon.",
     }
 
 
-@app.get("/api/music/subsonic/search")
-def music_search_get(request: Request, q: str = "", limit: int = 24, serverUrl: str = "", username: str = "", password: str = "", user=Depends(current_user)):
-    return music_search_response(request, q, limit, serverUrl, username, password)
+@app.get("/api/music/search")
+def music_search_get(q: str = "", limit: int = 24, user=Depends(current_user)):
+    return music_search_response(q, limit)
 
 
-@app.post("/api/music/subsonic/search")
+@app.post("/api/music/search")
 async def music_search_post(request: Request, user=Depends(current_user)):
     body = await request.json()
-    return music_search_response(
-        request,
-        str(body.get("q", "")),
-        int(body.get("limit") or 24),
-        str(body.get("serverUrl", "")),
-        str(body.get("username", "")),
-        str(body.get("password", "")),
-    )
-
-
-def music_search_response(request: Request, q: str = "", limit: int = 24, serverUrl: str = "", username: str = "", password: str = ""):
-    config = music_config(serverUrl, username, password)
-    if not config:
-        return {
-            "tracks": music_fallback_tracks(),
-            "source": "local",
-            "message": "Введите адрес Navidrome/OpenSubsonic, логин и пароль прямо в музыкальном сервисе.",
-        }
-    try:
-        response = requests.get(
-            subsonic_url(config, "search3"),
-            params={
-                **music_auth_params(config),
-                "query": q.strip(),
-                "songCount": max(1, min(limit, 50)),
-                "artistCount": 0,
-                "albumCount": 0,
-            },
-            timeout=12,
-        )
-        response.raise_for_status()
-        payload = response.json().get("subsonic-response", {})
-        if payload.get("status") == "failed":
-            raise RequestException((payload.get("error") or {}).get("message") or "Subsonic request failed")
-        songs = (payload.get("searchResult3") or {}).get("song") or []
-        tracks = [normalize_subsonic_song(request, song, config) for song in songs if song.get("id")]
-        return {
-            "tracks": tracks,
-            "source": "opensubsonic",
-            "message": None if tracks else "Музыкальный сервер не вернул треки по этому запросу.",
-        }
-    except (RequestException, ValueError, TypeError):
-        return {
-            "tracks": music_fallback_tracks(),
-            "source": "local",
-            "message": "OpenSubsonic/Navidrome временно недоступен, показаны локальные демо-треки.",
-        }
-
-
-def proxy_subsonic_media(item_id: str, expires: str, signature: str, endpoint: str, config_token: str = ""):
-    config = unpack_music_config(config_token) if config_token else music_config()
-    if not config or not valid_music_signature(item_id, expires, signature, config_token):
-        raise HTTPException(status_code=403, detail="Недействительная ссылка на музыку.")
-    response = requests.get(subsonic_url(config, endpoint), params={**music_auth_params(config), "id": item_id}, stream=True, timeout=20)
-    try:
-        response.raise_for_status()
-    except RequestException as error:
-        response.close()
-        raise HTTPException(status_code=502, detail="Не удалось получить медиа с музыкального сервера.") from error
-
-    def iterator():
-        try:
-            for chunk in response.iter_content(chunk_size=1024 * 64):
-                if chunk:
-                    yield chunk
-        finally:
-            response.close()
-
-    headers = {"Cache-Control": "private, max-age=300"}
-    content_length = response.headers.get("content-length")
-    if content_length:
-        headers["Content-Length"] = content_length
-    return StreamingResponse(iterator(), media_type=response.headers.get("content-type") or "application/octet-stream", headers=headers)
-
-
-@app.get("/api/music/stream/{item_id}", name="music_stream")
-def music_stream(item_id: str, expires: str, signature: str, config: str = ""):
-    return proxy_subsonic_media(item_id, expires, signature, "stream", config)
-
-
-@app.get("/api/music/cover/{item_id}", name="music_cover")
-def music_cover(item_id: str, expires: str, signature: str, config: str = ""):
-    return proxy_subsonic_media(item_id, expires, signature, "getCoverArt", config)
+    return music_search_response(str(body.get("q", "")), int(body.get("limit") or 24))
 
 
 def chat_payload(db: Session, chat_id: str, user_id: str):

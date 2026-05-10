@@ -1,9 +1,8 @@
 // src/pages/RegisterPage.jsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import useAuthStore from '../store/authStore';
-import {useEffect } from 'react';
 import api from '../services/api';
 
 // Задержка чтобы не спамить запросами при каждом символе
@@ -65,11 +64,12 @@ function ValidatedInput({ label, type = 'text', value, onChange, fieldKey, place
           <span className="absolute left-3 text-x-muted select-none">{prefix}</span>
         )}
         <input
-          type={type}
+          type={type === 'email' ? 'text' : type}
+          inputMode={type === 'email' ? 'email' : undefined}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          autoComplete={type === 'password' ? 'new-password' : 'off'}
+          autoComplete={type === 'password' ? 'new-password' : type === 'email' ? 'email' : 'off'}
           className={`input-field pr-10 ${prefix ? 'pl-7' : ''} ${
             showIndicator
               ? allPassed
@@ -117,40 +117,38 @@ export default function RegisterPage() {
   const { register, isLoading } = useAuthStore();
   const navigate = useNavigate();
   const debouncedUsername = useDebounce(form.username);
-const debouncedEmail = useDebounce(form.email);
-const [serverErrors, setServerErrors] = useState({ username: null, email: null });
+  const debouncedEmail = useDebounce(form.email);
+  const [serverErrors, setServerErrors] = useState({ username: null, email: null });
 
-// Проверяем никнейм на сервере
-useEffect(() => {
-  if (!form.username || form.username.length < 3) {
-    setServerErrors((p) => ({ ...p, username: null }));
-    return;
-  }
-  api.get(`/auth/check?username=${form.username.toLowerCase()}`)
-    .then(({ data }) => {
-      setServerErrors((p) => ({
-        ...p,
-        username: data.usernameTaken ? 'Этот никнейм уже занят' : null,
-      }));
-    })
-    .catch(() => {});
-}, [debouncedUsername]);
+  useEffect(() => {
+    if (!debouncedUsername || debouncedUsername.length < 3) {
+      setServerErrors((p) => ({ ...p, username: null }));
+      return;
+    }
+    api.get(`/auth/check?username=${encodeURIComponent(debouncedUsername.toLowerCase())}`)
+      .then(({ data }) => {
+        setServerErrors((p) => ({
+          ...p,
+          username: data.usernameTaken ? 'Этот никнейм уже занят' : null,
+        }));
+      })
+      .catch(() => {});
+  }, [debouncedUsername]);
 
-// Проверяем email на сервере
-useEffect(() => {
-  if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-    setServerErrors((p) => ({ ...p, email: null }));
-    return;
-  }
-  api.get(`/auth/check?email=${form.email.toLowerCase()}`)
-    .then(({ data }) => {
-      setServerErrors((p) => ({
-        ...p,
-        email: data.emailTaken ? 'Эта почта уже зарегистрирован' : null,
-      }));
-    })
-    .catch(() => {});
-}, [debouncedEmail]);
+  useEffect(() => {
+    if (!debouncedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(debouncedEmail)) {
+      setServerErrors((p) => ({ ...p, email: null }));
+      return;
+    }
+    api.get(`/auth/check?email=${encodeURIComponent(debouncedEmail.toLowerCase())}`)
+      .then(({ data }) => {
+        setServerErrors((p) => ({
+          ...p,
+          email: data.emailTaken ? 'Эта почта уже зарегистрирована' : null,
+        }));
+      })
+      .catch(() => {});
+  }, [debouncedEmail]);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -182,14 +180,13 @@ useEffect(() => {
         state: {
           verificationEmail: form.email,
           emailSent: result.emailSent,
+          devVerificationCode: result.devVerificationCode,
         },
       });
     } else {
       const err = result.error || '';
-      console.log('Ошибка с сервера:', err); // временно для отладки
-    
       if (err.includes('email') || err.includes('Email')) {
-        toast.error('Эта почта уже зарегистрирован');
+        toast.error('Эта почта уже зарегистрирована');
       } else if (err.includes('username') || err.includes('никнейм') || err.includes('Никнейм')) {
         toast.error('Этот никнейм уже занят');
       } else {

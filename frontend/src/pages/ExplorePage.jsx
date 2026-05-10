@@ -180,7 +180,7 @@ export default function ExplorePage({ mode = 'explore' }) {
             <h1 className="text-xl font-black tracking-normal">{title}</h1>
           </div>
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-            <form onSubmit={submitSearch} className="relative w-full sm:min-w-[260px] sm:max-w-xs">
+            <form onSubmit={submitSearch} className="relative w-full sm:w-72">
               <NavIcon name="search" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-x-muted" />
               <input
                 value={draft}
@@ -189,9 +189,12 @@ export default function ExplorePage({ mode = 'explore' }) {
                 className="input-field pl-10"
               />
             </form>
-            <button type="button" onClick={openCreateCommunity} className="btn-outline px-4 py-2 text-sm">
-              Создать группу
-            </button>
+            {isCommunities && (
+              <button type="button" onClick={openCreateCommunity} className="btn-accent flex items-center justify-center gap-2 px-4 py-3 text-sm">
+                <NavIcon name="plus" className="h-4 w-4" />
+                <span>Создать сообщество</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
