@@ -1,0 +1,10 @@
+node_modules
+logs
+uploads
+.venv
+backend
+muffon-api/.git
+muffon-api/tmp
+muffon-api/log
+muffon-api/.bundle
+muffon-api/vendor/bundle

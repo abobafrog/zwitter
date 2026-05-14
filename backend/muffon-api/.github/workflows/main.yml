@@ -1,0 +1,60 @@
+name: main
+on: workflow_dispatch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: muffon_api_test
+          POSTGRES_USER: muffon_api_test
+          POSTGRES_PASSWORD: muffon_api_test
+        ports: ['5432:5432']
+
+      redis:
+        image: redis
+        ports: ['6379:6379']
+
+    steps:
+      - name: Set up Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Set up dependencies
+        run: bundle install
+
+      - name: Set up database
+        env:
+          RAILS_ENV: test
+          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+        run: bundle exec rails db:migrate
+
+      - name: Lint
+        run: bundle exec rubocop
+
+      - name: Enable OpenSSL legacy provider
+        run: |-
+          sudo sed -i '/default = default_sect/a legacy = legacy_sect' /etc/ssl/openssl.cnf
+          sudo sed -i 's/# activate = 1/activate = 1/' /etc/ssl/openssl.cnf
+          sudo sed -i '/activate = 1/a [legacy_sect]\nactivate = 1' /etc/ssl/openssl.cnf
+
+      - name: Test
+        env:
+          RAILS_ENV: test
+          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+        run: bundle exec rspec
+
+      - name: Deploy
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY }}"
+          bundle exec cap production deploy

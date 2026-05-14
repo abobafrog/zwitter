@@ -1,0 +1,80 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://bandcamp.com/api/mobile/22/band_details?band_id=2707934946
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - "*/*"
+      User-Agent:
+      - rest-client/2.1.0 (linux-gnu x86_64) ruby/2.7.2p137
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Host:
+      - bandcamp.com
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Connection:
+      - keep-alive
+      Server:
+      - nginx
+      Content-Type:
+      - application/json; charset=UTF-8
+      Cache-Control:
+      - no-cache, no-store
+      Set-Cookie:
+      - BACKENDID=bender24-3; path=/; domain=.bandcamp.com
+      Accept-Ranges:
+      - bytes
+      Date:
+      - Wed, 10 Feb 2021 13:16:15 GMT
+      Via:
+      - 1.1 varnish
+      X-Served-By:
+      - cache-hhn4024-HHN
+      X-Cache:
+      - MISS
+      X-Cache-Hits:
+      - '0'
+      X-Timer:
+      - S1612962975.152539,VS0,VE150
+      Vary:
+      - Accept-Encoding
+      Transfer-Encoding:
+      - chunked
+    body:
+      encoding: ASCII-8BIT
+      string: '{"shows":[],"artists":[],"merch":[],"bio_image_id":13766189,"header_image_id":null,"bio":null,"bio_image_width":640,"location":null,"discography":[{"title":"high
+        society","band_name":"luxury elite","release_date":"05 Oct 2020 00:00:00 GMT","item_type":"album","artist_name":null,"band_id":2707934946,"item_id":2530224521,"is_purchasable":false,"art_id":1077852600},{"title":"prism","band_name":"luxury
+        elite","release_date":"04 Jul 2018 00:00:00 GMT","item_type":"album","artist_name":null,"band_id":2707934946,"item_id":1412946879,"is_purchasable":false,"art_id":348046143},{"title":"noir","band_name":"luxury
+        elite","release_date":"08 Jan 2016 00:00:00 GMT","item_type":"album","artist_name":null,"band_id":2707934946,"item_id":3864219355,"is_purchasable":false,"art_id":4043434006},{"title":"world
+        class","band_name":"luxury elite","release_date":"21 Jul 2015 00:00:00 GMT","item_type":"album","artist_name":null,"band_id":2707934946,"item_id":2398718086,"is_purchasable":false,"art_id":484749257},{"title":"moods","band_name":"luxury
+        elite","release_date":"24 Apr 2015 00:00:00 GMT","item_type":"album","artist_name":null,"band_id":2707934946,"item_id":3552334456,"is_purchasable":false,"art_id":3146854813},{"title":"intercontinental","band_name":"luxury
+        elite","release_date":"22 Sep 2014 00:00:00 GMT","item_type":"album","artist_name":"luxury
+        elite and SYLLABUS","band_id":2707934946,"item_id":2754091492,"is_purchasable":false,"art_id":717622222},{"title":"controversial","band_name":"luxury
+        elite","release_date":"17 Jun 2014 00:00:00 GMT","item_type":"album","artist_name":null,"band_id":2707934946,"item_id":3132229158,"is_purchasable":false,"art_id":3722273780},{"title":"101.7
+        WAVE II","band_name":"luxury elite","release_date":"16 Mar 2014 00:00:00 GMT","item_type":"album","artist_name":null,"band_id":2707934946,"item_id":2173794578,"is_purchasable":false,"art_id":3556448753},{"title":"sincerely","band_name":"luxury
+        elite","release_date":"06 Dec 2013 00:00:00 GMT","item_type":"album","artist_name":null,"band_id":2707934946,"item_id":1828260327,"is_purchasable":false,"art_id":4271224369},{"title":"fantasy","band_name":"luxury
+        elite","release_date":"15 Jul 2013 00:00:00 GMT","item_type":"album","artist_name":null,"band_id":2707934946,"item_id":785818738,"is_purchasable":false,"art_id":557531583},{"title":"blind
+        date","band_name":"luxury elite","release_date":"19 Apr 2013 00:00:00 GMT","item_type":"album","artist_name":null,"band_id":2707934946,"item_id":2995897689,"is_purchasable":false,"art_id":2569028081},{"title":"with
+        love","band_name":"luxury elite","release_date":"15 Mar 2013 00:00:00 GMT","item_type":"album","artist_name":null,"band_id":2707934946,"item_id":2476872881,"is_purchasable":false,"art_id":1282172760},{"title":"new
+        classics","band_name":"luxury elite","release_date":"28 Feb 2013 00:00:00
+        GMT","item_type":"album","artist_name":null,"band_id":2707934946,"item_id":3970446570,"is_purchasable":false,"art_id":1279862781},{"title":"tv
+        party","band_name":"luxury elite","release_date":"06 Feb 2013 00:00:00 GMT","item_type":"album","artist_name":null,"band_id":2707934946,"item_id":1201779326,"is_purchasable":false,"art_id":844222398},{"title":"late
+        night delight","band_name":"luxury elite","release_date":"02 Feb 2013 00:00:00
+        GMT","item_type":"album","artist_name":"LUXURY ELITE // SAINT PEPSI","band_id":2707934946,"item_id":512986308,"is_purchasable":false,"art_id":676369785},{"title":"rose
+        quartz","band_name":"luxury elite","release_date":"03 Jan 2013 00:00:00 GMT","item_type":"album","artist_name":null,"band_id":2707934946,"item_id":1616291399,"is_purchasable":false,"art_id":518561983},{"title":"I&II","band_name":"luxury
+        elite","release_date":"31 Dec 2012 00:00:00 GMT","item_type":"album","artist_name":null,"band_id":2707934946,"item_id":1817469208,"is_purchasable":false,"art_id":710194868},{"title":"III","band_name":"luxury
+        elite","release_date":"05 Dec 2012 00:00:00 GMT","item_type":"album","artist_name":null,"band_id":2707934946,"item_id":926718665,"is_purchasable":false,"art_id":3504326920},{"title":"atlas
+        of fictional islands/customer service","band_name":"luxury elite","release_date":"12
+        Nov 2012 00:00:00 GMT","item_type":"album","artist_name":"mensa group international
+        & luxury elite","band_id":2707934946,"item_id":3519930744,"is_purchasable":false,"art_id":1232827129}],"sites":[{"url":"http://twitter.com/lux_elite","title":"Twitter"},{"url":"http://soundcloud.com/luxuryelite","title":"SoundCloud"}],"bandcamp_url":"https://luxuryelite.bandcamp.com","bio_image_height":480,"navbar_titles":{"c":"community","s":"subscribe","u":"audio","v":"video","a":"artists","p":"merch","m":"music"},"name":"luxury
+        elite","id":2707934946}'
+  recorded_at: Wed, 10 Feb 2021 13:16:14 GMT
+recorded_with: VCR 6.0.0

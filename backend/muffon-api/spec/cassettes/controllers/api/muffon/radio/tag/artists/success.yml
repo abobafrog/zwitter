@@ -1,0 +1,90 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://ws.audioscrobbler.com/2.0?api_key=<LASTFM_API_KEY>&autocorrect=0&format=json&limit=1&method=tag.getTopArtists&page=1&tag=Wild%20Nothing
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - "*/*"
+      User-Agent:
+      - rest-client/2.1.0 (linux x86_64) ruby/3.2.2p53
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Host:
+      - ws.audioscrobbler.com
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - openresty/1.13.6.2
+      Date:
+      - Thu, 11 May 2023 14:24:22 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '827'
+      Access-Control-Allow-Methods:
+      - POST, GET, OPTIONS
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Max-Age:
+      - '86400'
+      Via:
+      - 1.1 google
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+    body:
+      encoding: UTF-8
+      string: '{"topartists":{"artist":[{"name":"Wildest Dreams","mbid":"8890ea79-cff6-4afd-aba7-42df7b150d6f","url":"https://www.last.fm/music/Wildest+Dreams","streamable":"0","image":[{"#text":"https://lastfm.freetls.fastly.net/i/u/34s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"small"},{"#text":"https://lastfm.freetls.fastly.net/i/u/64s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"medium"},{"#text":"https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"large"},{"#text":"https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png","size":"extralarge"},{"#text":"https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png","size":"mega"}],"@attr":{"rank":"1"}}],"@attr":{"tag":"Wild
+        Nothing","page":"1","perPage":"1","totalPages":"13","total":"13"}}}'
+  recorded_at: Thu, 11 May 2023 14:24:22 GMT
+- request:
+    method: get
+    uri: https://ws.audioscrobbler.com/2.0?api_key=<LASTFM_API_KEY>&artist=Wildest%20Dreams&autocorrect=0&format=json&limit=1&method=artist.getTopTracks&page=1
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - "*/*"
+      User-Agent:
+      - rest-client/2.1.0 (linux x86_64) ruby/3.2.2p53
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Host:
+      - ws.audioscrobbler.com
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - openresty/1.13.6.2
+      Date:
+      - Thu, 11 May 2023 14:24:23 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '904'
+      Access-Control-Allow-Methods:
+      - POST, GET, OPTIONS
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Max-Age:
+      - '86400'
+      Via:
+      - 1.1 google
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+    body:
+      encoding: UTF-8
+      string: '{"toptracks":{"track":[{"name":"Rollerskates","playcount":"5348","listeners":"1746","mbid":"ff98a5c4-333e-4fc6-b184-2ec96e54cb9a","url":"https://www.last.fm/music/Wildest+Dreams/_/Rollerskates","streamable":"0","artist":{"name":"Wildest
+        Dreams","mbid":"8890ea79-cff6-4afd-aba7-42df7b150d6f","url":"https://www.last.fm/music/Wildest+Dreams"},"image":[{"#text":"https://lastfm.freetls.fastly.net/i/u/34s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"small"},{"#text":"https://lastfm.freetls.fastly.net/i/u/64s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"medium"},{"#text":"https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"large"},{"#text":"https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png","size":"extralarge"}],"@attr":{"rank":"1"}}],"@attr":{"artist":"Wildest
+        Dreams","page":"1","perPage":"1","totalPages":"202","total":"202"}}}'
+  recorded_at: Thu, 11 May 2023 14:24:23 GMT
+recorded_with: VCR 6.1.0

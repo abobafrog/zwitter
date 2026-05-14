@@ -1,0 +1,57 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://api.vk.ru/method/audio.getById?access_token=<VK_ACCESS_TOKEN>&audios=-400921_90392497&sig=c0cdef6b1e2562b87be5c6f23d19453c&v=5.131
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - VKAndroidApp/4.13.1-1206 (Android 4.4.3; SDK 19; armeabi; ; ru)
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - kittenx
+      Date:
+      - Mon, 22 Sep 2025 21:09:21 GMT
+      Content-Type:
+      - application/json; charset=utf-8
+      Content-Length:
+      - '682'
+      Connection:
+      - keep-alive
+      X-Powered-By:
+      - KPHP/7.4.124670
+      Set-Cookie:
+      - httoken=w1ZgLyKoXNSjak9vxEs9vYvJ1esMzYtlW1Lrdyj5-jiMvqzFFPyI-M5Xr_4Y92Uctz94Nkkh-ubHSzVl3xjLVtkp1aR67v4aRKLLv1d2UHm8hfbbjfvfm1mNrO4NZjw9M9M;
+        Path=/; HttpOnly; Secure; SameSite=None; Max-Age=3600; Domain=api.vk.ru
+      - remixir=DELETED; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/; domain=.vk.ru;
+        secure; HttpOnly
+      - remixstlid=9065398961592310380_QRzRUkoRAUo8SkJb5Zd6mnyfNehSuKX0hbfcpvmQn9H;
+        expires=Tue, 22 Sep 2026 21:09:21 GMT; path=/; domain=.vk.ru; secure
+      Cache-Control:
+      - no-store
+      X-Frame-Options:
+      - DENY
+      X-Frontend:
+      - front656010
+      Access-Control-Expose-Headers:
+      - X-Frontend
+      X-Trace-Id:
+      - DkYrdrYnWGk1xGbkr8EkGdz_wq37WA
+      Server-Timing:
+      - tid;desc="DkYrdrYnWGk1xGbkr8EkGdz_wq37WA",front;dur=49.795
+    body:
+      encoding: ASCII-8BIT
+      string: !binary |-
+        eyJyZXNwb25zZSI6W3siYXJ0aXN0Ijoi44OK44Kk44OI44Oh44KiIiwiaWQiOjkwMzkyNDk3LCJvd25lcl9pZCI6LTQwMDkyMSwidGl0bGUiOiJBbHVtaW5hIiwiZHVyYXRpb24iOjI5OSwiYWNjZXNzX2tleSI6ImJhNWNkODVlZTA2OTQwMTYyMSIsImFkcyI6eyJjb250ZW50X2lkIjoiLTQwMDkyMV85MDM5MjQ5NyIsImR1cmF0aW9uIjoiMjk5IiwiYWNjb3VudF9hZ2VfdHlwZSI6IjMiLCJwdWlkMSI6IjU1NCIsInB1aWQyMiI6IjExIn0sImlzX2V4cGxpY2l0IjpmYWxzZSwiaXNfZm9jdXNfdHJhY2siOmZhbHNlLCJ0cmFja19jb2RlIjoiOTkyMGJiYzJoemdjdW9qYmJKWkh0WFZhNDFROXpaLWFsMU1lSmFscFowcG9hclZJMVdQdTJMczRFVVhtQmN4S2RPdnRMOUFMbVEiLCJ1cmwiOiJodHRwczpcL1wvY3MxLTY5djQudmt1c2VyYXVkaW8ucnVcL3NcL3YxXC9hY21wXC9lU19ORENiVS1SMDZvSnBITVBUWEtfWWY0cEZmbUtUbGV1VVZ2cldJdmt5a0QyazZTMXBYSnBLQktkdnB4dGxZNDVUSHhIVHJQOWZSVUZRVDJQSDgyZ1llanI5eDRJOTA1YXMxck5ORERHWWZvMUVoWFRfd3VQeXNPaFpvbW5OY3FIU3FlUjRxZGVrMHdoNHpmSzlkdEZwakliZ1dqandVc05tTnp6d1NWcmFOSEZEUnVnLm1wMz9zaXJlbj0xIiwiZGF0ZSI6MTI5MTQxMzcxMCwiYWxidW1faWQiOjg5Mzk3MjQsImdlbnJlX2lkIjoxOH1dfQ==
+  recorded_at: Mon, 22 Sep 2025 21:09:21 GMT
+recorded_with: VCR 6.3.1

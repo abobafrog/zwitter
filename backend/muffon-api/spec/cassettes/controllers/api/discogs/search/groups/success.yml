@@ -1,0 +1,389 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://api.discogs.com/database/search?key=<DISCOGS_API_KEY>&page=1&per_page=20&query=kate%20bush&secret=<DISCOGS_API_SECRET>&type=master
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - "*/*"
+      User-Agent:
+      - rest-client/2.1.0 (linux x86_64) ruby/3.0.1p64
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Host:
+      - api.discogs.com
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Tue, 25 May 2021 09:21:44 GMT
+      Content-Type:
+      - application/json
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Vary:
+      - Accept-Encoding
+      X-Discogs-Ratelimit:
+      - '60'
+      X-Discogs-Ratelimit-Remaining:
+      - '52'
+      X-Discogs-Ratelimit-Used:
+      - '8'
+      Access-Control-Allow-Headers:
+      - Content-Type, authorization, User-Agent, Private-Auth-Secret, Discogs-UID
+      Access-Control-Allow-Methods:
+      - HEAD,OPTIONS,GET,OPTIONS
+      Access-Control-Expose-Headers:
+      - Location
+      Content-Language:
+      - en
+      X-Discogs-Media-Type:
+      - discogs.v2
+      Access-Control-Allow-Origin:
+      - "*"
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Xss-Protection:
+      - 1; mode=block
+      X-Content-Type-Options:
+      - nosniff
+      Cache-Control:
+      - public, must-revalidate
+      Strict-Transport-Security:
+      - max-age=15724800
+    body:
+      encoding: ASCII-8BIT
+      string: '{"pagination": {"page": 1, "pages": 35, "per_page": 20, "items": 681,
+        "urls": {"last": "https://api.discogs.com/database/search?key=<DISCOGS_API_KEY>&secret=<DISCOGS_API_SECRET>&page=35&per_page=20&query=kate+bush&type=master",
+        "next": "https://api.discogs.com/database/search?key=<DISCOGS_API_KEY>&secret=<DISCOGS_API_SECRET>&page=2&per_page=20&query=kate+bush&type=master"}},
+        "results": [{"country": "US", "year": "1983", "format": ["Vinyl", "LP", "Mini-Album",
+        "Compilation", "Stereo"], "label": ["EMI America", "Screen Gems-EMI Music
+        Inc.", "Novercia Ltd.", "EMI America Records", "EMI America Records", "Capitol
+        Records, Inc.", "Liberty Recording Studios", "Capitol Records Pressing Plant,
+        Jacksonville"], "type": "master", "genre": ["Rock"], "style": ["Art Rock",
+        "Pop Rock"], "id": 119657, "barcode": ["BMI", "MLP-1-19004-P.2. #1 MASTERED
+        BY LIBERTY", "MLP-2-19004-P.2. #1 MASTERED BY LIBERTY", "0", "07777190041",
+        "MLP-1-19004-P.1. #1 MASTERED BY LIBERTY", "MLP-2-19004-P.2. #1 MASTERED BY
+        LIBERTY", "MLP-1-19004-P.2. #2 MASTERED BY LIBERTY", "MLP-1-19004-P.1. #1
+        MASTERED BY LIBERTY"], "master_id": 119657, "master_url": "https://api.discogs.com/masters/119657",
+        "uri": "/Kate-Bush-Kate-Bush/master/119657", "catno": "MLP-19004", "title":
+        "Kate Bush - Kate Bush", "thumb": "https://img.discogs.com/5Zt2fHc_N6Yb14J77nxRAuf9Jkg=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-483467-1335763473.jpeg.jpg",
+        "cover_image": "https://img.discogs.com/giBVIqUaHUxOX8MC5nDJI6-rLFw=/fit-in/600x599/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-483467-1335763473.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/masters/119657", "community": {"want":
+        1111, "have": 1902}}, {"country": "German Democratic Republic (GDR)", "year":
+        "1984", "format": ["Vinyl", "LP", "Compilation", "Stereo"], "label": ["AMIGA",
+        "VEB Deutsche Schallplatten Berlin", "VEB Deutsche Schallplatten Potsdam-Babelsberg",
+        "EMI Records Ltd.", "EMI Records Ltd.", "VEB VMW \"Ernst Th\u00e4lmann\",
+        Werk Gotha-Druck"], "type": "master", "genre": ["Electronic", "Rock"], "style":
+        ["Pop Rock", "Synth-pop", "Experimental"], "id": 28649, "barcode": ["AWA",
+        "16,10 M", "TGL 10609", "Ag 511/01/84/A", "8 56 072-1A J84 EN C 1A1 K", "8
+        56 072-2A J84 EN C 1A1 G", "8 56 072-1A J84 EN C 1C3 A0", "8 56 072-2A J84
+        EN C 1C1 AA"], "master_id": 28649, "master_url": "https://api.discogs.com/masters/28649",
+        "uri": "/Kate-Bush-Kate-Bush/master/28649", "catno": "8 56 072", "title":
+        "Kate Bush - Kate Bush", "thumb": "https://img.discogs.com/RRovRsjndfrXvYeLxa9FI14Uv6c=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-477573-1119442188.jpg.jpg",
+        "cover_image": "https://img.discogs.com/0gvcsClHYyxdkTYF3nLV-C3EaiI=/fit-in/599x600/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-477573-1119442188.jpg.jpg",
+        "resource_url": "https://api.discogs.com/masters/28649", "community": {"want":
+        228, "have": 776}}, {"country": "Unknown", "genre": ["Non-Music"], "format":
+        ["Vinyl", "7\"", "Picture Disc", "Unofficial Release"], "style": ["Interview"],
+        "id": 434927, "label": ["Not On Label (Kate Bush)"], "type": "master", "barcode":
+        [], "master_id": 434927, "master_url": "https://api.discogs.com/masters/434927",
+        "uri": "/Kate-Bush-Kate-Bush-Interview-1986/master/434927", "catno": "KB7P",
+        "title": "Kate Bush - Kate Bush Interview 1986", "thumb": "https://img.discogs.com/5A6ibXOEh8vZGHPVzXUYyNVenYE=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-2729802-1298404282.jpeg.jpg",
+        "cover_image": "https://img.discogs.com/fmcnGm3f6CHLYR8CtZfMBk6Y1Vo=/fit-in/584x592/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-2729802-1298404282.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/masters/434927", "community": {"want":
+        25, "have": 128}}, {"country": "Canada", "year": "1985", "format": ["Vinyl",
+        "12\"", "33 \u2153 RPM", "Promo", "Sampler"], "label": ["EMI America", "Ever
+        Reddy", "Capitol Records-EMI Of Canada Limited", "Capitol Records-EMI Of Canada
+        Limited", "Capitol Records-EMI Of Canada Limited", "Capitol Records-EMI Of
+        Canada Limited", "Capitol Records-EMI Of Canada Limited", "Beechwood Music
+        Corp.", "Novercia Ltd.", "CBS Records Canada Ltd."], "type": "master", "genre":
+        ["Electronic", "Rock", "Non-Music"], "style": ["Interview", "Art Rock", "Pop
+        Rock", "Synth-pop"], "id": 762880, "barcode": ["282-1", "282-2", "SPRO-282-A-1A-2HZK:
+        DM-2", "SPRO-282-B-1A-2HZ: DM-2"], "master_id": 762880, "master_url": "https://api.discogs.com/masters/762880",
+        "uri": "/Kate-Bush-An-Interview-With-Kate-Bush/master/762880", "catno": "SPRO-282",
+        "title": "Kate Bush - An Interview With Kate Bush", "thumb": "https://img.discogs.com/620RRR59gv2LWw8jKY4ExHLJQTc=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-1944556-1394395378-6810.jpeg.jpg",
+        "cover_image": "https://img.discogs.com/4u5GwaweBcuXlQOmKc3A6UhsIjM=/fit-in/600x600/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-1944556-1394395378-6810.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/masters/762880", "community": {"want":
+        174, "have": 52}}, {"country": "Unknown", "genre": ["Non-Music"], "format":
+        ["Vinyl", "7\"", "Unofficial Release"], "style": ["Interview"], "id": 455355,
+        "label": ["Not On Label (Kate Bush)"], "type": "master", "barcode": [], "master_id":
+        455355, "master_url": "https://api.discogs.com/masters/455355", "uri": "/Kate-Bush-Kate-Bush/master/455355",
+        "catno": "none", "title": "Kate Bush - Kate Bush", "thumb": "https://img.discogs.com/IrPvP5_YrJfkgwhbCVpKs70OFgs=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-3604466-1337048207-2112.jpeg.jpg",
+        "cover_image": "https://img.discogs.com/ohcAi8nf_ZvlsfAswltG57KK8ko=/fit-in/485x480/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-3604466-1337048207-2112.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/masters/455355", "community": {"want":
+        16, "have": 77}}, {"country": "UK", "year": "1978", "format": ["Vinyl", "LP",
+        "Album", "Stereo"], "label": ["EMI", "EMI", "EMI Records Ltd.", "Air Studios",
+        "EMI", "Kate Bush Music Ltd.", "Garrod & Lofthouse", "EMI Records"], "type":
+        "master", "genre": ["Rock", "Pop"], "style": ["Art Rock", "Pop Rock"], "id":
+        28531, "barcode": ["YAX.5389", "YAX.5390", "7802 TM", "YAX 5389-3 REMBER YOURSELF",
+        "YAX 5390-1", "YAX 5389-2 REMBER YOURSELF", "YAX 5390-1", "YAX 5389-2 REMBER
+        YOURSELF", "YAX 5390-2", "YAX 5389-1 REMEMBER YOURSELF M 1", "YAX 5390-1 A
+        1", "YAX 5389-2 G L A 3 REMBER YOURSELF", "YAX 5390-3 U D P 1", "YAX 5389-5
+        REMBER YOURSELF", "YAX 5390-1  ", "YAX 5389-2 RRR C REMBER YOURSELF", "YAX
+        5390-1 RRT S", "YAX 5390-4 REMBER YOURSELF", "YAX 5390-1", "YAX 5389-3 REMBER
+        YOURSELF", "YAX 5390-3", "YAX 5389-2 GDD 4", "YAX 5390-3 GLO 1", "YAX 5389-4
+        REMEMBER YOURSELF RMP 1", "YAX 5390-1 RPP 3", "YAX 5389-2 ROL 6", "YAX 5390-3
+        RRL 2", "YAX 5389-5 \u2144\u039bD 2 REMBER YOURSELF", "YAX 5390-4 AMR", "YAX
+        5389-2 RPG 6 REMBER YOURSELF", "YAX 5390-3 PD"], "master_id": 28531, "master_url":
+        "https://api.discogs.com/masters/28531", "uri": "/Kate-Bush-The-Kick-Inside/master/28531",
+        "catno": "EMC 3223", "title": "Kate Bush - The Kick Inside", "thumb": "https://img.discogs.com/Bn-CGnPTPylj9O0fSn36n0jqahQ=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-414374-1411407209-7587.jpeg.jpg",
+        "cover_image": "https://img.discogs.com/l4tj9nFGF6KgmETZZPwox8pC06w=/fit-in/600x598/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-414374-1411407209-7587.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/masters/28531", "community": {"want":
+        34549, "have": 44382}}, {"country": "UK", "year": "1985", "format": ["Vinyl",
+        "LP", "Album", "Stereo"], "label": ["EMI", "EMI", "EMI", "Kate Bush Music
+        Ltd.", "EMI Music Publishing Ltd.", "Novercia Ltd.", "Novercia Ltd.", "The
+        Town House", "James Upton Ltd.", "EMI Records Ltd.", "EMI Records", "Windmill
+        Lane Studios"], "type": "master", "genre": ["Electronic", "Rock", "Pop"],
+        "style": ["Art Rock", "Experimental", "Pop Rock"], "id": 28680, "barcode":
+        ["5 099924 038416", "5099924038416", "RS 8509 JU", "RB 8509 JU", "EJ2403841
+        A", "EJ2403841 B", "EJ 2403841 A-4U-1-1 TOWNHOUSE", "EJ 2403841 B-5U-1-1-1
+        TOWNHOUSE CU", "EJ 2403841 A-1-1-1 TOWNHOUSE", "EJ 2403841 B-6U-1-3 TOWNHOUSE",
+        "EJ 2403841 A-1-1-1-21 TOWNHOUSE D", "EJ 2403841 B-5U-1-1-1 ED TOWNHOUSE CU",
+        "EJ 2403841 A-1-1-1  D TOWNHOUSE", "EJ 2403841 B-6U-1-2 TOWNHOUSE", "EJ 2403841
+        A-4U-1-1 TOWNHOUSE", "EJ 2403841 B-7-1-4- TOWNHOUSE", "EJ 2403841 A-4U-1-4-
+        TOWNHOUSE", "EJ 2403841 B-6U-1-3- TOWNHOUSE", "EJ 2403841 A-4U-1-2 TOWNHOUSE",
+        "EJ 2403841 B-6U-1-1-2 TOWNHOUSE", "EJ 2403841 A-4U-1-2 TOWNHOUSE", "EJ 2403841
+        B-6U-1-3- TOWNHOUSE", "EJ 2403841 A-1-1-1 TOWNHOUSE", "EJ 2403841 B-6U-1-9
+        TOWNHOUSE", "EJ 2403841 A-4U-1-1-35 TOWNHOUSE", "EJ 2403841 B-7-1-5-9 TOWNHOUSE",
+        "EJ 2403841 A-4U-1-1\u295b TOWNHOUSE", "EJ 2403841 B-6U-1-9\u295b : : TOWNHOUSE"],
+        "master_id": 28680, "master_url": "https://api.discogs.com/masters/28680",
+        "uri": "/Kate-Bush-Hounds-Of-Love/master/28680", "catno": "KAB1", "title":
+        "Kate Bush - Hounds Of Love", "thumb": "https://img.discogs.com/2OD9C3Mh-8jz6tzALCjdoLERAos=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-197163-1475590932-6411.jpeg.jpg",
+        "cover_image": "https://img.discogs.com/hhTPrZI9OWGpxXwceG6W1mKUnd0=/fit-in/600x597/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-197163-1475590932-6411.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/masters/28680", "community": {"want":
+        46930, "have": 45455}}, {"country": "UK", "year": "1978", "format": ["Vinyl",
+        "LP", "Album", "Stereo"], "label": ["EMI", "EMI", "Super Bear Studios", "EMI
+        Records Ltd.", "Kate Bush", "EMI Music Publishing Ltd.", "Kate Bush", "EMI
+        Music Publishing Ltd.", "Garrod & Lofthouse", "EMI Records Ltd.", "EMI Records"],
+        "type": "master", "genre": ["Rock", "Pop"], "style": ["Art Rock", "Pop Rock",
+        "Ballad"], "id": 28522, "barcode": ["YAX.5548", "YAX.5549", "YAX 5548-2",
+        "YAX 5549-1 HOPE YOU LIKE IT!", "YAX 5548-3 RTC", "YAX 5549-3 HOPE YOU LIKE
+        IT!", "YAX 5548-9 202 BLAIR''S 1", "YAX 5549-2 HLC HOPE YOU LIKE IT! 4", "YAX
+        5548-1 CRT 2", "YAX 5549-2 HL HOPE YOU LIKE IT! 2", "YAX 5548-1 OV 1", "YAX
+        5549-2 HVG HOPE YOU LIKE IT!  4", "YAX 5548-1 1 GLA", "YAX 5549-3 HOPE YOU
+        LIKE IT! 4", "YAX 5548-3 GGP 2", "YAX 5549-2 GOG P HOPE YOU LIKE IT!  4",
+        "YAX 5548-3 CAT D", "YAX 5549-2 HD HOPE YOU LIKE IT! 1", "YAX 5548-2 GPM 3",
+        "YAX 5549-3 HOPE YOU LIKE IT! GMR 2", "YAX 5548-2 AP 4", "YAX 5549-1 : LL
+        HOPE YOU LIKE IT! 6"], "master_id": 28522, "master_url": "https://api.discogs.com/masters/28522",
+        "uri": "/Kate-Bush-Lionheart/master/28522", "catno": "EMA 787", "title": "Kate
+        Bush - Lionheart", "thumb": "https://img.discogs.com/tpcYPz0HPEn6WEdiGZ-C4rXMzsk=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-426108-1611174421-4296.jpeg.jpg",
+        "cover_image": "https://img.discogs.com/SWnz1tzBJ0GNlL4GnuMf53NhaWo=/fit-in/600x596/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-426108-1611174421-4296.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/masters/28522", "community": {"want":
+        9659, "have": 26308}}, {"country": "UK", "year": "1980", "format": ["Vinyl",
+        "LP", "Album"], "label": ["EMI", "EMI", "EMI Records Ltd.", "Novercia Ltd.",
+        "Kate Bush Music Ltd.", "EMI Music Publishing Ltd.", "Garrod & Lofthouse",
+        "EMI Records Ltd.", "Abbey Road Studios", "Air Studios", "EMI Records Ltd.",
+        "EMI Records"], "type": "master", "genre": ["Rock", "Pop"], "style": ["Pop
+        Rock", "Art Rock"], "id": 28582, "barcode": ["EMA 794 A", "EMA 794 B", "TM
+        8009 G & L", "EMA 794 A-3 3 12 Mi", "EMA 794 B-3 3 11 Do [Spectacles logo]",
+        "EMA 794 A-5 Mi", "EMA 794 B-3 Do [Spectacles logo]", "EMA 794 A-5 Mi", "EMA
+        794 B-4 Do [Spectacles logo]", "EMA 794 A-3 Mi", "EMA 794 B-4 Do [Spectacles
+        logo]", "EMA 794 A-3 2 11 Mi", "1 14 Do [Spectacles logo]", "EMA 794 A-3 6
+        MI", "EMA 794 B-3 6 DO [A pair of glasses, etched] 5", "EMA 794 A-3 6 MI",
+        "EMA 794 B-4 1 DO [A pair of glasses, etched] ", "3 7 4 [Vertical]", "3 7
+        4 [Vertical]", "EMA 794 A-3 0 4 4 Mi", "EMA 794 B-3 Do 3 7 [Spectacles logo]
+        4"], "master_id": 28582, "master_url": "https://api.discogs.com/masters/28582",
+        "uri": "/Kate-Bush-Never-For-Ever/master/28582", "catno": "EMA 794", "title":
+        "Kate Bush - Never For Ever", "thumb": "https://img.discogs.com/IoFoY2CZGVcolOdNbHsJlNeRXJQ=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-508248-1474741790-3505.jpeg.jpg",
+        "cover_image": "https://img.discogs.com/4Q2fb_Xl3livj4xYonoeXM1lQb4=/fit-in/600x600/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-508248-1474741790-3505.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/masters/28582", "community": {"want":
+        11395, "have": 29249}}, {"country": "UK", "year": "1986", "format": ["Vinyl",
+        "LP", "Compilation"], "label": ["EMI", "EMI", "EMI Records Ltd.", "Novercia
+        Ltd.", "Kate Bush Music Ltd.", "EMI Music Publishing Ltd.", "Novercia Ltd.",
+        "The Town House", "EMI Records Ltd.", "Howards Printers (Slough) Ltd.", "EMI
+        Records"], "type": "master", "genre": ["Electronic", "Rock", "Pop"], "style":
+        ["Pop Rock", "Art Rock", "Synth-pop", "Experimental", "Ballad"], "id": 28732,
+        "barcode": ["5 099926 120119", "5099926120119", "SP8611HP", "KBTV 1A", "KBTV
+        1B", "KBTV 1 A-2U-1-1 : TK TOWNHOUSE D", "KBTV 1 3-3U-1- :: TK TOWNHOUSE D",
+        "KBTV 1 A-3U-1-4-x1xxTK TOWNHOUSE D ", "TK D TOWNHOUSE KBTV 1 B-1U-1-411",
+        "KBTV 1 A-4U-1-1-2 TK TOWNHOUSE D", "KBTV 1 B-4U-1-1 TK TOWNHOUSE D", "KBTV
+        1 A-4U-1-1-X1 TK TOWNHOUSE", "KBTV 1 3-2U-1-1-X1 TK TOWNHOUSE", "KBTV 1 A-3U-1-7
+        TK TOWNHOUSE D", "KBTV 1 B-1U-1-4 TK TOWNHOUSE D", "KBTV 1 A-3U-1-1- TK TOWNHOUSE
+        D", "KBTV 1 B-2U-1-3-1 TK D TOWNHOUSE", "KBTV 1 A-3U-1-1- TK TOWNHOUSE D",
+        "KBTV 1 B-2U-1- 4 TK D TOWNHOUSE", "K3TV 1 A-3U-1-1-xx TKD TOWNHOUSE", "K3TV
+        1 B-3U-1-1-xx TKD TOWNHOUSE"], "master_id": 28732, "master_url": "https://api.discogs.com/masters/28732",
+        "uri": "/Kate-Bush-The-Whole-Story/master/28732", "catno": "KBTV 1", "title":
+        "Kate Bush - The Whole Story", "thumb": "https://img.discogs.com/QjfB8JbPaCp-VwJZ2uNGZkn0Jmg=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-310245-1375463802-5512.jpeg.jpg",
+        "cover_image": "https://img.discogs.com/nQIG-Cy8maIH3HumXzYkM_8QXmo=/fit-in/600x600/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-310245-1375463802-5512.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/masters/28732", "community": {"want":
+        5145, "have": 23891}}, {"country": "UK", "year": "1982", "format": ["Vinyl",
+        "LP", "Album"], "label": ["EMI", "EMI", "Advision Studios", "Odyssey Studios",
+        "Abbey Road Studios", "The Town House", "Advision Studios", "Novercia Ltd.",
+        "Kate Bush Music Ltd.", "EMI Music Publishing Ltd.", "Garrod & Lofthouse",
+        "EMI Records Ltd.", "EMI Records"], "type": "master", "genre": ["Rock"], "style":
+        ["Art Rock", "Pop Rock"], "id": 28613, "barcode": ["EMC 3419A", "EMC 3419B",
+        "TM 8209 GL", "EMC 3419 A-5U-1-4-", "EMC 3419 B-6U-1-4-", "EMC 3419 A-4U-1-1-",
+        "EMC 3419 B-6U-1-3-", "EMC 3419 A-4U-1-3-B", "EMC 3419 B-4U-1-3-A", "EMC 3419
+        A-5U-1-2-", "EMC 3419 B-6U-1-3-", "EMC 3419 A-3U-1-4-", "EMC 3419 B-6U-1-4-",
+        "EMC 3419 A-6U-1-1-", "EMC 3419 \u0336E\u0336M\u0336A\u0336 \u03367\u03369\u03368\u0336
+        \u0336 \u0336B-1U-1-1-", "EMC 3419 A-5U-1-3-1", "EMC 3419 B-6U-1-4-", "EMC
+        3419 A-3U-1-4- x 1", "EMC 3419 E\u0336M\u0336A\u0336 \u03367\u03369\u03368\u0336
+        B-1U-1-1 1", "EMC 3419 A-5U-1-2-14 ", "EMC 3419 B-6U-1-3-21"], "master_id":
+        28613, "master_url": "https://api.discogs.com/masters/28613", "uri": "/Kate-Bush-The-Dreaming/master/28613",
+        "catno": "EMC 3419", "title": "Kate Bush - The Dreaming", "thumb": "https://img.discogs.com/sOgPLrKY7A29qQIGM1ly7N2uzV0=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-461384-1116860433.gif.jpg",
+        "cover_image": "https://img.discogs.com/qLrLp9-LKze3ljjnsWYGb423daI=/fit-in/300x299/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-461384-1116860433.gif.jpg",
+        "resource_url": "https://api.discogs.com/masters/28613", "community": {"want":
+        11618, "have": 18824}}, {"country": "UK", "year": "1989", "format": ["Vinyl",
+        "LP", "Album"], "label": ["EMI", "EMI", "Abbey Road Studios", "Windmill Lane
+        Studios", "Angel Studios", "Kate Bush Music Ltd.", "Novercia Ltd.", "EMI Records
+        Ltd.", "Novercia Ltd.", "EMI Records Ltd.", "The Town House", "EMI Records",
+        "James Upton"], "type": "master", "genre": ["Rock", "Pop"], "style": ["Art
+        Rock"], "id": 5804, "barcode": ["077779307814", "077779 307814", "CC 8910
+        JU", "EMD 1010 A - 2U - 1 - 1 TOWNHOUSE", "EMD 1010  B - 2U - 1 - 3 TOWNHOUSE
+        DMM", "EMD 1010 A - 2U - 1 - 1 TOWNHOUSE", "EMD 1010  B - 1U 1 - - 1 - 1 TOWNHOUSE
+        DMM", "EMD 1010 A-1U-1-2 D TOWNHOUSE DMM", "EMD 1010 B-1U--1- D TOWNHOUSE
+        DMM", "EMD 1010 A-2U-1- 1 TOWNHOUSE", "EM 1010 B-2U-1- 1 TOWNHOUSE", "EMD
+        1010 A-2U-1-1 TOWNHOUSE", "EMD 1010 B-1U-1-1 TOWNHOUSE DMM D"], "master_id":
+        5804, "master_url": "https://api.discogs.com/masters/5804", "uri": "/Kate-Bush-The-Sensual-World/master/5804",
+        "catno": "EMD 1010", "title": "Kate Bush - The Sensual World", "thumb": "https://img.discogs.com/43iLaoLs69jguJB4FFdCJg57AIo=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-264474-1159610478.jpeg.jpg",
+        "cover_image": "https://img.discogs.com/mud_pnvtZ5962Oj1-8vTXBnKvSQ=/fit-in/599x600/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-264474-1159610478.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/masters/5804", "community": {"want":
+        8313, "have": 16796}}, {"country": "UK", "year": "1985", "format": ["Vinyl",
+        "7\"", "45 RPM", "Single"], "label": ["EMI", "Kate Bush Music Ltd.", "EMI",
+        "Novercia Ltd.", "Novercia Ltd.", "The Town House"], "type": "master", "genre":
+        ["Electronic", "Rock"], "style": ["Pop Rock", "Synth-pop", "Experimental"],
+        "id": 28695, "barcode": ["TOWNHOUSE", "KB 1 A-3U-1-2-5", "KB 1 B-3U-1-1-12",
+        "KB 1 A-3U-1-5-2", "KB 1 B-3U-1-2-11", "KB 1 A-3U-1-1-23", "KB 1 B-3U-1-4-10",
+        "KB 1 A-3U-1-5--2", "KB 1 B-3U-1-5--4", "KB 1 A-3U-1-2--4", "KB 1 B-3U-1-4--4",
+        "KB 1 A-3U-1-1--7", "KB 1 B-3U-2--12"], "master_id": 28695, "master_url":
+        "https://api.discogs.com/masters/28695", "uri": "/Kate-Bush-Running-Up-That-Hill/master/28695",
+        "catno": "KB 1", "title": "Kate Bush - Running Up That Hill", "thumb": "https://img.discogs.com/pNaGcIvRo2k5ZwWiqZf2H38KVwI=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-584710-1213637421.jpeg.jpg",
+        "cover_image": "https://img.discogs.com/jti1HbEroRXfXUN-5gEmWVHwZ80=/fit-in/600x597/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-584710-1213637421.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/masters/28695", "community": {"want":
+        7243, "have": 12337}}, {"country": "UK & Europe", "year": "2005", "format":
+        ["CD", "Album"], "label": ["EMI", "EMI", "EMI", "Abbey Road Studios", "Abbey
+        Road Studios", "Kate Bush", "Noble And Brite", "Kate Bush", "Noble And Brite",
+        "EMI Records Ltd.", "Kate Bush", "Noble And Brite", "EMI Records Ltd.", "www.mediamotion.com"],
+        "type": "master", "genre": ["Rock", "Pop"], "style": ["Art Rock", "Pop Rock"],
+        "id": 28811, "barcode": ["0 94634 39602 8", "094634396028", "Bel Biem", "LC0542",
+        "343 961 2", "343 964 2", "WWW.MEDIAMOTION.COM 3439612 @ 3 030107-NL", "IFPI
+        LW04", "IFPI AAHE4", "WWW.MEDIAMOTION.COM 3439642 @ 2 020103-NL", "IFPI LW03",
+        "ifpi AAH12", "WWW.MEDIAMOTION.COM 3439612 @ 3 030423-NL", "IFPI LW04", "ifpi
+        AAH61", "WWW.MEDIAMOTION.COM 3439642 @ 2 020119-NL", "IFPI LW03", "ifpi AAH12",
+        "WWW.MEDIAMOTION.COM 3439612 @ 3 030121-NL", "IFPI LW04", "ifpi AAHG5", "WWW.MEDIAMOTION.COM
+        3439642 @ 2 020227-NL", "IFPI LW03", "ifpi AAHA7", "WWW.MEDIAMOTION.COM 3439612
+        @ 3 030406-NL", "IFPI LW04", "ifpi AAH28", "WWW.MEDIAMOTION.COM 3439642 @
+        2 020227-NL", "IFPI LW03", "ifpi AAHA7", "WWW.MEDIAMOTION.COM 3439612 @ 3
+        030110-NL", "IFPI LW04", "ifpi AAH96", "WWW.MEDIAMOTION.COM 3439642 @ 2 020101-NL",
+        "IFPI LW03", "ifpi AAH48", "WWW.MEDIAMOTION.COM 3439612 @ 3 030110-NL", "IFPI
+        LW04", "ifpi AAH96", "WWW.MEDIAMOTION.COM 3439642 @ 2 020202-NL", "IFPI LW03",
+        "IFPI 1528", "WWW.MEDIAMOTION.COM 3439612 @ 3 030110-NL", "IFPI LW04", "ifpi
+        AAH96", "WWW.MEDIAMOTION.COM 3439642 @ 2 020202-NL", "IFPI LW03", "ifpi 15A4",
+        "WWW.MEDIAMOTION.COM 3439612 @ 3 030110-NL", "IFPI LW04", "ifpi AAH96", "WWW.MEDIAMOTION.COM
+        3439642 @ 2 020204-NL", "IFPI LW03", "ifpi 15A4", "WWW.MEDIAMOTION.COM 3439612
+        @ 3 030110-NL", "IFPI LW04", "ifpi AAH96", "WWW.MEDIAMOTION.COM 3439642 @
+        1 010101-NL", "IFPI LW04", "ifpi AAH12", "WWW.MEDIAMOTION.COM 3439612 @ 3
+        030202-NL", "IFPI LW04", "ifpi AAH26", "WWW.MEDIAMOTION.COM 3439642 @ 2 020204-NL",
+        "IFPI LW03", "ifpi 15A4", "WWW.MEDIAMOTION.COM 3439612 @ 3 ", "IFPI LW04",
+        "IFPI 0772", "WWW.MEDIAMOTION.COM 3439642 @ 2", "IFPI LW03", "IFPI 0797",
+        "WWW.MEDIAMOTION.COM 3439612 @ 3 030108-NL", "IFPI LW04", "ifpi AAH28", "WWW.MEDIAMOTION.COM
+        3439642 @ 2 020210-NL", "IFPI LW03", "IFPI AAH24", "WWW.MEDIAMOTION.COM 3439612
+        @ 3 030110-NL", "IFPI LW04", "ifpi AAH96", "WWW.MEDIAMOTION.COM 3439642 @
+        2 020117-NL", "IFPI LW03", "ifpi AAH26", "WWW.MEDIAMOTION.COM 3439612 @ 3
+        030109-NL", "IFPI LW04", "ifpi 1528", "WWW.MEDIAMOTION.COM 3439642 @ 1 010201-NL",
+        "IFPI LW04", "ifpi AAH27", "WWW.MEDIAMOTION.COM 3439612 @ 3 030113-NL", "IFPI
+        LW04", "IFPI AAH71", "WWW.MEDIAMOTION.COM 3439642 @ 2 020103-NL", "IFPI LW03",
+        "ifpi AAH12", "WWW.MEDIAMOTION.COM 3439612 @ 3 030101-NL", "IFPI LW04", "ifpi
+        AAH28", "WWW.MEDIAMOTION.COM 3439642 @ 2 020103-NL", "IFPI LW03", "ifpi AAH12",
+        "WWW.MEDIAMOTION.COM 3439612 @ 3 030105-NL", "IFPI LW04", "IFPI AAH49", "WWW.MEDIAMOTION.COM
+        3439642 @ 1 010101-NL", "IFPI LW04", "ifpi AAH12", "WWW.MEDIAMOTION.COM 3439612
+        @ 3 030414-NL", "IFPI LW04", "IFPI AAHD4", "WWW.MEDIAMOTION.COM 3439642 @
+        2 020119-NL", "IFPI LW03", "ifpi AAH95", "WWW.MEDIAMOTION.COM 3439612 @ 3
+        030414-NL", "IFPI LW04", "ifpi AAH19", "WWW.MEDIAMOTION.COM 3439642 @ 2 020120-NL",
+        "IFPI LW03", "ifpi AAH67", "WWW.MEDIAMOTION.COM 3439612 @ 3", "IFPI LW04",
+        "IFPI 0753", "WWW.MEDIAMOTION.COM 3439642 @ 2", "IFPI LW03", "IFPI 0783",
+        "WWW.MEDIAMOTION.COM 3439612 @ 3 030108-NL", "IFPI LW04", "ifpi AAHF1", "WWW.MEDIAMOTION.COM
+        3439612 @ 2 020103-NL", "IFPI LW03", "ifpi AAH12", "WWW.MEDIAMOTION.COM 3439612
+        @ 3 030414-NL", "IFPI LW04", "ifpi AAHD4", "WWW.MEDIAMOTION.COM 3439642 @
+        2 020229-NL", "IFPI LW03", "ifpi AAH66", "WWW.MEDIAMOTION.COM 3439612 @ 3
+        030423-NL", "IFPI LW04", "ifpi AAH80", "WWW.MEDIAMOTION.COM 3439612 @ 2 020119-NL",
+        "IFPI LW03", "ifpi AAH95", "WWW.MEDIAMOTION.COM 3439612 @ 3 030105-NL", "IFPI
+        LW04", "IFPI AAH49", "WWW.MEDIAMOTION.COM 3439642 @ 2 020103-NL", "IFPI LW03",
+        "IFPI AAH12", "WWW.MEDIAMOTION.COM 3439612 @ 3 030423-NL", "IFPI LW04", "ifpi
+        AAH80", "WWW.MEDIAMOTION.COM 3439642 @ 2 020120-NL", "IFPI LW03", "ifpi 1566",
+        "WWW.MEDIAMOTION.COM 3439612 @ 3 030112-NL", "IFPI LW04", "Ifpi AAH20", "WWW.MEDIAMOTION.COM
+        3439642 @ 2 020201-NL", "IFPI LW03", "Ifpi 15E7", "WWW.MEDIAMOTION.COM 3439612
+        @ 3 030110-NL", "IFPI LW04", "IFPI AAH96", "WWW.MEDIAMOTION.COM 3439642 @
+        2 020203-NL", "IFPI LW03", "AAH13", "WWW.MEDIAMOTION.COM 3439612 @ 3", "IFPI
+        LW04", "IFPI 0772", "WWW.MEDIAMOTION.COM 3439642 @ 2", "IFPI LW03", "IFPI
+        0783", "WWW.MEDIAMOTION.COM 3439612 @ 3 030113-NL", "IFPI LW04", "IFPI AAH71",
+        "WWW.MEDIAMOTION.COM 3439642 @ 2 020202-NL", "IFPI LW03", "IFPI 15A4", "WWW.MEDIAMOTION.COM
+        3439612 @ 3 030109-NL", "IFPI LW04", "IFPI AAH28", "WWW.MEDIAMOTION.COM 3439642
+        @ 2 020201-NL", "IFPI LW03", "ifpi 15E7", "WWW.MEDIAMOTION.COM 3439612 @ 3
+        030202-NL", "IFPI LW04", "ifpi AAH26", "WWW.MEDIAMOTION.COM 3439642 @ 2 020201-NL",
+        "IFPI LW03", "ifpi 15E7"], "master_id": 28811, "master_url": "https://api.discogs.com/masters/28811",
+        "uri": "/Kate-Bush-Aerial/master/28811", "catno": "0946 3 43960 2 8", "title":
+        "Kate Bush - Aerial", "thumb": "https://img.discogs.com/j-9uzkBNqji4k2oXQ2QdEuoPmz0=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-559101-1395432130-8923.jpeg.jpg",
+        "cover_image": "https://img.discogs.com/4DV3albn5DGtkO5Q57_3FzW_OSs=/fit-in/600x532/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-559101-1395432130-8923.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/masters/28811", "community": {"want":
+        3506, "have": 10500}}, {"country": "UK", "year": "1985", "format": ["Vinyl",
+        "7\"", "Single", "45 RPM"], "label": ["EMI", "EMI Music Publishing Ltd.",
+        "Kate Bush Music Ltd.", "Novercia Ltd.", "Novercia Ltd.", "The Town House",
+        "EMI Records"], "type": "master", "genre": ["Electronic", "Rock", "Pop"],
+        "style": ["Alternative Rock", "Synth-pop"], "id": 28665, "barcode": ["FOR
+        PEEPS KB 2 A-3U-1-Q2-5", "TOWNHOUSE KB 2 B-3U-1-Q2- 4"], "master_id": 28665,
+        "master_url": "https://api.discogs.com/masters/28665", "uri": "/Kate-Bush-Cloudbusting/master/28665",
+        "catno": "KB 2", "title": "Kate Bush - Cloudbusting", "thumb": "https://img.discogs.com/5R0IY4fh3xlZVnxJkwouc3hoDWo=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-484871-1280782355.jpeg.jpg",
+        "cover_image": "https://img.discogs.com/aIV9d5KUsWQGn2p9QG3Ttdf27XU=/fit-in/600x605/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-484871-1280782355.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/masters/28665", "community": {"want":
+        2167, "have": 5766}}, {"country": "UK", "year": "1980", "format": ["Vinyl",
+        "7\"", "45 RPM", "Single"], "label": ["EMI", "EMI Records Ltd.", "Novercia
+        Ltd.", "Novercia Ltd.", "EMI Music Publishing Ltd.", "Kate Bush Music Ltd."],
+        "type": "master", "genre": ["Rock"], "style": ["Pop Rock", "Experimental"],
+        "id": 28589, "barcode": ["EMI 5085 A-1U C 4 2", "EMI 5085 B-1U 4 3 3", "EMI
+        5085 A-1U C 5 2", "EMI 5085 B-1U 1 5 2", "EMI 5085 A-1U 14", "EMI 5085 B-1U
+        13"], "master_id": 28589, "master_url": "https://api.discogs.com/masters/28589",
+        "uri": "/Kate-Bush-Babooshka/master/28589", "catno": "EMI 5085", "title":
+        "Kate Bush - Babooshka", "thumb": "https://img.discogs.com/W9Woih7iGVC7PC-RrraheThmmKQ=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-459095-1165621907.jpeg.jpg",
+        "cover_image": "https://img.discogs.com/N9PRadcJg98X6-1doUg24TDt0_Q=/fit-in/600x599/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-459095-1165621907.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/masters/28589", "community": {"want":
+        1578, "have": 5500}}, {"country": "Europe", "year": "1993", "format": ["CD",
+        "Album"], "label": ["EMI United Kingdom", "EMI United Kingdom", "Novercia
+        Ltd.", "Novercia Ltd.", "EMI Records Ltd.", "Abbey Road Studios", "EMI Uden",
+        "EMI", "EMI"], "type": "master", "genre": ["Rock"], "style": ["Pop Rock"],
+        "id": 28785, "barcode": ["7 24382 72772 9", "724382727729", "LC 0542", "BIEM
+        / STEMRA", "PM 520", "827277 2 @ 1 1-3-22-NL", "827277 2 @ 1 1-3-16-NL", "827277
+        2 @ 1 1-3-27-NL", "827277 2 @ 1 1-4-1-NL", "827277 2 @ 1 1-5-5-NL", "827277
+        2 @ 1 1-3-24-NL", "827277 2 @ 1", "827277 2 @ 1 1-3-28-NL", "827277 2 @ 1
+        1-3-9-NL", "827277 2 @ 1 1-3-18-NL"], "master_id": 28785, "master_url": "https://api.discogs.com/masters/28785",
+        "uri": "/Kate-Bush-The-Red-Shoes/master/28785", "catno": "CDEMD 1047", "title":
+        "Kate Bush - The Red Shoes", "thumb": "https://img.discogs.com/6jx4Yh4LDjhZcsxH9s7Z0WW82QU=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-686910-1305486386.jpeg.jpg",
+        "cover_image": "https://img.discogs.com/Yj2leXa5CEMICP1Xz8FY6UiTjTk=/fit-in/600x588/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-686910-1305486386.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/masters/28785", "community": {"want":
+        5094, "have": 8093}}, {"country": "UK", "year": "1999", "format": ["CD", "Album"],
+        "label": ["Dressed To Kill"], "type": "master", "genre": ["Pop"], "style":
+        ["Vocal"], "id": 1203611, "barcode": ["666629108925"], "master_id": 1203611,
+        "master_url": "https://api.discogs.com/masters/1203611", "uri": "/E-Clypse-Featuring-Jemma-Price-A-Tribute-To-Kate-Bush/master/1203611",
+        "catno": "DOP152", "title": "E-Clypse Featuring Jemma Price - A Tribute To
+        Kate Bush", "thumb": "https://img.discogs.com/jH2mQbcH-PTWbkFG93VMY7rePUE=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-10511936-1498957199-1799.jpeg.jpg",
+        "cover_image": "https://img.discogs.com/gb00J4YfwHHVDJLQ3WNe4dBoai4=/fit-in/600x600/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-10511936-1498957199-1799.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/masters/1203611", "community": {"want":
+        9, "have": 46}}, {"country": "UK", "year": "1978", "format": ["Vinyl", "7\"",
+        "Single", "45 RPM"], "label": ["EMI", "EMI Records Ltd.", "EMI Records Ltd."],
+        "type": "master", "genre": ["Rock"], "style": ["Folk Rock", "Pop Rock", "Art
+        Rock"], "id": 28548, "barcode": ["EMI 2719 A-1", "EMI 2719 B-1", "REMEMBER
+        THE WHALES !", "EMI 2719A", "EMI 2719B"], "master_id": 28548, "master_url":
+        "https://api.discogs.com/masters/28548", "uri": "/Kate-Bush-Wuthering-Heights/master/28548",
+        "catno": "EMI 2719", "title": "Kate Bush - Wuthering Heights", "thumb": "https://img.discogs.com/HIbF5bQtHgzkJCjs5LQkzMgs9tA=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-459101-1280777508.jpeg.jpg",
+        "cover_image": "https://img.discogs.com/JKAPNDt1la_Nn8gllw3Fr4ctrU4=/fit-in/600x602/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-459101-1280777508.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/masters/28548", "community": {"want":
+        4247, "have": 7829}}, {"country": "UK & Europe", "year": "2011", "format":
+        ["CD", "Album"], "label": ["Fish People", "Noble & Brite Ltd.", "Noble & Brite
+        Ltd.", "Abbey Road Studios", "Noble & Brite Ltd.", "Fish People"], "type":
+        "master", "genre": ["Rock"], "style": ["Alternative Rock", "Acoustic", "Pop
+        Rock"], "id": 386159, "barcode": ["5099972986622", "FPCD007 50673", "IFPI
+        L213", "IFPI 3720", "IFPI 3705", "IFPI 3721"], "master_id": 386159, "master_url":
+        "https://api.discogs.com/masters/386159", "uri": "/Kate-Bush-50-Words-For-Snow/master/386159",
+        "catno": "FPCD007", "title": "Kate Bush - 50 Words For Snow", "thumb": "https://img.discogs.com/gSA9o4_3PnMAthx_4_pM1IpKWuM=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-3235127-1336563603-5872.jpeg.jpg",
+        "cover_image": "https://img.discogs.com/AdiXwL_CNqRJ6LxRjS0VbNYyyBs=/fit-in/600x551/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-3235127-1336563603-5872.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/masters/386159", "community": {"want":
+        1874, "have": 6964}}]}'
+  recorded_at: Tue, 25 May 2021 09:21:45 GMT
+recorded_with: VCR 6.0.0

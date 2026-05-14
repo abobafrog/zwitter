@@ -1,0 +1,56 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://ws.audioscrobbler.com/2.0?api_key=<LASTFM_API_KEY>&artist=wild%20nothing&autocorrect=0&format=json&limit=5&method=artist.getTopAlbums&page=2
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.7445.3
+        Safari/537.36
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - openresty/1.13.6.2
+      Date:
+      - Mon, 27 Oct 2025 21:06:02 GMT
+      Content-Type:
+      - application/json; charset=UTF-8
+      Content-Length:
+      - '3655'
+      Access-Control-Request-Headers:
+      - Origin, X-Atmosphere-tracking-id, X-Atmosphere-Framework, X-Cache-Date, Content-Type,
+        X-Atmosphere-Transport, *
+      Access-Control-Allow-Methods:
+      - POST, GET, OPTIONS
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Max-Age:
+      - '86400'
+      Via:
+      - 1.1 google
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+    body:
+      encoding: UTF-8
+      string: '{"topalbums":{"album":[{"name":"Indigo","playcount":1176566,"mbid":"d3001cdd-bea7-45c8-a8bc-730676967bdb","url":"https://www.last.fm/music/Wild+Nothing/Indigo","artist":{"name":"Wild
+        Nothing","mbid":"a181595e-5b84-4439-a5f4-f548ddfb64df","url":"https://www.last.fm/music/Wild+Nothing"},"image":[{"#text":"https://lastfm.freetls.fastly.net/i/u/34s/ffe0345f1e6bb0728de877faeb1917c9.png","size":"small"},{"#text":"https://lastfm.freetls.fastly.net/i/u/64s/ffe0345f1e6bb0728de877faeb1917c9.png","size":"medium"},{"#text":"https://lastfm.freetls.fastly.net/i/u/174s/ffe0345f1e6bb0728de877faeb1917c9.png","size":"large"},{"#text":"https://lastfm.freetls.fastly.net/i/u/300x300/ffe0345f1e6bb0728de877faeb1917c9.png","size":"extralarge"}],"@attr":{"rank":"1"}},{"name":"Blue
+        Wings","playcount":274223,"mbid":"9359d598-24c4-4dcb-8e85-bfb1bea3677c","url":"https://www.last.fm/music/Wild+Nothing/Blue+Wings","artist":{"name":"Wild
+        Nothing","mbid":"a181595e-5b84-4439-a5f4-f548ddfb64df","url":"https://www.last.fm/music/Wild+Nothing"},"image":[{"#text":"https://lastfm.freetls.fastly.net/i/u/34s/dd033b0c73ea5970fb5a941d35cbc2f9.png","size":"small"},{"#text":"https://lastfm.freetls.fastly.net/i/u/64s/dd033b0c73ea5970fb5a941d35cbc2f9.png","size":"medium"},{"#text":"https://lastfm.freetls.fastly.net/i/u/174s/dd033b0c73ea5970fb5a941d35cbc2f9.png","size":"large"},{"#text":"https://lastfm.freetls.fastly.net/i/u/300x300/dd033b0c73ea5970fb5a941d35cbc2f9.png","size":"extralarge"}],"@attr":{"rank":"2"}},{"name":"Shallow
+        Water","playcount":114400,"url":"https://www.last.fm/music/Wild+Nothing/Shallow+Water","artist":{"name":"Wild
+        Nothing","mbid":"a181595e-5b84-4439-a5f4-f548ddfb64df","url":"https://www.last.fm/music/Wild+Nothing"},"image":[{"#text":"https://lastfm.freetls.fastly.net/i/u/34s/fa8ed440edf61f796cdbd6e9b5ff1f70.png","size":"small"},{"#text":"https://lastfm.freetls.fastly.net/i/u/64s/fa8ed440edf61f796cdbd6e9b5ff1f70.png","size":"medium"},{"#text":"https://lastfm.freetls.fastly.net/i/u/174s/fa8ed440edf61f796cdbd6e9b5ff1f70.png","size":"large"},{"#text":"https://lastfm.freetls.fastly.net/i/u/300x300/fa8ed440edf61f796cdbd6e9b5ff1f70.png","size":"extralarge"}],"@attr":{"rank":"3"}},{"name":"Foyer","playcount":134703,"url":"https://www.last.fm/music/Wild+Nothing/Foyer","artist":{"name":"Wild
+        Nothing","mbid":"a181595e-5b84-4439-a5f4-f548ddfb64df","url":"https://www.last.fm/music/Wild+Nothing"},"image":[{"#text":"https://lastfm.freetls.fastly.net/i/u/34s/718ad9f879c0e80a60f4a321c453b26c.png","size":"small"},{"#text":"https://lastfm.freetls.fastly.net/i/u/64s/718ad9f879c0e80a60f4a321c453b26c.png","size":"medium"},{"#text":"https://lastfm.freetls.fastly.net/i/u/174s/718ad9f879c0e80a60f4a321c453b26c.png","size":"large"},{"#text":"https://lastfm.freetls.fastly.net/i/u/300x300/718ad9f879c0e80a60f4a321c453b26c.png","size":"extralarge"}],"@attr":{"rank":"4"}},{"name":"Letting
+        Go","playcount":107220,"url":"https://www.last.fm/music/Wild+Nothing/Letting+Go","artist":{"name":"Wild
+        Nothing","mbid":"a181595e-5b84-4439-a5f4-f548ddfb64df","url":"https://www.last.fm/music/Wild+Nothing"},"image":[{"#text":"https://lastfm.freetls.fastly.net/i/u/34s/2a2ffeb43047d7484a3e4b42e9a638a0.png","size":"small"},{"#text":"https://lastfm.freetls.fastly.net/i/u/64s/2a2ffeb43047d7484a3e4b42e9a638a0.png","size":"medium"},{"#text":"https://lastfm.freetls.fastly.net/i/u/174s/2a2ffeb43047d7484a3e4b42e9a638a0.png","size":"large"},{"#text":"https://lastfm.freetls.fastly.net/i/u/300x300/2a2ffeb43047d7484a3e4b42e9a638a0.png","size":"extralarge"}],"@attr":{"rank":"5"}}],"@attr":{"artist":"Wild
+        Nothing","page":"2","perPage":"5","totalPages":"1283","total":"6413"}}}'
+  recorded_at: Mon, 27 Oct 2025 21:06:02 GMT
+recorded_with: VCR 6.3.1

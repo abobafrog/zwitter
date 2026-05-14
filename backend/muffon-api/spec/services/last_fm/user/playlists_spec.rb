@@ -1,0 +1,45 @@
+RSpec.describe LastFM::User::Playlists do
+  subject { described_class }
+
+  describe 'successful processing' do
+    context 'when user exists' do
+      let(:output) do
+        VCR.use_cassette(
+          'services/lastfm/user/playlists/success'
+        ) do
+          subject.call(
+            skip_profile: true,
+            nickname: 'Wuttin',
+            page: '2'
+          )
+        end
+      end
+
+      it { expect(output).to eq(lastfm_user_playlists_data) }
+    end
+  end
+
+  describe 'no processing' do
+    context 'when no user nickname given' do
+      let(:output) { subject.call }
+
+      it { expect { output }.to raise_error(bad_request_error) }
+    end
+
+    context 'when wrong user nickname' do
+      let(:output) do
+        VCR.use_cassette(
+          'services/lastfm/user/playlists/wrong_nickname'
+        ) do
+          subject.call(
+            skip_profile: true,
+            nickname: random_string,
+            page: '2'
+          )
+        end
+      end
+
+      it { expect { output }.to raise_error(not_found_error) }
+    end
+  end
+end

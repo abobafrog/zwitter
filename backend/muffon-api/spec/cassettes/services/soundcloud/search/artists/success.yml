@@ -1,0 +1,64 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://api-v2.soundcloud.com/search/users?client_id=<SOUNDCLOUD_TEST_CLIENT_ID>&limit=5&offset=5&q=wild%20nothing
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.7445.3
+        Safari/537.36
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+      Content-Length:
+      - '5777'
+      Connection:
+      - keep-alive
+      X-Robots-Tag:
+      - noindex
+      Cache-Control:
+      - private, max-age=0
+      Referrer-Policy:
+      - no-referrer
+      X-Frame-Options:
+      - DENY
+      X-Content-Type-Options:
+      - nosniff
+      Strict-Transport-Security:
+      - max-age=63072000
+      Server:
+      - am/2
+      Date:
+      - Sat, 13 Dec 2025 17:27:13 GMT
+      Vary:
+      - Origin
+      X-Cache:
+      - Miss from cloudfront
+      Via:
+      - 1.1 cba85c100a294e3d2360b9852eb535fc.cloudfront.net (CloudFront)
+      X-Amz-Cf-Pop:
+      - WAW51-P4
+      X-Amz-Cf-Id:
+      - CFbdMrS_bJJyCNh4P12NRBTa6z90bpQKUwDftHj4bvNGjWMCbMhrJg==
+    body:
+      encoding: ASCII-8BIT
+      string: '{"collection":[{"avatar_url":"https://i1.sndcdn.com/avatars-000116376648-n9r9k3-large.jpg","city":null,"comments_count":0,"country_code":null,"created_at":"2014-11-13T13:15:27Z","creator_subscriptions":[{"product":{"id":"free"}}],"creator_subscription":{"product":{"id":"free"}},"description":null,"followers_count":8,"followings_count":0,"first_name":"","full_name":"","groups_count":0,"id":122720593,"kind":"user","last_modified":"2016-02-08T22:56:30Z","last_name":"","likes_count":0,"playlist_likes_count":0,"permalink":"wild-about-nothing","permalink_url":"https://soundcloud.com/wild-about-nothing","playlist_count":0,"reposts_count":null,"track_count":22,"uri":"https://api.soundcloud.com/users/soundcloud%3Ausers%3A122720593","urn":"soundcloud:users:122720593","username":"Wild
+        About Nothing","verified":false,"visuals":null,"badges":{"pro":false,"creator_mid_tier":false,"pro_unlimited":false,"verified":false},"station_urn":"soundcloud:system-playlists:artist-stations:122720593","station_permalink":"artist-stations:122720593","date_of_birth":null},{"avatar_url":"https://i1.sndcdn.com/avatars-000176818356-t8whgb-large.jpg","city":null,"comments_count":0,"country_code":null,"created_at":"2013-03-16T17:43:03Z","creator_subscriptions":[{"product":{"id":"free"}}],"creator_subscription":{"product":{"id":"free"}},"description":null,"followers_count":21,"followings_count":28,"first_name":"Alessandra","full_name":"Alessandra
+        Casula","groups_count":0,"id":39290477,"kind":"user","last_modified":"2016-05-19T09:08:50Z","last_name":"Casula","likes_count":29,"playlist_likes_count":0,"permalink":"alessandra-casula-1","permalink_url":"https://soundcloud.com/alessandra-casula-1","playlist_count":1,"reposts_count":null,"track_count":0,"uri":"https://api.soundcloud.com/users/soundcloud%3Ausers%3A39290477","urn":"soundcloud:users:39290477","username":"Wild
+        or Nothing","verified":false,"visuals":{"urn":"soundcloud:users:39290477","enabled":true,"visuals":[{"urn":"soundcloud:visuals:2588519","entry_time":0,"visual_url":"https://i1.sndcdn.com/visuals-000039290477-XlHDgc-original.jpg"}],"tracking":null},"badges":{"pro":false,"creator_mid_tier":false,"pro_unlimited":false,"verified":false},"station_urn":"soundcloud:system-playlists:artist-stations:39290477","station_permalink":"artist-stations:39290477","date_of_birth":null},{"avatar_url":"https://i1.sndcdn.com/avatars-jTF5Wb1jVAsQ8Od0-wpCyug-large.jpg","city":"","comments_count":0,"country_code":null,"created_at":"2015-01-31T20:11:34Z","creator_subscriptions":[{"product":{"id":"free"}}],"creator_subscription":{"product":{"id":"free"}},"description":"","followers_count":2,"followings_count":22,"first_name":"Victor","full_name":"Victor
+        Pacheco","groups_count":0,"id":136036758,"kind":"user","last_modified":"2021-10-26T23:04:59Z","last_name":"Pacheco","likes_count":203,"playlist_likes_count":1,"permalink":"victor-pacheco-65","permalink_url":"https://soundcloud.com/victor-pacheco-65","playlist_count":0,"reposts_count":null,"track_count":0,"uri":"https://api.soundcloud.com/users/soundcloud%3Ausers%3A136036758","urn":"soundcloud:users:136036758","username":"NothingWild","verified":false,"visuals":null,"badges":{"pro":false,"creator_mid_tier":false,"pro_unlimited":false,"verified":false},"station_urn":"soundcloud:system-playlists:artist-stations:136036758","station_permalink":"artist-stations:136036758","date_of_birth":null},{"avatar_url":"https://a1.sndcdn.com/images/default_avatar_large.png","city":null,"comments_count":0,"country_code":null,"created_at":"2022-02-02T16:11:49Z","creator_subscriptions":[{"product":{"id":"free"}}],"creator_subscription":{"product":{"id":"free"}},"description":null,"followers_count":0,"followings_count":11,"first_name":"wild
+        blue","full_name":"wild blue","groups_count":0,"id":1081154629,"kind":"user","last_modified":"2022-07-12T16:49:53Z","last_name":"","likes_count":29,"playlist_likes_count":2,"permalink":"user-612836496yyyyyyy","permalink_url":"https://soundcloud.com/user-612836496yyyyyyy","playlist_count":0,"reposts_count":null,"track_count":0,"uri":"https://api.soundcloud.com/users/soundcloud%3Ausers%3A1081154629","urn":"soundcloud:users:1081154629","username":"nothing.","verified":false,"visuals":null,"badges":{"pro":false,"creator_mid_tier":false,"pro_unlimited":false,"verified":false},"station_urn":"soundcloud:system-playlists:artist-stations:1081154629","station_permalink":"artist-stations:1081154629","date_of_birth":null},{"avatar_url":"https://i1.sndcdn.com/avatars-WmUssqmWEqw9xaUm-djrsRA-large.jpg","city":"","comments_count":0,"country_code":"MY","created_at":"2019-09-10T10:37:00Z","creator_subscriptions":[{"product":{"id":"free"}}],"creator_subscription":{"product":{"id":"free"}},"description":"Cho4lrlin3","followers_count":0,"followings_count":10,"first_name":"WizardWild","full_name":"WizardWild
+        Woah","groups_count":0,"id":698529018,"kind":"user","last_modified":"2022-03-02T09:03:55Z","last_name":"Woah","likes_count":92,"playlist_likes_count":4,"permalink":"wizardwild-woah","permalink_url":"https://soundcloud.com/wizardwild-woah","playlist_count":0,"reposts_count":null,"track_count":0,"uri":"https://api.soundcloud.com/users/soundcloud%3Ausers%3A698529018","urn":"soundcloud:users:698529018","username":"WizardWildNothing","verified":false,"visuals":null,"badges":{"pro":false,"creator_mid_tier":false,"pro_unlimited":false,"verified":false},"station_urn":"soundcloud:system-playlists:artist-stations:698529018","station_permalink":"artist-stations:698529018","date_of_birth":null}],"total_results":15,"next_href":"https://api-v2.soundcloud.com/search/users?query_urn=soundcloud%3Asearch%3A24459cd8eb174f6e9e3ba2aa247db62c&limit=5&offset=10&q=wild%20nothing","query_urn":"soundcloud:search:24459cd8eb174f6e9e3ba2aa247db62c"}'
+  recorded_at: Sat, 13 Dec 2025 17:27:13 GMT
+recorded_with: VCR 6.3.1

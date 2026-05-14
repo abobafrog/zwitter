@@ -1,0 +1,55 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://bandcamp.com/api/mobile/22/tralbum_details?band_id=2228040235&tralbum_id=wejlhg239gh23&tralbum_type=a
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - "*/*"
+      User-Agent:
+      - rest-client/2.1.0 (linux-gnu x86_64) ruby/2.7.2p137
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Host:
+      - bandcamp.com
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Connection:
+      - keep-alive
+      Server:
+      - nginx
+      Content-Type:
+      - application/json; charset=UTF-8
+      Cache-Control:
+      - no-cache, no-store
+      Set-Cookie:
+      - BACKENDID=bender21-7; path=/; domain=.bandcamp.com
+      Accept-Ranges:
+      - bytes
+      Date:
+      - Wed, 10 Feb 2021 13:08:12 GMT
+      Via:
+      - 1.1 varnish
+      X-Served-By:
+      - cache-hhn4027-HHN
+      X-Cache:
+      - MISS
+      X-Cache-Hits:
+      - '0'
+      X-Timer:
+      - S1612962492.181477,VS0,VE133
+      Vary:
+      - Accept-Encoding
+      Transfer-Encoding:
+      - chunked
+    body:
+      encoding: ASCII-8BIT
+      string: '{"error_message":"bad tralbum_id: ''wejlhg239gh23''","error":true}'
+  recorded_at: Wed, 10 Feb 2021 13:08:11 GMT
+recorded_with: VCR 6.0.0

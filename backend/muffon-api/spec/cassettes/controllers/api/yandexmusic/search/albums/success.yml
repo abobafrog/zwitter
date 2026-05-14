@@ -1,0 +1,77 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://music.yandex.ru/handlers/music-search.jsx?language=en&page=0&text=kate%20bush&type=album
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Faraday v2.10.0
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 13 Jul 2024 14:08:19 GMT
+      Referrer-Policy:
+      - no-referrer-when-downgrade
+      Report-To:
+      - '{"group": "network-errors", "max_age": 86400, "endpoints": [{"url": "https://dr.yandex.net/muz_nel"}]}'
+      Set-Cookie:
+      - _yasc=ck5OfWZTXg/JEUrWOLyU/2BiL4kQXVcncirHWvH63sQqHQ+qWdanwtYkGPk1j50ajg==;
+        domain=.yandex.ru; path=/; expires=Tue, 11 Jul 2034 14:08:18 GMT; secure
+      - i=k2cHAnVIU8goQ+45KCth6XR9ErURU6g7PJtbZWh5TaNhRCZlclx1d62tTylU+s7Uu+fMYuKLbtzKeLHiXpt7Y3/X/jU=;
+        Expires=Mon, 13-Jul-2026 14:08:18 GMT; Domain=.yandex.ru; Path=/; Secure;
+        HttpOnly
+      - yandexuid=3460778011720879698; Expires=Mon, 13-Jul-2026 14:08:18 GMT; Domain=.yandex.ru;
+        Path=/; Secure
+      - yashr=6093882391720879698; Path=/; Domain=.yandex.ru; Expires=Sun, 13 Jul
+        2025 14:08:18 GMT; Secure; HttpOnly
+      Strict-Transport-Security:
+      - max-age=31536000
+      Transfer-Encoding:
+      - chunked
+      X-Compat:
+      - '5'
+      X-Content-Type-Options:
+      - nosniff
+      X-Powered-By:
+      - Express
+      X-Xss-Protection:
+      - 1; mode=block
+      Nel:
+      - '{"report_to": "network-errors", "max_age": 86400, "success_fraction": 0.001,
+        "failure_fraction": 0.1}'
+    body:
+      encoding: ASCII-8BIT
+      string: '{"text":"kate bush","albums":{"items":[{"id":198406,"title":"Kate Bush","metaType":"music","contentWarning":"explicit","year":2008,"releaseDate":"2008-07-21T00:00:00+04:00","coverUri":"avatars.yandex.net/get-music-content/41288/8af15f3d.a.198406-1/%%","ogImage":"avatars.yandex.net/get-music-content/41288/8af15f3d.a.198406-1/%%","genre":"electronics","trackCount":6,"likesCount":2,"recent":false,"veryImportant":false,"artists":[{"id":329546,"name":"Viva
+        City","various":false,"composer":false,"available":true,"cover":{"type":"from-album-cover","uri":"avatars.yandex.net/get-music-content/4467280/8f3762ca.a.15039700-1/%%","prefix":"8f3762ca.a.15039700-1"},"genres":[],"disclaimers":[]}],"available":true,"availableForPremiumUsers":true,"availableForOptions":["bookmate"],"availableForMobile":true,"availablePartially":false,"bests":[],"disclaimers":["explicit"],"labels":["Vert"],"storageDir":"8af15f3d.a.198406-1","regions":["RUSSIA","RUSSIA_PREMIUM"],"availableRegions":["tj","az","by","tm","kg","md","am","ru","kz","ua","ge","uz"]},{"id":9289032,"title":"Kate
+        Bush","type":"single","metaType":"music","year":2019,"releaseDate":"2019-12-09T00:00:00+03:00","coverUri":"avatars.yandex.net/get-music-content/2114230/de894b92.a.9289032-1/%%","ogImage":"avatars.yandex.net/get-music-content/2114230/de894b92.a.9289032-1/%%","genre":"techno","trackCount":1,"likesCount":2,"recent":false,"veryImportant":false,"artists":[{"id":7118854,"name":"Sharpson","various":false,"composer":false,"available":true,"cover":{"type":"from-album-cover","uri":"avatars.yandex.net/get-music-content/10703962/f32e45fa.a.27082141-1/%%","prefix":"f32e45fa.a.27082141-1"},"genres":[],"disclaimers":[]}],"available":true,"availableForPremiumUsers":true,"availableForOptions":["bookmate"],"availableForMobile":true,"availablePartially":false,"bests":[],"disclaimers":[],"labels":["Statik"],"storageDir":"de894b92.a.9289032-1","regions":["RUSSIA","RUSSIA_PREMIUM"],"availableRegions":["bh","az","il","sa","ae","tm","qa","kg","md","am","ru","kz","om","ua","ge","tj","kw","by","eg","jo","uz"]},{"id":24376,"title":"Never
+        For Ever","metaType":"music","year":1980,"releaseDate":"1980-09-08T00:00:00+03:00","coverUri":"avatars.yandex.net/get-music-content/42108/67876e03.a.24376-1/%%","ogImage":"avatars.yandex.net/get-music-content/42108/67876e03.a.24376-1/%%","genre":"pop","trackCount":11,"likesCount":1813,"recent":false,"veryImportant":false,"artists":[{"id":15446,"name":"Kate
+        Bush","various":false,"composer":false,"available":true,"cover":{"type":"from-album-cover","uri":"avatars.yandex.net/get-music-content/42108/67876e03.a.24376-1/%%","prefix":"67876e03.a.24376-1"},"genres":[],"disclaimers":[]}],"available":true,"availableForPremiumUsers":true,"availableForOptions":["bookmate"],"availableForMobile":true,"availablePartially":false,"bests":[240529,34174607,240527],"disclaimers":[],"labels":["Parlophone"],"storageDir":"67876e03.a.24376-1","regions":["RUSSIA","RUSSIA_PREMIUM"],"availableRegions":["az","il","tm","kg","md","am","ru","kz","ua","ge","tj","by","uz"]},{"id":24338,"title":"The
+        Kick Inside","metaType":"music","year":1978,"releaseDate":"1978-02-17T00:00:00+03:00","coverUri":"avatars.yandex.net/get-music-content/28589/914a6283.a.24338-1/%%","ogImage":"avatars.yandex.net/get-music-content/28589/914a6283.a.24338-1/%%","genre":"pop","trackCount":13,"likesCount":936,"recent":false,"veryImportant":false,"artists":[{"id":15446,"name":"Kate
+        Bush","various":false,"composer":false,"available":true,"cover":{"type":"from-album-cover","uri":"avatars.yandex.net/get-music-content/42108/67876e03.a.24376-1/%%","prefix":"67876e03.a.24376-1"},"genres":[],"disclaimers":[]}],"available":true,"availableForPremiumUsers":true,"availableForOptions":["bookmate"],"availableForMobile":true,"availablePartially":false,"bests":[240115,34174482,240124],"disclaimers":[],"labels":["Parlophone"],"storageDir":"914a6283.a.24338-1","regions":["RUSSIA","RUSSIA_PREMIUM"],"availableRegions":["az","il","tm","kg","md","am","ru","kz","ua","ge","tj","by","uz"]},{"id":24347,"title":"Lionheart","metaType":"music","year":1978,"releaseDate":"1978-11-13T00:00:00+03:00","coverUri":"avatars.yandex.net/get-music-content/49876/b604b72d.a.24347-1/%%","ogImage":"avatars.yandex.net/get-music-content/49876/b604b72d.a.24347-1/%%","genre":"pop","trackCount":10,"likesCount":427,"recent":false,"veryImportant":false,"artists":[{"id":15446,"name":"Kate
+        Bush","various":false,"composer":false,"available":true,"cover":{"type":"from-album-cover","uri":"avatars.yandex.net/get-music-content/42108/67876e03.a.24376-1/%%","prefix":"67876e03.a.24376-1"},"genres":[],"disclaimers":[]}],"available":true,"availableForPremiumUsers":true,"availableForOptions":["bookmate"],"availableForMobile":true,"availablePartially":false,"bests":[240199,240205],"disclaimers":[],"labels":["Parlophone"],"storageDir":"b604b72d.a.24347-1","regions":["RUSSIA","RUSSIA_PREMIUM"],"availableRegions":["az","il","tm","kg","md","am","ru","kz","ua","ge","tj","by","uz"]},{"id":137012,"title":"Karaoke
+        - Kate Bush","type":"compilation","metaType":"music","year":2008,"releaseDate":"2008-04-14T00:00:00+04:00","coverUri":"avatars.yandex.net/get-music-content/34131/ea285ac1.a.137012-1/%%","ogImage":"avatars.yandex.net/get-music-content/34131/ea285ac1.a.137012-1/%%","trackCount":10,"recent":false,"veryImportant":false,"artists":[{"id":156849,"name":"Karaoke","various":true,"composer":false,"available":true,"cover":{"type":"from-album-cover","uri":"avatars.yandex.net/get-music-content/33216/7bf083b5.a.2002795-1/%%","prefix":"7bf083b5.a.2002795-1"},"genres":[],"disclaimers":[]}],"available":true,"availableForPremiumUsers":true,"availableForOptions":["bookmate"],"availableForMobile":true,"availablePartially":false,"bests":[],"disclaimers":[],"labels":["Ameritz"],"storageDir":"ea285ac1.a.137012-1","regions":["RUSSIA","RUSSIA_PREMIUM"],"availableRegions":["tj","az","by","tm","kg","md","am","ru","kz","ua","ge","uz"]},{"id":2140009,"title":"The
+        Kate Inside (Kate Bush Tribute)","metaType":"music","year":2014,"releaseDate":"2014-09-01T00:00:00+04:00","coverUri":"avatars.yandex.net/get-music-content/41288/3854c7ee.a.2140009-1/%%","ogImage":"avatars.yandex.net/get-music-content/41288/3854c7ee.a.2140009-1/%%","genre":"rock","trackCount":20,"likesCount":2,"recent":false,"veryImportant":false,"artists":[{"id":748878,"name":"Mary
+        Magdelena","various":false,"composer":false,"available":true,"cover":{"type":"from-album-cover","uri":"avatars.yandex.net/get-music-content/5531900/6d9f5237.a.20138550-1/%%","prefix":"6d9f5237.a.20138550-1"},"genres":[],"disclaimers":[]}],"available":true,"availableForPremiumUsers":true,"availableForOptions":["bookmate"],"availableForMobile":true,"availablePartially":false,"bests":[],"disclaimers":[],"labels":["Burning
+        Girl Releases"],"storageDir":"3854c7ee.a.2140009-1","regions":["RUSSIA","RUSSIA_PREMIUM"],"availableRegions":["tj","az","by","tm","kg","md","am","ru","kz","ua","ge","uz"]},{"id":344059,"title":"A
+        Tribute To Kate Bush","type":"compilation","metaType":"music","year":2009,"releaseDate":"2009-10-19T00:00:00+04:00","coverUri":"avatars.yandex.net/get-music-content/63210/b9bca1fd.a.344059-1/%%","ogImage":"avatars.yandex.net/get-music-content/63210/b9bca1fd.a.344059-1/%%","genre":"pop","trackCount":19,"likesCount":5,"recent":false,"veryImportant":false,"artists":[{"id":622868,"name":"This
+        Woman''s Work","various":false,"composer":false,"available":true,"cover":{"type":"from-album-cover","uri":"avatars.yandex.net/get-music-content/63210/b9bca1fd.a.344059-1/%%","prefix":"b9bca1fd.a.344059-1"},"genres":[],"disclaimers":[]}],"available":true,"availableForPremiumUsers":true,"availableForOptions":["bookmate"],"availableForMobile":true,"availablePartially":false,"bests":[3251921,2797679,3251927],"disclaimers":[],"labels":["Lumi
+        OMP"],"storageDir":"b9bca1fd.a.344059-1","regions":["RUSSIA","RUSSIA_PREMIUM"],"availableRegions":["tj","az","by","tm","kg","md","am","ru","kz","ua","ge","uz"]},{"id":29779102,"title":"Just
+        Like Kate Bush","metaType":"music","year":2024,"releaseDate":"2024-03-15T00:00:00+03:00","coverUri":"avatars.yandex.net/get-music-content/5853241/a8a089fd.a.29779102-1/%%","ogImage":"avatars.yandex.net/get-music-content/5853241/a8a089fd.a.29779102-1/%%","genre":"alternative","trackCount":3,"recent":false,"veryImportant":false,"artists":[{"id":4709853,"name":"Richard
+        John-Riley","various":false,"composer":false,"available":true,"cover":{"type":"from-album-cover","uri":"avatars.yandex.net/get-music-content/6386858/6e7a65ed.a.30380960-1/%%","prefix":"6e7a65ed.a.30380960-1"},"genres":[],"disclaimers":[]}],"available":true,"availableForPremiumUsers":true,"availableForOptions":["bookmate"],"availableForMobile":true,"availablePartially":false,"bests":[],"disclaimers":[],"labels":["Richard
+        John-Riley"],"storageDir":"a8a089fd.a.29779102-1","regions":["RUSSIA","RUSSIA_PREMIUM"],"availableRegions":["bh","az","il","sa","ae","tm","qa","kg","md","am","ru","kz","om","ua","ge","tj","kw","by","eg","jo","uz"]},{"id":2376705,"title":"MBM
+        Performs Kate Bush","metaType":"music","year":2014,"releaseDate":"2014-12-15T00:00:00+03:00","coverUri":"avatars.yandex.net/get-music-content/4388221/2f3665d7.a.2376705-5/%%","ogImage":"avatars.yandex.net/get-music-content/4388221/2f3665d7.a.2376705-5/%%","genre":"children","trackCount":6,"likesCount":3,"childContent":true,"recent":false,"veryImportant":false,"artists":[{"id":3039561,"name":"Music
+        Box Mania","various":false,"composer":false,"available":true,"cover":{"type":"from-album-cover","uri":"avatars.yandex.net/get-music-content/5282321/83134447.a.3631377-3/%%","prefix":"83134447.a.3631377-3"},"genres":[],"disclaimers":[]}],"available":true,"availableForPremiumUsers":true,"availableForOptions":["bookmate"],"availableForMobile":true,"availablePartially":false,"bests":[],"disclaimers":[],"labels":["Roma"],"storageDir":"2f3665d7.a.2376705-5","regions":["RUSSIA","RUSSIA_PREMIUM"],"availableRegions":["tj","az","by","tm","kg","md","am","ru","kz","ua","ge","uz"]}],"total":52,"perPage":10,"order":0},"tracks":{"items":[]},"podcasts":{"items":[]},"podcast_episodes":{"items":[]},"artists":{"items":[]},"videos":{"items":[]},"playlists":{"items":[]},"users":{"items":[]},"request_id":"1720879698830166-10381950476682080347.2","searchRequestId":"music-prestable-back-sas-4.sas.yp-c.yandex.net-1720879698830166-10381950476682080347.2-1720879698852","nullifyPage":false,"extendedParams":{},"misspell":{},"pager":{"total":52,"perPage":10,"page":0},"counts":{"artists":3,"albums":52,"tracks":842,"podcasts":0,"podcast_episodes":11,"videos":0,"playlists":31,"users":0}}'
+  recorded_at: Sat, 13 Jul 2024 14:08:19 GMT
+recorded_with: VCR 6.2.0

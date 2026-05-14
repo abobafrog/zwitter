@@ -1,0 +1,47 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://ws.audioscrobbler.com/2.0?api_key=<LASTFM_API_KEY>&artist=Wild%20Nothing&autocorrect=0&format=json&limit=1&method=artist.getTopTracks&page=1
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - "*/*"
+      User-Agent:
+      - rest-client/2.1.0 (linux x86_64) ruby/3.1.2p20
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Host:
+      - ws.audioscrobbler.com
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - openresty/1.13.6.2
+      Date:
+      - Fri, 24 Jun 2022 17:13:22 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '897'
+      Access-Control-Allow-Methods:
+      - POST, GET, OPTIONS
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Max-Age:
+      - '86400'
+      Via:
+      - 1.1 google
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+    body:
+      encoding: UTF-8
+      string: '{"toptracks":{"track":[{"name":"Chinatown","playcount":"1371408","listeners":"232391","mbid":"9a74b1e7-a7a9-46fc-8ad3-58306fdac86f","url":"https://www.last.fm/music/Wild+Nothing/_/Chinatown","streamable":"0","artist":{"name":"Wild
+        Nothing","mbid":"a181595e-5b84-4439-a5f4-f548ddfb64df","url":"https://www.last.fm/music/Wild+Nothing"},"image":[{"#text":"https://lastfm.freetls.fastly.net/i/u/34s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"small"},{"#text":"https://lastfm.freetls.fastly.net/i/u/64s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"medium"},{"#text":"https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"large"},{"#text":"https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png","size":"extralarge"}],"@attr":{"rank":"1"}}],"@attr":{"artist":"Wild
+        Nothing","page":"1","perPage":"1","totalPages":"2822","total":"2822"}}}'
+  recorded_at: Fri, 24 Jun 2022 17:13:22 GMT
+recorded_with: VCR 6.1.0

@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const multer = require('multer');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, optionalAuth } = require('../middleware/auth');
 const {
   searchMusic,
   searchCatalog,
@@ -8,6 +8,8 @@ const {
   resolveCatalogTrack,
   streamMuffonTrack,
   getTrackLyrics,
+  getLikedTracks,
+  toggleTrackLike,
   recognizeTrack,
 } = require('../controllers/music.controller');
 
@@ -17,15 +19,17 @@ const recognizeUpload = multer({
 });
 
 router.get('/muffon/stream/:source/:trackId', streamMuffonTrack);
-router.get('/search', searchMusic);
-router.post('/search', searchMusic);
-router.get('/catalog/search', searchCatalog);
-router.get('/catalog/artist', getArtistCatalog);
-router.get('/catalog/resolve', resolveCatalogTrack);
+router.get('/search', optionalAuth, searchMusic);
+router.post('/search', optionalAuth, searchMusic);
+router.get('/catalog/search', optionalAuth, searchCatalog);
+router.get('/catalog/artist', optionalAuth, getArtistCatalog);
+router.get('/catalog/resolve', optionalAuth, resolveCatalogTrack);
 router.get('/lyrics', getTrackLyrics);
 
 router.use(authenticate);
 
+router.get('/likes', getLikedTracks);
+router.post('/tracks/like', toggleTrackLike);
 router.post('/recognize', recognizeUpload.single('sample'), recognizeTrack);
 
 module.exports = router;

@@ -245,7 +245,7 @@ const useMusicStore = create(
     }),
     {
       name: 'music-storage',
-      version: 10,
+      version: 11,
       migrate: (persistedState) => {
         const playlists = Array.isArray(persistedState?.playlists)
           ? persistedState.playlists.map((playlist) => ({
@@ -254,14 +254,14 @@ const useMusicStore = create(
           })).filter((playlist) => playlist.tracks.length > 0)
           : [];
         return {
-          currentTrack: normalizeTrack(persistedState?.currentTrack),
-          isPlaying: Boolean(persistedState?.isPlaying && normalizeTrack(persistedState?.currentTrack)),
-          isPanelOpen: Boolean(persistedState?.isPanelOpen && normalizeTrack(persistedState?.currentTrack)),
+          currentTrack: null,
+          isPlaying: false,
+          isPanelOpen: false,
           libraryTracks: Array.isArray(persistedState?.libraryTracks)
             ? persistedState.libraryTracks.map(normalizeTrack).filter(Boolean)
             : [],
           history: Array.isArray(persistedState?.history)
-            ? persistedState.history.map(normalizeTrack).filter(Boolean)
+            ? persistedState.history.map(normalizeTrack).filter((track) => track?.source !== 'muffon')
             : [],
           hideExplicit: Boolean(persistedState?.hideExplicit),
           radioSeed: persistedState?.radioSeed || '',

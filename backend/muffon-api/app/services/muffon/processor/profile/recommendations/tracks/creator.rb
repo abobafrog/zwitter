@@ -1,0 +1,85 @@
+module Muffon
+  module Processor
+    module Profile
+      module Recommendations
+        module Tracks
+          class Creator <
+              Muffon::Processor::Profile::Recommendations::Tracks::Base
+            SIMILAR_TRACKS_LIMIT = 200
+
+            private
+
+            def process_recommendations
+              return if library_track.blank?
+
+              similar_tracks.each do |similar_track|
+                process_recommendation(
+                  similar_track
+                )
+              end
+            end
+
+            def library_track
+              if instance_variable_defined?(
+                :@library_track
+              )
+                @library_track
+              else
+                @library_track =
+                  profile
+                  .library_tracks
+                  .find_by(
+                    id: @args[:library_track_id]
+                  )
+              end
+            end
+
+            def similar_tracks
+              @similar_tracks ||= begin
+                ::LastFM::Track::Similar.call(
+                  artist_name:,
+                  track_title:,
+                  limit: SIMILAR_TRACKS_LIMIT,
+                  minimal: true
+                ).dig(
+                  :track,
+                  :similar
+                )
+              rescue Muffon::Error::NotFoundError
+                []
+              end
+            end
+
+            def artist_name
+              track
+                .artist
+                .name
+            end
+
+            def track
+              @track ||= library_track.track
+            end
+
+            def track_title
+              track.title
+            end
+
+            def process_recommendation(
+              raw_similar_track_data
+            )
+              Muffon::Processor::Profile::Recommendation::Track::Creator.call(
+                artist_name:
+                  raw_similar_track_data[:artist][:name],
+                track_title:
+                  raw_similar_track_data[:title],
+                profile_id: @args[:profile_id],
+                library_track_id:
+                  @args[:library_track_id]
+              )
+            end
+          end
+        end
+      end
+    end
+  end
+end

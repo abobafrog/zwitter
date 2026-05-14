@@ -1,0 +1,87 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://ws.audioscrobbler.com/2.0?api_key=<LASTFM_API_KEY>&autocorrect=0&format=json&limit=1&method=tag.getTopArtists&page=1&tag=80s
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - "*/*"
+      User-Agent:
+      - rest-client/2.1.0 (linux x86_64) ruby/3.2.2p53
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Host:
+      - ws.audioscrobbler.com
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - openresty/1.13.6.2
+      Date:
+      - Thu, 11 May 2023 14:24:46 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '804'
+      Access-Control-Allow-Methods:
+      - POST, GET, OPTIONS
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Max-Age:
+      - '86400'
+      Via:
+      - 1.1 google
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+    body:
+      encoding: UTF-8
+      string: '{"topartists":{"artist":[{"name":"a-ha","mbid":"7364dea6-ca9a-48e3-be01-b44ad0d19897","url":"https://www.last.fm/music/a-ha","streamable":"0","image":[{"#text":"https://lastfm.freetls.fastly.net/i/u/34s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"small"},{"#text":"https://lastfm.freetls.fastly.net/i/u/64s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"medium"},{"#text":"https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"large"},{"#text":"https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png","size":"extralarge"},{"#text":"https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png","size":"mega"}],"@attr":{"rank":"1"}}],"@attr":{"tag":"80s","page":"1","perPage":"1","totalPages":"16790","total":"16790"}}}'
+  recorded_at: Thu, 11 May 2023 14:24:47 GMT
+- request:
+    method: get
+    uri: https://ws.audioscrobbler.com/2.0?api_key=<LASTFM_API_KEY>&artist=a-ha&autocorrect=0&format=json&limit=1&method=artist.getTopTracks&page=1
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - "*/*"
+      User-Agent:
+      - rest-client/2.1.0 (linux x86_64) ruby/3.2.2p53
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Host:
+      - ws.audioscrobbler.com
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - openresty/1.13.6.2
+      Date:
+      - Thu, 11 May 2023 14:24:47 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '871'
+      Access-Control-Allow-Methods:
+      - POST, GET, OPTIONS
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Max-Age:
+      - '86400'
+      Via:
+      - 1.1 google
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+    body:
+      encoding: UTF-8
+      string: '{"toptracks":{"track":[{"name":"Take on Me","playcount":"12862164","listeners":"1799473","mbid":"c9bf13e6-619e-4cca-ae0f-512e9a478930","url":"https://www.last.fm/music/a-ha/_/Take+on+Me","streamable":"0","artist":{"name":"a-ha","mbid":"7364dea6-ca9a-48e3-be01-b44ad0d19897","url":"https://www.last.fm/music/a-ha"},"image":[{"#text":"https://lastfm.freetls.fastly.net/i/u/34s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"small"},{"#text":"https://lastfm.freetls.fastly.net/i/u/64s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"medium"},{"#text":"https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"large"},{"#text":"https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png","size":"extralarge"}],"@attr":{"rank":"1"}}],"@attr":{"artist":"a-ha","page":"1","perPage":"1","totalPages":"47213","total":"47213"}}}'
+  recorded_at: Thu, 11 May 2023 14:24:47 GMT
+recorded_with: VCR 6.1.0

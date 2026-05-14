@@ -1,0 +1,58 @@
+plugins:
+  - rubocop-rails
+  - rubocop-rspec
+  - rubocop-rspec_rails
+
+inherit_mode:
+  merge:
+    - Exclude
+
+AllCops:
+  NewCops: enable
+  Exclude:
+    - 'config/**/*'
+    - 'db/**/*'
+    - 'public/**/*'
+    - 'spec/helpers/**/*'
+    - 'spec/spec_helper.rb'
+    - 'Gemfile'
+    - 'Rakefile'
+
+Layout/LineLength:
+  Max: 80
+  Exclude:
+    - 'spec/**/*_spec.rb'
+
+Metrics/ClassLength:
+  Enabled: false
+
+Metrics/ModuleLength:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false
+
+Metrics/BlockLength:
+  Enabled: false
+
+Metrics/ParameterLists:
+  Enabled: false
+
+Rails/SkipsModelValidations:
+  Enabled: false
+
+RSpec/ExampleLength:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Lint/UselessAccessModifier:
+  ContextCreatingMethods:
+    - class_methods
+
+Layout/SpaceAroundOperators:
+  EnforcedStyleForExponentOperator: 'space'

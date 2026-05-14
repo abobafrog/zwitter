@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Howl } from 'howler';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import useMusicStore from '../../store/musicStore';
+import useAuthStore from '../../store/authStore';
 import NavIcon from '../layout/NavIcon';
 import api from '../../services/api';
 import { buildTrackShareUrl } from '../../utils/musicShare';
@@ -55,6 +56,29 @@ const shortenText = (value = '', maxLength = 48) => {
   return `${text.slice(0, Math.max(0, maxLength - 1)).trim()}…`;
 };
 
+const normalizeText = (value = '') => value.toString().toLowerCase().replace(/[^a-z0-9а-яё]+/gi, ' ').replace(/\s+/g, ' ').trim();
+const primaryArtistName = (value = '') => value.toString().split(/,|&| feat\. | feat | x | with /i)[0].trim();
+const trackKeyOf = (track = {}) => {
+  const title = normalizeText(track.title);
+  const artist = normalizeText(primaryArtistName(track.artist || track.channelTitle));
+  return track.trackKey || (title ? `${artist || 'unknown'}::${title}` : '');
+};
+
+const likePayloadFrom = (track) => ({
+  trackKey: trackKeyOf(track),
+  title: track?.title || '',
+  artist: track?.artist || track?.channelTitle || '',
+  album: track?.album || '',
+  thumbnailUrl: track?.fullArtworkUrl || track?.thumbnailUrl || '',
+  fullArtworkUrl: track?.fullArtworkUrl || track?.thumbnailUrl || '',
+  image: track?.fullArtworkUrl || track?.thumbnailUrl || '',
+  audioUrl: track?.audioUrl || track?.previewUrl || '',
+  provider: track?.provider || track?.source || 'catalog',
+  providerLabel: track?.providerLabel || 'Музыка',
+  duration: track?.duration || '',
+  durationSeconds: track?.durationSeconds || 0,
+});
+
 function TrackArtwork({ track, className = 'h-14 w-14 rounded-xl' }) {
   const [failed, setFailed] = useState(false);
   if (track?.thumbnailUrl && !failed) {
@@ -68,6 +92,8 @@ function TrackArtwork({ track, className = 'h-14 w-14 rounded-xl' }) {
 }
 
 export default function BackgroundMusicPlayer() {
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
   const {
     currentTrack,
     error,
@@ -92,6 +118,7 @@ export default function BackgroundMusicPlayer() {
   const howlRef = useRef(null);
   const progressTimerRef = useRef(null);
   const panelRef = useRef(null);
+  const lastAutoSkipRef = useRef('');
   const [position, setPosition] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isBuffering, setIsBuffering] = useState(false);
@@ -103,6 +130,37 @@ export default function BackgroundMusicPlayer() {
     [currentTrack?.artist, currentTrack?.channelTitle, currentTrack?.providerLabel]
   );
   const providerLabel = currentTrack?.providerLabel || 'Muffon';
+  const likedQuery = useQuery({
+    queryKey: ['music-likes'],
+    queryFn: () => api.get('/music/likes').then((response) => response.data),
+    enabled: Boolean(user),
+    staleTime: 1000 * 60,
+  });
+  const likedMap = useMemo(
+    () => new Map((likedQuery.data?.tracks || []).map((track) => [trackKeyOf(track), track])),
+    [likedQuery.data?.tracks]
+  );
+  const currentTrackKey = trackKeyOf(currentTrack);
+  const currentLikedTrack = likedMap.get(currentTrackKey);
+  const currentLiked = Boolean(currentLikedTrack || currentTrack?.likedByMe);
+  const currentLikesCount = Math.max(Number(currentTrack?.likesCount) || 0, Number(currentLikedTrack?.likesCount) || 0);
+  const toggleLikeMutation = useMutation({
+    mutationFn: () => api.post('/music/tracks/like', { track: likePayloadFrom(currentTrack) }).then((response) => response.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['music-likes'] });
+      queryClient.invalidateQueries({ queryKey: ['music-search'] });
+      queryClient.invalidateQueries({ queryKey: ['music-catalog-search'] });
+      queryClient.invalidateQueries({ queryKey: ['music-artist-catalog'] });
+    },
+    onError: () => toast.error('Не удалось обновить сердечко'),
+  });
+  const toggleCurrentLike = () => {
+    if (!user) {
+      toast('Войди в аккаунт, чтобы ставить сердечки');
+      return;
+    }
+    toggleLikeMutation.mutate();
+  };
   const lyricsQuery = useQuery({
     queryKey: ['player-lyrics', currentTrack?.id, currentTrack?.title, currentTrack?.artist],
     queryFn: () => api.get('/music/lyrics', {
@@ -253,6 +311,41 @@ export default function BackgroundMusicPlayer() {
     else howl.pause();
   }, [isPlaying]);
 
+  const hasAudioStream = Boolean(currentTrack?.audioUrl);
+  const radioKey = currentTrack?.radioSeed || radioSeed || currentTrack?.artist || currentTrack?.title;
+  const isRadioMode = Boolean(radioKey);
+  const hasDuration = Number.isFinite(duration) && duration > 0;
+  const progressMax = currentTrack?.previewOnly ? 30 : hasDuration ? duration : 30;
+  const canSeek = hasAudioStream && hasDuration && !currentTrack?.previewOnly;
+  const frame = clampFrame(panelFrame);
+
+  useEffect(() => {
+    if (!error) return undefined;
+    if (!isRadioMode) return undefined;
+    if (radioSkipping) return undefined;
+
+    const isStreamError = error.includes('Не удалось загрузить аудиопоток');
+    if (!isStreamError) return undefined;
+
+    const key = `${currentTrack?.id || currentTrack?.title}-${error}`;
+    if (lastAutoSkipRef.current === key) return undefined;
+    lastAutoSkipRef.current = key;
+
+    const timer = setTimeout(() => {
+      playNextRadioTrack(radioKey);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [
+    error,
+    isRadioMode,
+    radioSkipping,
+    currentTrack?.id,
+    currentTrack?.title,
+    radioKey,
+    playNextRadioTrack,
+  ]);
+
   if (!currentTrack) return null;
 
   const beginResize = (direction, event) => {
@@ -309,41 +402,6 @@ export default function BackgroundMusicPlayer() {
       toast.error('Не удалось поделиться треком');
     }
   };
-
-  const hasAudioStream = Boolean(currentTrack.audioUrl);
-  const radioKey = currentTrack?.radioSeed || radioSeed || currentTrack?.artist || currentTrack?.title;
-  const isRadioMode = Boolean(radioKey);
-  const lastAutoSkipRef = useRef('');
-  const hasDuration = Number.isFinite(duration) && duration > 0;
-  const progressMax = currentTrack.previewOnly ? 30 : hasDuration ? duration : 30;
-  const canSeek = hasAudioStream && hasDuration && !currentTrack.previewOnly;
-  const frame = clampFrame(panelFrame);
-  useEffect(() => {
-  if (!error) return;
-  if (!isRadioMode) return;
-  if (radioSkipping) return;
-
-  const isStreamError = error.includes('Не удалось загрузить аудиопоток');
-  if (!isStreamError) return;
-
-  const key = `${currentTrack?.id || currentTrack?.title}-${error}`;
-  if (lastAutoSkipRef.current === key) return;
-  lastAutoSkipRef.current = key;
-
-  const timer = setTimeout(() => {
-    playNextRadioTrack(radioKey);
-  }, 800);
-
-  return () => clearTimeout(timer);
-}, [
-  error,
-  isRadioMode,
-  radioSkipping,
-  currentTrack?.id,
-  currentTrack?.title,
-  radioKey,
-  playNextRadioTrack,
-]);
 
   return createPortal((
     <div
@@ -497,6 +555,15 @@ export default function BackgroundMusicPlayer() {
                 <button type="button" onClick={shareTrack} className="panel-icon-button" aria-label="Поделиться треком">
                   <NavIcon name="share" className="h-4 w-4" />
                 </button>
+                <button
+                  type="button"
+                  onClick={toggleCurrentLike}
+                  disabled={toggleLikeMutation.isPending}
+                  className={`panel-icon-button disabled:opacity-45 ${currentLiked ? 'text-rose-200' : ''}`}
+                  aria-label={currentLiked ? 'Убрать из понравившихся' : 'Добавить в понравившиеся'}
+                >
+                  <NavIcon name="heart" className="h-4 w-4" />
+                </button>
               </div>
               <label className="flex items-center gap-3 text-xs font-bold text-x-muted">
                 <span>Громкость</span>
@@ -527,6 +594,10 @@ export default function BackgroundMusicPlayer() {
             {currentTrack.previewOnly && hasAudioStream && !error && (
               <p className="mt-3 text-xs font-semibold text-amber-200">Этот источник отдаёт короткое превью. Попробуй другой результат или неофициальную версию трека.</p>
             )}
+            <p className="mt-3 inline-flex items-center gap-1 text-xs font-black uppercase tracking-[0.12em] text-rose-100/80">
+              <NavIcon name="heart" className="h-3.5 w-3.5" />
+              {currentLikesCount}
+            </p>
             {error && (
               <p className="mt-3 text-xs font-semibold text-amber-200">
                 {error}

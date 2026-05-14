@@ -1,0 +1,118 @@
+SECRET_KEYS = [
+  %i[
+    amazon_music
+    client_id
+  ],
+  %i[
+    amazon_music
+    client_secret
+  ],
+  %i[
+    amazon_music
+    refresh_token
+  ],
+  %i[
+    discogs
+    api_key
+  ],
+  %i[
+    discogs
+    api_secret
+  ],
+  %i[
+    github
+    token
+  ],
+  %i[
+    google
+    api_key
+  ],
+  %i[
+    lastfm
+    api_key
+  ],
+  %i[
+    odnoklassniki
+    email
+  ],
+  %i[
+    odnoklassniki
+    password
+  ],
+  %i[
+    odnoklassniki
+    test_session_id
+  ],
+  %i[
+    soundcloud
+    test_client_id
+  ],
+  %i[
+    spotify
+    client_token
+  ],
+  %i[
+    spotify
+    cookies
+    sp_t
+  ],
+  %i[
+    spotify
+    cookies
+    sp_dc
+  ],
+  %i[
+    spotify
+    cookies
+    sp_gaid
+  ],
+  %i[
+    spotify
+    cookies
+    sp_key
+  ],
+  %i[
+    vk
+    access_token
+  ]
+].freeze
+
+VCR.configure do |config|
+  config.cassette_library_dir = 'spec/cassettes'
+
+  config.hook_into :webmock
+
+  SECRET_KEYS.each do |keys|
+    filter_name =
+      "<#{keys.join('_').upcase}>"
+
+    credentials =
+      Rails
+      .application
+      .credentials
+
+    filter_value =
+      credentials
+      .dig(
+        *keys
+      )
+      .to_s
+
+    filter_value_escaped =
+      CGI.escape(
+        filter_value
+      )
+
+    config.filter_sensitive_data(
+      filter_name
+    ) do
+      filter_value_escaped
+    end
+
+    config.filter_sensitive_data(
+      filter_name
+    ) do
+      filter_value
+    end
+  end
+end

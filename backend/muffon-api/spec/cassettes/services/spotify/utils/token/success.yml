@@ -1,0 +1,127 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://open.spotify.com/api/server-time
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.7445.3
+        Safari/537.36
+      Authorization:
+      - Bearer BQDdYixfVH2Q4M1GQ8F2ZNWVaaXSedFc3c-J_UH_bG4l8qF7CtJcNJj0S6-Xr9qBQ-rqszMwz98qOFSMJHE-74Xqj_jP4JCZ54aqK0KV6WdSY5w_2rbg1nOtwEv2BTocOXXmAcGF0O5AjM3WrIFRzadEhlPEXjiRMhss6vKavWrqNiEZmLYNn4x46947wIr7ph4Z7-4R0DXoAbzCK30Apd8PQO1mxzEWRq9WLNd-HZ9y_gx64IGw1MkOTxqCknWUI7u3oNT55xEXT3_7rYJjte8wy0HfBYzM29PtNXtGRpXrJYXoZuvexluvFF4SPW0WDv--fehU-ILjK7ytbqkIxj77dj5Jig8avb1u7VtZ1bYIelfS5fze7HkKyhDGIgJ92-3Pvu8NJzWHky9_iQ
+      Client-Token:
+      - AAA7dM0+GQ1ZWhPyZ5eFPZDvCuJhbnNGe1ROm1fJD+VlPi9Z4DnQLgJxUZttrT0zGTnwUee9QW3ow+z2MH5guCeU0c5Y0ipj9RGr1mS+kytTWAe0ZNeKPTqDrXfjwIFYip8weIFb9rS2E8uJ+Zd+aVDHP52clDd+JA68NDnbNgK5Y27mXVpb7fe7Ozv2CQm9e+2VfK0amyipKC5OpkD8Um87tRECepQzRjlOVEZloFdkK62PJxaOkMtecmiZFbmihPMQDjFLQbQ1SjTSbBtkwpfRBB62lkwOV3guzvSd5E6O/H0HJ++yODr3oADh2RcPWKjvR57ZW5T+OIsjw2pTQqq7McLwkdee
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '25'
+      Set-Cookie:
+      - sp_landing=https%3A%2F%2Fopen.spotify.com%2Fapi%2Fserver-time; Max-Age=86400;
+        Path=/; Domain=.spotify.com; HttpOnly; Secure
+      - sp_new=1; Max-Age=86400; Path=/; Domain=.spotify.com; Secure
+      - sp_t=6f12574e-79e8-4fc7-8a25-6aa7b80fce34; Max-Age=31536000; Path=/; Domain=.spotify.com;
+        Secure
+      Strict-Transport-Security:
+      - max-age=31536000
+      Server:
+      - envoy
+      X-Content-Type-Options:
+      - nosniff
+      Content-Type:
+      - application/json; charset=utf-8
+      X-Envoy-Upstream-Service-Time:
+      - '4'
+      Via:
+      - HTTP/1.1 fringe, HTTP/2 edgeproxy, 1.1 google, 1.1 varnish
+      Accept-Ranges:
+      - bytes
+      Date:
+      - Wed, 08 Apr 2026 20:31:46 GMT
+      X-Served-By:
+      - cache-fra-etou8220085-FRA, cache-fra-etou8220131-FRA
+      X-Cache:
+      - MISS, MISS
+      X-Cache-Hits:
+      - 0, 0
+      X-Timer:
+      - S1775680306.209667,VS0,VE95
+      Vary:
+      - Accept-Encoding
+    body:
+      encoding: UTF-8
+      string: '{"serverTime":1775680306}'
+  recorded_at: Wed, 08 Apr 2026 20:31:46 GMT
+- request:
+    method: get
+    uri: https://open.spotify.com/api/token?productType=web-player&reason=init&totp=269604&totpServer=060686&totpVer=61
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.7445.3
+        Safari/537.36
+      Cookie:
+      - OptanonConsent=isGpcEnabled=0&datestamp=Sat+Apr+04+2026+16:50:19+GMT+0300+(Moscow+Standard+Time)&version=202601.2.0&browserGpcFlag=0&isIABGlobal=false&hosts=&consentId=c251b713-920a-4c61-8ba4-f61cef9393e0&interactionCount=2&isAnonUser=1&landingPath=NotLandingPage&groups=s00:1,f00:1,m00:1,t00:1,f11:1,i00:1,m03:1,ID01:1,m02:1,t02:0&intType=1&geolocation=;&AwaitingReconsent=false;
+        sp_t=<SPOTIFY_COOKIES_SP_T>; sp_gaid=<SPOTIFY_COOKIES_SP_GAID>; sp_key=<SPOTIFY_COOKIES_SP_KEY>
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Connection:
+      - keep-alive
+      Via:
+      - HTTP/1.1 fringe, HTTP/2 edgeproxy, 1.1 google, 1.1 varnish
+      Set-Cookie:
+      - sp_landing=https%3A%2F%2Fopen.spotify.com%2Fapi%2Ftoken; Max-Age=86400; Path=/;
+        Domain=.spotify.com; HttpOnly; Secure
+      Server:
+      - envoy
+      Content-Type:
+      - application/json; charset=utf-8
+      Strict-Transport-Security:
+      - max-age=31536000
+      X-Content-Type-Options:
+      - nosniff
+      X-Envoy-Upstream-Service-Time:
+      - '10'
+      Accept-Ranges:
+      - bytes
+      Date:
+      - Wed, 08 Apr 2026 20:31:46 GMT
+      X-Served-By:
+      - cache-fra-etou8220111-FRA, cache-fra-etou8220198-FRA
+      X-Cache:
+      - MISS, MISS
+      X-Cache-Hits:
+      - 0, 0
+      X-Timer:
+      - S1775680307.537488,VS0,VE75
+      Vary:
+      - Accept-Encoding
+      Transfer-Encoding:
+      - chunked
+    body:
+      encoding: ASCII-8BIT
+      string: '{"clientId":"d8a5ed958d274c2e8ee717e6a4b0971d","accessToken":"BQB2wFyctKP2O3vEE_COklhqqoCzYaIgee2MGPGB9ec0bZAmxkKHAAJzhzX71zTf1x73xXYY99uVndcTvztjHr6IJvtp2FJvHYEDSGQP7fO_4ugin1FKAEn-JGuHIJuSXuJu9uvNL10","accessTokenExpirationTimestampMs":1775683565807,"isAnonymous":true,"_notes":"Usage
+        of this endpoint is not permitted under the Spotify Developer Terms and Developer
+        Policy, and applicable law"}'
+  recorded_at: Wed, 08 Apr 2026 20:31:46 GMT
+recorded_with: VCR 6.4.0

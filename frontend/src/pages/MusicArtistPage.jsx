@@ -36,13 +36,6 @@ export default function MusicArtistPage() {
     staleTime: 1000 * 60 * 10,
   });
 
-  const playableQuery = useQuery({
-    queryKey: ['music-artist-playable', artistName],
-    queryFn: () => api.get('/music/search', { params: { q: artistName, limit: 120 } }).then((response) => response.data),
-    enabled: Boolean(artistName),
-    staleTime: 1000 * 60 * 5,
-  });
-
   const resolveTrackMutation = useMutation({
     mutationFn: ({ title, artist }) => api.get('/music/catalog/resolve', { params: { title, artist } }).then((response) => response.data),
     onSuccess: (data) => {
@@ -57,19 +50,11 @@ export default function MusicArtistPage() {
     },
   });
 
-  const playableTracks = playableQuery.data?.tracks || [];
   const officialTracks = catalogQuery.data?.tracks || [];
   const albums = catalogQuery.data?.albums || [];
   const artist = catalogQuery.data?.artist || null;
 
   const mergedTracks = useMemo(() => officialTracks.map((track) => {
-    const normalizedTitle = track.title?.toLowerCase().trim();
-    const normalizedArtist = track.artist?.toLowerCase().trim();
-    const playable = playableTracks.find((item) => (
-      item.title?.toLowerCase().trim() === normalizedTitle &&
-      item.artist?.toLowerCase().trim().includes(normalizedArtist)
-    ));
-
     return {
       id: `artist-track-${track.id}`,
       title: track.title,
@@ -77,16 +62,17 @@ export default function MusicArtistPage() {
       album: track.album,
       duration: track.duration,
       durationSeconds: track.durationMs ? Math.round(track.durationMs / 1000) : 0,
-      thumbnailUrl: track.image || playable?.thumbnailUrl || '',
-      fullArtworkUrl: track.image || playable?.fullArtworkUrl || '',
-      providerLabel: playable?.providerLabel || 'Каталог',
-      audioUrl: playable?.audioUrl || '',
-      source: playable?.source || 'catalog',
-      explicit: Boolean(track.explicit || playable?.explicit),
+      thumbnailUrl: track.image || '',
+      fullArtworkUrl: track.image || '',
+      providerLabel: track.previewUrl ? 'Каталог превью' : 'Каталог',
+      audioUrl: track.previewUrl || '',
+      source: 'catalog',
+      previewOnly: Boolean(track.previewUrl),
+      explicit: Boolean(track.explicit),
     };
-  }).filter((track) => !hideExplicit || !track.explicit), [hideExplicit, officialTracks, playableTracks]);
+  }).filter((track) => !hideExplicit || !track.explicit), [hideExplicit, officialTracks]);
 
-  const heroTrack = mergedTracks[0] || playableTracks[0] || currentTrack || null;
+  const heroTrack = mergedTracks[0] || currentTrack || null;
 
   const playOrResolve = (track) => {
     if (!track) return;

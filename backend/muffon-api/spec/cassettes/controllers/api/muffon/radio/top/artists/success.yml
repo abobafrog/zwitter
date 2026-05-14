@@ -1,0 +1,85 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://ws.audioscrobbler.com/2.0?api_key=<LASTFM_API_KEY>&autocorrect=0&format=json&limit=1&method=chart.getTopArtists&page=1
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Faraday v2.13.2
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - openresty/1.13.6.2
+      Date:
+      - Fri, 18 Jul 2025 07:43:11 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '838'
+      Access-Control-Allow-Methods:
+      - POST, GET, OPTIONS
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Max-Age:
+      - '86400'
+      Via:
+      - 1.1 google
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+    body:
+      encoding: UTF-8
+      string: '{"artists":{"artist":[{"name":"Kendrick Lamar","playcount":"854176301","listeners":"4521394","mbid":"381086ea-f511-4aba-bdf9-71c753dc5077","url":"https://www.last.fm/music/Kendrick+Lamar","streamable":"0","image":[{"#text":"https://lastfm.freetls.fastly.net/i/u/34s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"small"},{"#text":"https://lastfm.freetls.fastly.net/i/u/64s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"medium"},{"#text":"https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"large"},{"#text":"https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png","size":"extralarge"},{"#text":"https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png","size":"mega"}]}],"@attr":{"page":"1","perPage":"1","totalPages":"6224624","total":"6224624"}}}'
+  recorded_at: Fri, 18 Jul 2025 07:43:11 GMT
+- request:
+    method: get
+    uri: https://ws.audioscrobbler.com/2.0?api_key=<LASTFM_API_KEY>&artist=Kendrick%20Lamar&autocorrect=0&format=json&limit=1&method=artist.getTopTracks&page=1
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Faraday v2.13.2
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - openresty/1.13.6.2
+      Date:
+      - Fri, 18 Jul 2025 07:43:11 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '859'
+      Access-Control-Allow-Methods:
+      - POST, GET, OPTIONS
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Max-Age:
+      - '86400'
+      Via:
+      - 1.1 google
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+    body:
+      encoding: UTF-8
+      string: '{"toptracks":{"track":[{"name":"HUMBLE.","playcount":"26343426","listeners":"1983939","url":"https://www.last.fm/music/Kendrick+Lamar/_/HUMBLE.","streamable":"0","artist":{"name":"Kendrick
+        Lamar","mbid":"381086ea-f511-4aba-bdf9-71c753dc5077","url":"https://www.last.fm/music/Kendrick+Lamar"},"image":[{"#text":"https://lastfm.freetls.fastly.net/i/u/34s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"small"},{"#text":"https://lastfm.freetls.fastly.net/i/u/64s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"medium"},{"#text":"https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"large"},{"#text":"https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png","size":"extralarge"}],"@attr":{"rank":"1"}}],"@attr":{"artist":"Kendrick
+        Lamar","page":"1","perPage":"1","totalPages":"78245","total":"78245"}}}'
+  recorded_at: Fri, 18 Jul 2025 07:43:11 GMT
+recorded_with: VCR 6.3.1

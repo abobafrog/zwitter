@@ -1,0 +1,45 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://ws.audioscrobbler.com/2.0?api_key=<LASTFM_API_KEY>&artist=a&autocorrect=0&format=json&limit=5&method=artist.search&page=2
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.7445.3
+        Safari/537.36
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - openresty/1.13.6.2
+      Date:
+      - Sun, 07 Dec 2025 18:39:05 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '1737'
+      Access-Control-Allow-Methods:
+      - POST, GET, OPTIONS
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Max-Age:
+      - '86400'
+      Via:
+      - 1.1 google
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+    body:
+      encoding: ASCII-8BIT
+      string: !binary |-
+        eyJyZXN1bHRzIjp7Im9wZW5zZWFyY2g6UXVlcnkiOnsiI3RleHQiOiIiLCJyb2xlIjoicmVxdWVzdCIsInNlYXJjaFRlcm1zIjoiYSIsInN0YXJ0UGFnZSI6IjIifSwib3BlbnNlYXJjaDp0b3RhbFJlc3VsdHMiOiI3MjE3MDEiLCJvcGVuc2VhcmNoOnN0YXJ0SW5kZXgiOiI1Iiwib3BlbnNlYXJjaDppdGVtc1BlclBhZ2UiOiI1IiwiYXJ0aXN0bWF0Y2hlcyI6eyJhcnRpc3QiOlt7Im5hbWUiOiLDoSIsImxpc3RlbmVycyI6Ijg3IiwibWJpZCI6IiIsInVybCI6Imh0dHBzOi8vd3d3Lmxhc3QuZm0vbXVzaWMvJUMzJUExIiwic3RyZWFtYWJsZSI6IjAiLCJpbWFnZSI6W3siI3RleHQiOiIiLCJzaXplIjoic21hbGwifSx7IiN0ZXh0IjoiIiwic2l6ZSI6Im1lZGl1bSJ9LHsiI3RleHQiOiIiLCJzaXplIjoibGFyZ2UifSx7IiN0ZXh0IjoiIiwic2l6ZSI6ImV4dHJhbGFyZ2UifV19LHsibmFtZSI6IsOAIiwibGlzdGVuZXJzIjoiMzYyIiwibWJpZCI6IiIsInVybCI6Imh0dHBzOi8vd3d3Lmxhc3QuZm0vbXVzaWMvJUMzJTgwIiwic3RyZWFtYWJsZSI6IjAiLCJpbWFnZSI6W3siI3RleHQiOiIiLCJzaXplIjoic21hbGwifSx7IiN0ZXh0IjoiIiwic2l6ZSI6Im1lZGl1bSJ9LHsiI3RleHQiOiIiLCJzaXplIjoibGFyZ2UifSx7IiN0ZXh0IjoiIiwic2l6ZSI6ImV4dHJhbGFyZ2UifV19LHsibmFtZSI6IuKEqyIsImxpc3RlbmVycyI6IjMzMCIsIm1iaWQiOiJkYzhlMGM2Ny1lOWM1LTQ1YTUtYjVhNy1hNzI1OGNiNTMzZTEiLCJ1cmwiOiJodHRwczovL3d3dy5sYXN0LmZtL211c2ljLyVFMiU4NCVBQiIsInN0cmVhbWFibGUiOiIwIiwiaW1hZ2UiOlt7IiN0ZXh0IjoiaHR0cHM6Ly9sYXN0Zm0uZnJlZXRscy5mYXN0bHkubmV0L2kvdS8zNHMvMmE5NmNiZDhiNDZlNDQyZmM0MWMyYjg2YjgyMTU2MmYucG5nIiwic2l6ZSI6InNtYWxsIn0seyIjdGV4dCI6Imh0dHBzOi8vbGFzdGZtLmZyZWV0bHMuZmFzdGx5Lm5ldC9pL3UvNjRzLzJhOTZjYmQ4YjQ2ZTQ0MmZjNDFjMmI4NmI4MjE1NjJmLnBuZyIsInNpemUiOiJtZWRpdW0ifSx7IiN0ZXh0IjoiaHR0cHM6Ly9sYXN0Zm0uZnJlZXRscy5mYXN0bHkubmV0L2kvdS8xNzRzLzJhOTZjYmQ4YjQ2ZTQ0MmZjNDFjMmI4NmI4MjE1NjJmLnBuZyIsInNpemUiOiJsYXJnZSJ9LHsiI3RleHQiOiJodHRwczovL2xhc3RmbS5mcmVldGxzLmZhc3RseS5uZXQvaS91LzMwMHgzMDAvMmE5NmNiZDhiNDZlNDQyZmM0MWMyYjg2YjgyMTU2MmYucG5nIiwic2l6ZSI6ImV4dHJhbGFyZ2UifV19LHsibmFtZSI6IsaPIiwibGlzdGVuZXJzIjoiMzA2IiwibWJpZCI6IiIsInVybCI6Imh0dHBzOi8vd3d3Lmxhc3QuZm0vbXVzaWMvJUM2JThGIiwic3RyZWFtYWJsZSI6IjAiLCJpbWFnZSI6W3siI3RleHQiOiIiLCJzaXplIjoic21hbGwifSx7IiN0ZXh0IjoiIiwic2l6ZSI6Im1lZGl1bSJ9LHsiI3RleHQiOiIiLCJzaXplIjoibGFyZ2UifSx7IiN0ZXh0IjoiIiwic2l6ZSI6ImV4dHJhbGFyZ2UifV19LHsibmFtZSI6IuKxryIsImxpc3RlbmVycyI6IjIzIiwibWJpZCI6IiIsInVybCI6Imh0dHBzOi8vd3d3Lmxhc3QuZm0vbXVzaWMvJUUyJUIxJUFGIiwic3RyZWFtYWJsZSI6IjAiLCJpbWFnZSI6W3siI3RleHQiOiIiLCJzaXplIjoic21hbGwifSx7IiN0ZXh0IjoiIiwic2l6ZSI6Im1lZGl1bSJ9LHsiI3RleHQiOiIiLCJzaXplIjoibGFyZ2UifSx7IiN0ZXh0IjoiIiwic2l6ZSI6ImV4dHJhbGFyZ2UifV19XX0sIkBhdHRyIjp7ImZvciI6ImEifX19
+  recorded_at: Sun, 07 Dec 2025 18:39:05 GMT
+recorded_with: VCR 6.3.1

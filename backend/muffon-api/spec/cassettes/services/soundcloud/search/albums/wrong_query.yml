@@ -1,0 +1,58 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://api-v2.soundcloud.com/search/albums?client_id=<SOUNDCLOUD_TEST_CLIENT_ID>&limit=20&offset=0&q=wejlhg239gh23
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.7445.3
+        Safari/537.36
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+      Content-Length:
+      - '100'
+      Connection:
+      - keep-alive
+      X-Robots-Tag:
+      - noindex
+      Cache-Control:
+      - private, max-age=0
+      Referrer-Policy:
+      - no-referrer
+      X-Frame-Options:
+      - DENY
+      X-Content-Type-Options:
+      - nosniff
+      Strict-Transport-Security:
+      - max-age=63072000
+      Server:
+      - am/2
+      Date:
+      - Sat, 13 Dec 2025 17:27:13 GMT
+      Vary:
+      - Origin
+      X-Cache:
+      - Miss from cloudfront
+      Via:
+      - 1.1 12b650bf7b8d3f0f17a10fc9f2346f04.cloudfront.net (CloudFront)
+      X-Amz-Cf-Pop:
+      - WAW51-P4
+      X-Amz-Cf-Id:
+      - H9Q0f7xdn324pzr241WYQ403rmpVms0_e6piOzOO0hYQvBcS8t5oIg==
+    body:
+      encoding: ASCII-8BIT
+      string: '{"collection":[],"total_results":0,"query_urn":"soundcloud:search:124bca271dd546bc9d9dd3b1fb86f989"}'
+  recorded_at: Sat, 13 Dec 2025 17:27:13 GMT
+recorded_with: VCR 6.3.1

@@ -1,0 +1,47 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://ws.audioscrobbler.com/2.0?api_key=<LASTFM_API_KEY>&autocorrect=0&format=json&limit=1&method=tag.getTopTracks&page=1&tag=wild%20nothing
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - "*/*"
+      User-Agent:
+      - rest-client/2.1.0 (linux x86_64) ruby/3.2.2p53
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Host:
+      - ws.audioscrobbler.com
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - openresty/1.13.6.2
+      Date:
+      - Thu, 11 May 2023 14:24:47 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '883'
+      Access-Control-Allow-Methods:
+      - POST, GET, OPTIONS
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Max-Age:
+      - '86400'
+      Via:
+      - 1.1 google
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+    body:
+      encoding: UTF-8
+      string: '{"tracks":{"track":[{"name":"Drifter","duration":"213","mbid":"6a864fbe-1e58-4485-84cd-b451e786fb69","url":"https://www.last.fm/music/Wild+Nothing/_/Drifter","streamable":{"#text":"0","fulltrack":"0"},"artist":{"name":"Wild
+        Nothing","mbid":"a181595e-5b84-4439-a5f4-f548ddfb64df","url":"https://www.last.fm/music/Wild+Nothing"},"image":[{"#text":"https://lastfm.freetls.fastly.net/i/u/34s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"small"},{"#text":"https://lastfm.freetls.fastly.net/i/u/64s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"medium"},{"#text":"https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png","size":"large"},{"#text":"https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png","size":"extralarge"}],"@attr":{"rank":"1"}}],"@attr":{"tag":"wild
+        nothing","page":"1","perPage":"1","totalPages":"15","total":"15"}}}'
+  recorded_at: Thu, 11 May 2023 14:24:48 GMT
+recorded_with: VCR 6.1.0

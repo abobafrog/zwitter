@@ -1,0 +1,113 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://api.vk.ru/method/audio.getArtistById?access_token=<VK_ACCESS_TOKEN>&artist_id=1812072207025459236&sig=62b29c31f7875438daf5b5422270bd18&v=5.131
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - VKAndroidApp/4.13.1-1206 (Android 4.4.3; SDK 19; armeabi; ; ru)
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - kittenx
+      Date:
+      - Mon, 22 Sep 2025 21:09:16 GMT
+      Content-Type:
+      - application/json; charset=utf-8
+      Content-Length:
+      - '217'
+      Connection:
+      - keep-alive
+      X-Powered-By:
+      - KPHP/7.4.124670
+      Set-Cookie:
+      - httoken=Y1vI8abgisAsq_0iQ9r_qFGrpLlySaJFRoagwT82IlrDYrbwdS9GahnswPXi2eKzhKJd1PvXt_PdQmBjrnih40O3nNaKoFkH_1Lo2DkY-LwjO3HdB36OqODVxjjVk-WuCkI;
+        Path=/; HttpOnly; Secure; SameSite=None; Max-Age=3600; Domain=api.vk.ru
+      - remixir=DELETED; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/; domain=.vk.ru;
+        secure; HttpOnly
+      Cache-Control:
+      - no-store
+      X-Frame-Options:
+      - DENY
+      X-Frontend:
+      - front661410
+      Access-Control-Expose-Headers:
+      - X-Frontend
+      X-Trace-Id:
+      - jFQFiYOUW6mT-EPRTeSZaDx9vpFSKA
+      Server-Timing:
+      - tid;desc="jFQFiYOUW6mT-EPRTeSZaDx9vpFSKA",front;dur=30.706
+    body:
+      encoding: ASCII-8BIT
+      string: '{"response":{"name":"Sparks","domain":"sparks_mtyymjm0odq5mw","id":"1812072207025459236","is_followed":false,"can_follow":true,"genres":[{"id":53,"name":"Electronic"},{"id":19,"name":"Techno"},{"id":1,"name":"Pop"}]}}'
+  recorded_at: Mon, 22 Sep 2025 21:09:16 GMT
+- request:
+    method: get
+    uri: https://api.vk.ru/method/audio.getAlbumsByArtist?access_token=<VK_ACCESS_TOKEN>&artist_id=1812072207025459236&count=5&offset=5&sig=729f7b031a028c35b12546c94445021d&v=5.131
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - VKAndroidApp/4.13.1-1206 (Android 4.4.3; SDK 19; armeabi; ; ru)
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - kittenx
+      Date:
+      - Mon, 22 Sep 2025 21:09:16 GMT
+      Content-Type:
+      - application/json; charset=utf-8
+      Content-Length:
+      - '11862'
+      Connection:
+      - keep-alive
+      X-Powered-By:
+      - KPHP/7.4.124670
+      Set-Cookie:
+      - httoken=E46uDisnF67s5IvgAHDoW1RhNlH1WJn5c8WOfgkekSc35wdCBtEfF8Cd6fPJUwiGZIHmjIcrOcmv06RSJP7WuaPvc60rq8lrcTj2gW3iE7kT62seu1498_o0-p81WAht3OM;
+        Path=/; HttpOnly; Secure; SameSite=None; Max-Age=3600; Domain=api.vk.ru
+      - remixir=DELETED; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/; domain=.vk.ru;
+        secure; HttpOnly
+      Cache-Control:
+      - no-store
+      X-Frame-Options:
+      - DENY
+      Strict-Transport-Security:
+      - max-age=86400
+      X-Frontend:
+      - front661806
+      Access-Control-Expose-Headers:
+      - X-Frontend
+      X-Trace-Id:
+      - Y_0zaoJZFiYwvqOEA72O1Jv_YXRXQw
+      Server-Timing:
+      - tid;desc="Y_0zaoJZFiYwvqOEA72O1Jv_YXRXQw",front;dur=44.199
+    body:
+      encoding: ASCII-8BIT
+      string: '{"response":{"count":48,"items":[{"id":11893881,"owner_id":-2000893881,"type":1,"title":"The
+        Race For President","description":"","count":1,"followers":5,"plays":214,"create_time":1623473970,"update_time":1623473983,"genres":[{"id":21,"name":"Alternative"}],"is_following":false,"year":2021,"photo":{"width":300,"height":300,"id":"457239027","photo_34":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=34x34&quality=96&sign=aef3602f72655a8372548dcbde204091&c_uniq_tag=sloMt0FGfU-TbkSDV3W_LuSgF-AvNvJHW9IV91GdEdE&type=audio","photo_68":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=68x68&quality=96&sign=cafd0d57627d1a1785f50c6273d2233f&c_uniq_tag=KRhaeYTqs8TcwhXvMQVVPId1ZompwrqwnhmWfkyNfOU&type=audio","photo_135":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=135x135&quality=96&sign=5195b509939fb603d9baa0b249d3ecf8&c_uniq_tag=3XYcHh5HDlIvquhAWA6K9nFMNx2Zy7l_oFG0TyIHEk4&type=audio","photo_270":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=270x270&quality=96&sign=6950fa55d10e885b1a8f9c1de604daa2&c_uniq_tag=enbAIOAZ1hCeqRzlCdkOyJGYY0GtFOEAa5341kjgX8g&type=audio","photo_300":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=300x300&quality=96&sign=f863e8e51f46e723400b21428f103b8c&c_uniq_tag=RAG-kK0r70bFbNJGmoyFyLul7Pr7Q8dYL3LcraDkTjU&type=audio","photo_600":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=600x600&quality=96&sign=65a12248fbbf4823ffefd98a59549b08&c_uniq_tag=g376chHUUohOh1PrjTf6NZkp15JONRkgUO3pvlcwy9A&type=audio","photo_1200":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=1184x1184&quality=96&sign=aeac5bc5d816c0d5302e4aadbc728d3b&c_uniq_tag=MKYhUl8wgttudB8HGJBQK0lpFGDreadqE8o5Hxzs8BE&type=audio"},"permissions":{"play":true,"share":true,"edit":false,"follow":true,"delete":false,"boom_download":true},"subtitle_badge":false,"play_button":false,"access_key":"920c88e715dc2b73ef","is_explicit":false,"main_artists":[{"name":"Sparks","domain":"1812072207025459236","id":"1812072207025459236","is_followed":false,"can_follow":false}],"album_type":"main_only","main_color":"#E086B9"},{"id":11893848,"owner_id":-2000893848,"type":1,"title":"Sparks
+        Documentary Film Fanfare","description":"","count":1,"followers":3,"plays":124,"create_time":1623473814,"update_time":1623473834,"genres":[{"id":21,"name":"Alternative"}],"is_following":false,"year":2021,"photo":{"width":300,"height":300,"id":"457239026","photo_34":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=34x34&quality=96&sign=aef3602f72655a8372548dcbde204091&c_uniq_tag=sloMt0FGfU-TbkSDV3W_LuSgF-AvNvJHW9IV91GdEdE&type=audio","photo_68":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=68x68&quality=96&sign=cafd0d57627d1a1785f50c6273d2233f&c_uniq_tag=KRhaeYTqs8TcwhXvMQVVPId1ZompwrqwnhmWfkyNfOU&type=audio","photo_135":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=135x135&quality=96&sign=5195b509939fb603d9baa0b249d3ecf8&c_uniq_tag=3XYcHh5HDlIvquhAWA6K9nFMNx2Zy7l_oFG0TyIHEk4&type=audio","photo_270":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=270x270&quality=96&sign=6950fa55d10e885b1a8f9c1de604daa2&c_uniq_tag=enbAIOAZ1hCeqRzlCdkOyJGYY0GtFOEAa5341kjgX8g&type=audio","photo_300":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=300x300&quality=96&sign=f863e8e51f46e723400b21428f103b8c&c_uniq_tag=RAG-kK0r70bFbNJGmoyFyLul7Pr7Q8dYL3LcraDkTjU&type=audio","photo_600":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=600x600&quality=96&sign=65a12248fbbf4823ffefd98a59549b08&c_uniq_tag=g376chHUUohOh1PrjTf6NZkp15JONRkgUO3pvlcwy9A&type=audio","photo_1200":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=1184x1184&quality=96&sign=aeac5bc5d816c0d5302e4aadbc728d3b&c_uniq_tag=MKYhUl8wgttudB8HGJBQK0lpFGDreadqE8o5Hxzs8BE&type=audio"},"permissions":{"play":true,"share":true,"edit":false,"follow":true,"delete":false,"boom_download":true},"subtitle_badge":false,"play_button":false,"access_key":"277014d2f599939e8d","is_explicit":false,"main_artists":[{"name":"Sparks","domain":"1812072207025459236","id":"1812072207025459236","is_followed":false,"can_follow":false}],"album_type":"main_only","main_color":"#E086B9"},{"id":11893846,"owner_id":-2000893846,"type":1,"title":"Computer
+        Girl","description":"","count":1,"followers":17,"plays":386,"create_time":1623473814,"update_time":1623473827,"genres":[{"id":21,"name":"Alternative"}],"is_following":false,"year":2021,"photo":{"width":300,"height":300,"id":"457239030","photo_34":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=34x34&quality=96&sign=aef3602f72655a8372548dcbde204091&c_uniq_tag=sloMt0FGfU-TbkSDV3W_LuSgF-AvNvJHW9IV91GdEdE&type=audio","photo_68":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=68x68&quality=96&sign=cafd0d57627d1a1785f50c6273d2233f&c_uniq_tag=KRhaeYTqs8TcwhXvMQVVPId1ZompwrqwnhmWfkyNfOU&type=audio","photo_135":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=135x135&quality=96&sign=5195b509939fb603d9baa0b249d3ecf8&c_uniq_tag=3XYcHh5HDlIvquhAWA6K9nFMNx2Zy7l_oFG0TyIHEk4&type=audio","photo_270":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=270x270&quality=96&sign=6950fa55d10e885b1a8f9c1de604daa2&c_uniq_tag=enbAIOAZ1hCeqRzlCdkOyJGYY0GtFOEAa5341kjgX8g&type=audio","photo_300":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=300x300&quality=96&sign=f863e8e51f46e723400b21428f103b8c&c_uniq_tag=RAG-kK0r70bFbNJGmoyFyLul7Pr7Q8dYL3LcraDkTjU&type=audio","photo_600":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=600x600&quality=96&sign=65a12248fbbf4823ffefd98a59549b08&c_uniq_tag=g376chHUUohOh1PrjTf6NZkp15JONRkgUO3pvlcwy9A&type=audio","photo_1200":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/eWorLxeQv-g9K0CLHEXuGTk6niSw6GmnUy_sPQ\/mtZvbbCckEs.jpg?size=1184x1184&quality=96&sign=aeac5bc5d816c0d5302e4aadbc728d3b&c_uniq_tag=MKYhUl8wgttudB8HGJBQK0lpFGDreadqE8o5Hxzs8BE&type=audio"},"permissions":{"play":true,"share":true,"edit":false,"follow":true,"delete":false,"boom_download":true},"subtitle_badge":false,"play_button":false,"access_key":"a0508e25d1afa25fe5","is_explicit":false,"main_artists":[{"name":"Sparks","domain":"1812072207025459236","id":"1812072207025459236","is_followed":false,"can_follow":false}],"album_type":"main_only","main_color":"#E086B9"},{"id":10994954,"owner_id":-2000994954,"type":1,"title":"Epoxid
+        001","description":"","count":2,"followers":4,"plays":187,"create_time":1617981172,"update_time":1617981172,"genres":[{"id":19,"name":"Techno"}],"is_following":false,"year":2021,"photo":{"width":300,"height":300,"id":"457239027","photo_34":"https:\/\/sun1-22.vkuserphoto.ru\/impg\/c853420\/v853420492\/25325b\/T0DJYGmVKtQ.jpg?size=34x34&quality=96&sign=891d850ac12401316abb90a0511efdce&c_uniq_tag=g7tVRDLXS2c42T3OsFzBpM-LWnH7ZtzXyhZ9h2kkQFI&type=audio","photo_68":"https:\/\/sun1-22.vkuserphoto.ru\/impg\/c853420\/v853420492\/25325b\/T0DJYGmVKtQ.jpg?size=68x68&quality=96&sign=789f4534caca651812264c1728e378b0&c_uniq_tag=zfDUj4uASf9L3WSPVzZHAanwRtcT5SOXkGNRVWjxSag&type=audio","photo_135":"https:\/\/sun1-22.vkuserphoto.ru\/impg\/c853420\/v853420492\/25325b\/T0DJYGmVKtQ.jpg?size=135x135&quality=96&sign=6c8ce190f9932270a40e93f34dddb814&c_uniq_tag=cKW0AXGfgHV6cDoSaK5N7A2Lv5JJLBlkNi_YwkeS3CE&type=audio","photo_270":"https:\/\/sun1-22.vkuserphoto.ru\/impg\/c853420\/v853420492\/25325b\/T0DJYGmVKtQ.jpg?size=270x270&quality=96&sign=e883bf06abdf13f0d2d79052b4280384&c_uniq_tag=-5azTfy12JU4wRYyy3SANbrXJzptnv8mYdX92G014a8&type=audio","photo_300":"https:\/\/sun1-22.vkuserphoto.ru\/impg\/c853420\/v853420492\/25325b\/T0DJYGmVKtQ.jpg?size=300x300&quality=96&sign=f2e4c9fc685ba2afe7048f74847921bc&c_uniq_tag=VA9FJVL7C7zgZ08CiL4XdwxE3n4ZsX6QCnqZIACUHeI&type=audio","photo_600":"https:\/\/sun1-22.vkuserphoto.ru\/impg\/c853420\/v853420492\/25325b\/T0DJYGmVKtQ.jpg?size=600x600&quality=96&sign=1bf4aca1feb0e9b20cdf05109d9119ae&c_uniq_tag=JtWeckmkMLdVPtvfyzPgraXIm7xDj9XMz_dbgUQJQIQ&type=audio","photo_1200":"https:\/\/sun1-22.vkuserphoto.ru\/impg\/c853420\/v853420492\/25325b\/T0DJYGmVKtQ.jpg?size=1184x1184&quality=96&sign=1d37ceaf9ec674bf9956a0696cfb7ff7&c_uniq_tag=yKLMf4XC8IASPOgoXLffKjl8uvBJLYTfg8pP63UPON0&type=audio"},"permissions":{"play":true,"share":true,"edit":false,"follow":true,"delete":false,"boom_download":true},"subtitle_badge":false,"play_button":false,"access_key":"d8da3eddc407aae95f","is_explicit":false,"main_artists":[{"name":"Vikkei","domain":"7477597762315516358","id":"7477597762315516358","is_followed":false,"can_follow":false},{"name":"Sparks","domain":"1812072207025459236","id":"1812072207025459236","is_followed":false,"can_follow":false}],"album_type":"collection","main_color":"#2B594F"},{"id":10928625,"owner_id":-2000928625,"type":1,"title":"Your
+        Fandango","description":"","count":1,"followers":13,"plays":226,"create_time":1617402869,"update_time":1617402882,"genres":[{"id":2,"name":"Rock"}],"is_following":false,"year":2021,"photo":{"width":300,"height":300,"id":"457239029","photo_34":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/c855636\/v855636510\/25da7c\/RrvBWCqZGuo.jpg?size=34x34&quality=96&sign=eb83a5422547d9e25f81f6c51ce4e565&c_uniq_tag=03UXHEdW1VgVmxGA6MsCjDa9D2T3qzf_UlDtaR48nwo&type=audio","photo_68":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/c855636\/v855636510\/25da7c\/RrvBWCqZGuo.jpg?size=68x68&quality=96&sign=1b0ac794a5081a4e0efe5f9decad3832&c_uniq_tag=o6LJvrmenEPdjPd7zQ9u5xrIXfl-q15-4UOd0yKnkiY&type=audio","photo_135":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/c855636\/v855636510\/25da7c\/RrvBWCqZGuo.jpg?size=135x135&quality=96&sign=1d181a12316c94e331ac9e1c2076ccc3&c_uniq_tag=5yhlSibNz0Tn2pLmj25Ff1pjjjryfk1C2TCjQSTTXuE&type=audio","photo_270":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/c855636\/v855636510\/25da7c\/RrvBWCqZGuo.jpg?size=270x270&quality=96&sign=3e532871ba78cb96a5302dd1a874e99b&c_uniq_tag=i056HcDqbhswSh6FVGD4zYL8VsP3iflBjMjY9KlKn4U&type=audio","photo_300":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/c855636\/v855636510\/25da7c\/RrvBWCqZGuo.jpg?size=300x300&quality=96&sign=5c5b922c5b62b51cc102a917fd4227d3&c_uniq_tag=N2RMt_Rx78LtGGjZGS3x2zPKHaAGxk72SFZXvoy3yh8&type=audio","photo_600":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/c855636\/v855636510\/25da7c\/RrvBWCqZGuo.jpg?size=600x600&quality=96&sign=c6fba54f1d9d41e0fd6fca82420516b7&c_uniq_tag=dzC49j_uxQKVY9CFRcTsH057wvqW1UMYrfd6ZiQ_PsQ&type=audio","photo_1200":"https:\/\/sun1-84.vkuserphoto.ru\/impg\/c855636\/v855636510\/25da7c\/RrvBWCqZGuo.jpg?size=1184x1184&quality=96&sign=2b223f2574e02a513ff948ec9ea078b2&c_uniq_tag=3ImgFxTQ66cq-a2DPwTkjyQVgYUGV0oOG_BIY2CVlGc&type=audio"},"permissions":{"play":true,"share":true,"edit":false,"follow":true,"delete":false,"boom_download":true},"subtitle_badge":false,"play_button":false,"access_key":"f64c3e3ebe919f7b5f","is_explicit":false,"main_artists":[{"name":"Todd
+        Rundgren","domain":"3503805977929997364","id":"3503805977929997364","is_followed":false,"can_follow":false},{"name":"Sparks","domain":"1812072207025459236","id":"1812072207025459236","is_followed":false,"can_follow":false}],"album_type":"main_only","main_color":"#A82203"}]}}'
+  recorded_at: Mon, 22 Sep 2025 21:09:16 GMT
+recorded_with: VCR 6.3.1

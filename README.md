@@ -31,7 +31,7 @@
 
 ```bash
 # 1. Клонировать или распаковать проект
-cd twitter-clone
+cd zwitter
 
 # 2. Заполнить Cloudinary (опционально, нужно для загрузки фото)
 # Создайте .env в корне:
@@ -39,13 +39,17 @@ cd twitter-clone
 # CLOUDINARY_API_KEY=xxx
 # CLOUDINARY_API_SECRET=xxx
 
-# 3. Запустить всё одной командой
+# 3. Запустить всё одной командой.
+# Backend контейнер сам поднимет Node API и встроенный muffon-api.
 docker compose up --build
 
 # 4. Перейти
-# Frontend: http://localhost:3000
+# Frontend: http://localhost
 # Backend API: http://localhost:5001
 ```
+
+`muffon-api` лежит внутри `backend/muffon-api` и запускается в backend-контейнере на `127.0.0.1:4000`.
+Основной backend ходит к нему через `MUFFON_API_URL=http://127.0.0.1:4000/api`.
 
 ### Вариант 2: Ручной запуск
 
@@ -169,10 +173,10 @@ curl -fsSL https://get.docker.com | sh
 apt install docker-compose-plugin -y
 
 # 2. Скопировать проект на сервер
-scp -r twitter-clone user@your-vps:/opt/twitter-clone
+scp -r zwitter user@your-vps:/opt/zwitter
 
 # 3. Создать .env файл с реальными данными
-cd /opt/twitter-clone
+cd /opt/zwitter
 nano .env
 
 # 4. Запустить

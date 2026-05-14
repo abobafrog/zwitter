@@ -1,0 +1,61 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://music.yandex.ru/handlers/music-search.jsx?language=en&page=0&text=kate%20bush&type=artist
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Faraday v2.10.0
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 13 Jul 2024 14:08:18 GMT
+      Referrer-Policy:
+      - no-referrer-when-downgrade
+      Report-To:
+      - '{"group": "network-errors", "max_age": 86400, "endpoints": [{"url": "https://dr.yandex.net/muz_nel"}]}'
+      Set-Cookie:
+      - _yasc=E2CwKTs7Y8fm9/Mf4m9Zp8ZgrvXPQJPYszC15eLrHAYK/dQDxLFOjw/GV9EoybhU; domain=.yandex.ru;
+        path=/; expires=Tue, 11 Jul 2034 14:08:17 GMT; secure
+      - i=Z3qxbNisdWDk5jxvSE44NkiAL4tNk5EOoAWyrJb3R3JIYRaGjlGAFFAMtAoXTuiF6euw6mDtYOuqqMx1NRXF4HRRGUQ=;
+        Expires=Mon, 13-Jul-2026 14:08:17 GMT; Domain=.yandex.ru; Path=/; Secure;
+        HttpOnly
+      - yandexuid=2601311671720879697; Expires=Mon, 13-Jul-2026 14:08:17 GMT; Domain=.yandex.ru;
+        Path=/; Secure
+      - yashr=3570878091720879697; Path=/; Domain=.yandex.ru; Expires=Sun, 13 Jul
+        2025 14:08:17 GMT; Secure; HttpOnly
+      Strict-Transport-Security:
+      - max-age=31536000
+      Transfer-Encoding:
+      - chunked
+      X-Compat:
+      - '5'
+      X-Content-Type-Options:
+      - nosniff
+      X-Powered-By:
+      - Express
+      X-Xss-Protection:
+      - 1; mode=block
+      Nel:
+      - '{"report_to": "network-errors", "max_age": 86400, "success_fraction": 0.001,
+        "failure_fraction": 0.1}'
+    body:
+      encoding: ASCII-8BIT
+      string: '{"text":"kate bush","albums":{"items":[]},"tracks":{"items":[]},"podcasts":{"items":[]},"podcast_episodes":{"items":[]},"artists":{"items":[{"name":"Kate
+        Bush","various":false,"composer":false,"cover":{"type":"from-album-cover","uri":"avatars.yandex.net/get-music-content/42108/67876e03.a.24376-1/%%","prefix":"67876e03.a.24376-1"},"ogImage":"avatars.yandex.net/get-music-content/42108/67876e03.a.24376-1/%%","genres":["pop"],"counts":{"tracks":57,"directAlbums":4,"alsoAlbums":48,"alsoTracks":26},"available":true,"disclaimers":[],"ratings":{"week":2271,"month":2516,"day":2074},"links":[{"title":"katebush.com","href":"http://www.katebush.com/","type":"official"},{"title":"katebushmusic","href":"https://twitter.com/katebushmusic","type":"social","socialNetwork":"twitter"},{"title":"user/KateBushMusic","href":"https://www.youtube.com/user/KateBushMusic","type":"social","socialNetwork":"youtube"}],"ticketsAvailable":false,"id":15446,"regions":["RUSSIA","RUSSIA_PREMIUM"]},{"name":"Kate
+        Bush / EMI''s Team","various":false,"composer":false,"ogImage":"","genres":[],"counts":{"tracks":1,"directAlbums":0,"alsoAlbums":1,"alsoTracks":1},"available":true,"disclaimers":[],"links":[],"ticketsAvailable":false,"id":7585341,"regions":["RUSSIA","RUSSIA_PREMIUM"]},{"name":"Karaoke
+        - Kate Bush","various":false,"composer":false,"ogImage":"","genres":[],"counts":{"tracks":1,"directAlbums":0,"alsoAlbums":1,"alsoTracks":1},"available":true,"disclaimers":[],"links":[],"ticketsAvailable":false,"id":3314525,"regions":["RUSSIA","RUSSIA_PREMIUM"]}],"total":3,"perPage":10,"order":0},"videos":{"items":[]},"playlists":{"items":[]},"users":{"items":[]},"request_id":"1720879697829271-5258569911854213758.2","searchRequestId":"music-stable-back-sas-79.sas.yp-c.yandex.net-1720879697829271-5258569911854213758.2-1720879697849","nullifyPage":false,"extendedParams":{},"misspell":{},"pager":{"total":3,"perPage":10,"page":0},"counts":{"artists":3,"albums":52,"tracks":840,"podcasts":0,"podcast_episodes":11,"videos":0,"playlists":31,"users":0}}'
+  recorded_at: Sat, 13 Jul 2024 14:08:18 GMT
+recorded_with: VCR 6.2.0

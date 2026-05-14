@@ -1,0 +1,63 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://bandcamp.com/api/bcsearch_public_api/1/autocomplete_elastic
+    body:
+      encoding: UTF-8
+      string: '{"search_text":"wild nothing","search_filter":"b","full_page":false}'
+    headers:
+      Accept:
+      - "*/*"
+      User-Agent:
+      - rest-client/2.1.0 (linux x86_64) ruby/3.1.2p20
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '68'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Host:
+      - bandcamp.com
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Connection:
+      - keep-alive
+      Server:
+      - nginx
+      Content-Type:
+      - application/json
+      X-Bc-App-Description:
+      - lindacentral02-bc-search1
+      X-Bc-App-Id:
+      - '2580138'
+      Cache-Control:
+      - no-cache, no-store
+      Accept-Ranges:
+      - bytes
+      Date:
+      - Fri, 25 Nov 2022 13:14:36 GMT
+      Via:
+      - 1.1 varnish
+      X-Served-By:
+      - cache-hhn4029-HHN
+      X-Cache:
+      - MISS
+      X-Cache-Hits:
+      - '0'
+      X-Timer:
+      - S1669382076.423538,VS0,VE162
+      Vary:
+      - Accept-Encoding
+      Transfer-Encoding:
+      - chunked
+    body:
+      encoding: ASCII-8BIT
+      string: '{"auto":{"results":[{"type":"b","id":2228040235,"art_id":null,"img_id":18455240,"name":"Wild
+        Nothing","item_url_root":"https://wildnothingct.bandcamp.com","location":"Blacksburg,
+        Virginia","is_label":false,"tag_names":["Rock","indie","indie pop"],"img":"https://f4.bcbits.com/img/0018455240_23.jpg","genre_name":"Rock","stat_params":"search_item_id=2228040235&search_item_type=b&search_match_part=%3F&search_page_id=2291598592&search_page_no=0&search_rank=1"}],"stat_params_for_tag":"search_item_id=2&search_item_type=%40&search_match_part=%3F&search_page_id=2291598592&search_page_no=0&search_rank=1","time_ms":48},"tag":{},"genre":{}}'
+  recorded_at: Fri, 25 Nov 2022 13:14:36 GMT
+recorded_with: VCR 6.1.0

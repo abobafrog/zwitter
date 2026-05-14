@@ -1,0 +1,45 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://api-v2.soundcloud.com/tracks/wejlhg239gh23?client_id=<SOUNDCLOUD_TEST_CLIENT_ID>
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Faraday v2.9.2
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 500
+      message: Internal Server Error
+    headers:
+      Content-Type:
+      - text/plain; charset=utf-8
+      Content-Length:
+      - '0'
+      Connection:
+      - keep-alive
+      Date:
+      - Wed, 19 Jun 2024 20:44:34 GMT
+      Strict-Transport-Security:
+      - max-age=63072000
+      Server:
+      - am/2
+      X-Cache:
+      - Error from cloudfront
+      Via:
+      - 1.1 1332d04637e8e8783a277613082f94d8.cloudfront.net (CloudFront)
+      X-Amz-Cf-Pop:
+      - FRA56-P11
+      X-Amz-Cf-Id:
+      - JTHMbcpGD-mLLdRH0DcbAkijfBYwX_x9cvDrB3MRA21gUYrOc-w31A==
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Wed, 19 Jun 2024 20:44:34 GMT
+recorded_with: VCR 6.2.0

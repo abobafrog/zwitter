@@ -1,0 +1,97 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://bandcamp.com/api/mobile/22/tralbum_details?band_id=2707934946&tralbum_id=2530224521&tralbum_type=a
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - "*/*"
+      User-Agent:
+      - rest-client/2.1.0 (linux-gnu x86_64) ruby/2.7.2p137
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Host:
+      - bandcamp.com
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Connection:
+      - keep-alive
+      Server:
+      - nginx
+      Content-Type:
+      - application/json; charset=UTF-8
+      Cache-Control:
+      - no-cache, no-store
+      Set-Cookie:
+      - BACKENDID=bender33-7; path=/; domain=.bandcamp.com
+      Accept-Ranges:
+      - bytes
+      Date:
+      - Wed, 10 Feb 2021 13:14:36 GMT
+      Via:
+      - 1.1 varnish
+      X-Served-By:
+      - cache-hhn4048-HHN
+      X-Cache:
+      - MISS
+      X-Cache-Hits:
+      - '0'
+      X-Timer:
+      - S1612962877.518514,VS0,VE132
+      Vary:
+      - Accept-Encoding
+      Transfer-Encoding:
+      - chunked
+    body:
+      encoding: ASCII-8BIT
+      string: '{"has_digital_download":true,"is_set_price":false,"album_id":2530224521,"type":"a","label_id":null,"require_email":false,"tracks":[{"band_id":2707934946,"has_digital_download":false,"is_set_price":false,"album_id":2530224521,"label_id":null,"require_email":false,"merch_ids":null,"label":null,"album_title":null,"merch_sold_out":null,"has_lyrics":false,"band_name":"luxury
+        elite","currency":"USD","price":null,"streaming_url":{"mp3-128":"https://bandcamp.com/stream_redirect?enc=mp3-128&track_id=3792959704&ts=1612946967&t=fe4bb3593c3952f3c2077f52fe422a5cb77c49cf"},"track_num":1,"is_purchasable":false,"title":"night
+        walk","track_id":3792959704,"is_streamable":true,"art_id":null,"encodings_id":3619024542,"duration":151.414,"track_license_id":null},{"band_id":2707934946,"has_digital_download":false,"is_set_price":false,"album_id":2530224521,"label_id":null,"require_email":false,"merch_ids":null,"label":null,"album_title":null,"merch_sold_out":null,"has_lyrics":false,"band_name":"luxury
+        elite","currency":"USD","price":null,"streaming_url":{"mp3-128":"https://bandcamp.com/stream_redirect?enc=mp3-128&track_id=2272935581&ts=1612946967&t=707b77baee782c6b116fdd6321117d5ac548dab7"},"track_num":2,"is_purchasable":false,"title":"perfume
+        commercials","track_id":2272935581,"is_streamable":true,"art_id":null,"encodings_id":2635014297,"duration":124.343,"track_license_id":null},{"band_id":2707934946,"has_digital_download":false,"is_set_price":false,"album_id":2530224521,"label_id":null,"require_email":false,"merch_ids":null,"label":null,"album_title":null,"merch_sold_out":null,"has_lyrics":false,"band_name":"luxury
+        elite","currency":"USD","price":null,"streaming_url":{"mp3-128":"https://bandcamp.com/stream_redirect?enc=mp3-128&track_id=1804149373&ts=1612946967&t=97a41e09ad9049cb5094d85a99d7f72b7e12f4bf"},"track_num":3,"is_purchasable":false,"title":"executive
+        suite","track_id":1804149373,"is_streamable":true,"art_id":null,"encodings_id":4237027331,"duration":187.503,"track_license_id":null},{"band_id":2707934946,"has_digital_download":false,"is_set_price":false,"album_id":2530224521,"label_id":null,"require_email":false,"merch_ids":null,"label":null,"album_title":null,"merch_sold_out":null,"has_lyrics":false,"band_name":"luxury
+        elite","currency":"USD","price":null,"streaming_url":{"mp3-128":"https://bandcamp.com/stream_redirect?enc=mp3-128&track_id=4271093780&ts=1612946967&t=c2052e511f4c475b9d3e83203495b33ccb1b4b23"},"track_num":4,"is_purchasable":false,"title":"shadow
+        lady","track_id":4271093780,"is_streamable":true,"art_id":null,"encodings_id":3942479867,"duration":194.705,"track_license_id":null},{"band_id":2707934946,"has_digital_download":false,"is_set_price":false,"album_id":2530224521,"label_id":null,"require_email":false,"merch_ids":null,"label":null,"album_title":null,"merch_sold_out":null,"has_lyrics":false,"band_name":"luxury
+        elite","currency":"USD","price":null,"streaming_url":{"mp3-128":"https://bandcamp.com/stream_redirect?enc=mp3-128&track_id=1038445256&ts=1612946967&t=4a2836397a58b55fd754e0a71b2b1a01299cace6"},"track_num":5,"is_purchasable":false,"title":"beneteau
+        oceanis","track_id":1038445256,"is_streamable":true,"art_id":null,"encodings_id":2344826271,"duration":172.757,"track_license_id":null},{"band_id":2707934946,"has_digital_download":false,"is_set_price":false,"album_id":2530224521,"label_id":null,"require_email":false,"merch_ids":null,"label":null,"album_title":null,"merch_sold_out":null,"has_lyrics":false,"band_name":"luxury
+        elite","currency":"USD","price":null,"streaming_url":{"mp3-128":"https://bandcamp.com/stream_redirect?enc=mp3-128&track_id=695166236&ts=1612946967&t=7cd9c653a0201e18ba0d492226bcd5a4fa7dbbce"},"track_num":6,"is_purchasable":false,"title":"dancefloor
+        euphoria","track_id":695166236,"is_streamable":true,"art_id":null,"encodings_id":2706454737,"duration":131.759,"track_license_id":null},{"band_id":2707934946,"has_digital_download":false,"is_set_price":false,"album_id":2530224521,"label_id":null,"require_email":false,"merch_ids":null,"label":null,"album_title":null,"merch_sold_out":null,"has_lyrics":false,"band_name":"luxury
+        elite","currency":"USD","price":null,"streaming_url":{"mp3-128":"https://bandcamp.com/stream_redirect?enc=mp3-128&track_id=3791238638&ts=1612946967&t=788e3f9fb7fc186c18fb988b1e224b953ed9b575"},"track_num":7,"is_purchasable":false,"title":"high
+        society","track_id":3791238638,"is_streamable":true,"art_id":null,"encodings_id":3617189901,"duration":231.229,"track_license_id":null},{"band_id":2707934946,"has_digital_download":false,"is_set_price":false,"album_id":2530224521,"label_id":null,"require_email":false,"merch_ids":null,"label":null,"album_title":null,"merch_sold_out":null,"has_lyrics":false,"band_name":"luxury
+        elite","currency":"USD","price":null,"streaming_url":{"mp3-128":"https://bandcamp.com/stream_redirect?enc=mp3-128&track_id=1313741574&ts=1612946967&t=0554df8ac715c4a3e838406b63b109b27f7d3b27"},"track_num":8,"is_purchasable":false,"title":"ocean
+        view","track_id":1313741574,"is_streamable":true,"art_id":null,"encodings_id":1135264801,"duration":181.717,"track_license_id":null},{"band_id":2707934946,"has_digital_download":false,"is_set_price":false,"album_id":2530224521,"label_id":null,"require_email":false,"merch_ids":null,"label":null,"album_title":null,"merch_sold_out":null,"has_lyrics":false,"band_name":"luxury
+        elite","currency":"USD","price":null,"streaming_url":{"mp3-128":"https://bandcamp.com/stream_redirect?enc=mp3-128&track_id=922003462&ts=1612946967&t=ba0b63ed21181c666ae7ff55fe007c0cda9931c0"},"track_num":9,"is_purchasable":false,"title":"action
+        sequence","track_id":922003462,"is_streamable":true,"art_id":null,"encodings_id":2121353220,"duration":177.546,"track_license_id":null},{"band_id":2707934946,"has_digital_download":false,"is_set_price":false,"album_id":2530224521,"label_id":null,"require_email":false,"merch_ids":null,"label":null,"album_title":null,"merch_sold_out":null,"has_lyrics":false,"band_name":"luxury
+        elite","currency":"USD","price":null,"streaming_url":{"mp3-128":"https://bandcamp.com/stream_redirect?enc=mp3-128&track_id=3144072286&ts=1612946967&t=88eb3eb45bdae94fb7549fcc5b19304f0a082c2d"},"track_num":10,"is_purchasable":false,"title":"daring
+        ruby","track_id":3144072286,"is_streamable":true,"art_id":null,"encodings_id":1190901022,"duration":175.368,"track_license_id":null},{"band_id":2707934946,"has_digital_download":false,"is_set_price":false,"album_id":2530224521,"label_id":null,"require_email":false,"merch_ids":null,"label":null,"album_title":null,"merch_sold_out":null,"has_lyrics":false,"band_name":"luxury
+        elite","currency":"USD","price":null,"streaming_url":{"mp3-128":"https://bandcamp.com/stream_redirect?enc=mp3-128&track_id=104756710&ts=1612946967&t=bc3c22f13fc90bb94321bc1865c420e5af458431"},"track_num":11,"is_purchasable":false,"title":"magic
+        summer","track_id":104756710,"is_streamable":true,"art_id":null,"encodings_id":3172828249,"duration":165.785,"track_license_id":null},{"band_id":2707934946,"has_digital_download":false,"is_set_price":false,"album_id":2530224521,"label_id":null,"require_email":false,"merch_ids":null,"label":null,"album_title":null,"merch_sold_out":null,"has_lyrics":false,"band_name":"luxury
+        elite","currency":"USD","price":null,"streaming_url":{"mp3-128":"https://bandcamp.com/stream_redirect?enc=mp3-128&track_id=1492571570&ts=1612946967&t=f6fb294f28a69636ab355c2e22c85a647b07a002"},"track_num":12,"is_purchasable":false,"title":"subway
+        ride","track_id":1492571570,"is_streamable":true,"art_id":null,"encodings_id":3141458963,"duration":195.485,"track_license_id":null},{"band_id":2707934946,"has_digital_download":false,"is_set_price":false,"album_id":2530224521,"label_id":null,"require_email":false,"merch_ids":null,"label":null,"album_title":null,"merch_sold_out":null,"has_lyrics":false,"band_name":"luxury
+        elite","currency":"USD","price":null,"streaming_url":{"mp3-128":"https://bandcamp.com/stream_redirect?enc=mp3-128&track_id=3620125464&ts=1612946967&t=c9f1d12eed3093f635158d13c17c755c7c79abe7"},"track_num":13,"is_purchasable":false,"title":"another
+        scorcher","track_id":3620125464,"is_streamable":true,"art_id":null,"encodings_id":1112608920,"duration":228.44,"track_license_id":null},{"band_id":2707934946,"has_digital_download":false,"is_set_price":false,"album_id":2530224521,"label_id":null,"require_email":false,"merch_ids":null,"label":null,"album_title":null,"merch_sold_out":null,"has_lyrics":false,"band_name":"luxury
+        elite","currency":"USD","price":null,"streaming_url":{"mp3-128":"https://bandcamp.com/stream_redirect?enc=mp3-128&track_id=1477068554&ts=1612946967&t=73332a32c95d3fb47256797e3333e9e16b379db9"},"track_num":14,"is_purchasable":false,"title":"continental
+        airlines","track_id":1477068554,"is_streamable":true,"art_id":null,"encodings_id":1456281864,"duration":189.647,"track_license_id":null},{"band_id":2707934946,"has_digital_download":false,"is_set_price":false,"album_id":2530224521,"label_id":null,"require_email":false,"merch_ids":null,"label":null,"album_title":null,"merch_sold_out":null,"has_lyrics":false,"band_name":"luxury
+        elite","currency":"USD","price":null,"streaming_url":{"mp3-128":"https://bandcamp.com/stream_redirect?enc=mp3-128&track_id=2614244294&ts=1612946967&t=23ea6dbd31f4e3b5155d584f234011c7145bca86"},"track_num":15,"is_purchasable":false,"title":"suzuki
+        forsa","track_id":2614244294,"is_streamable":true,"art_id":null,"encodings_id":1774015451,"duration":153.99,"track_license_id":null},{"band_id":2707934946,"has_digital_download":false,"is_set_price":false,"album_id":2530224521,"label_id":null,"require_email":false,"merch_ids":null,"label":null,"album_title":null,"merch_sold_out":null,"has_lyrics":false,"band_name":"luxury
+        elite","currency":"USD","price":null,"streaming_url":{"mp3-128":"https://bandcamp.com/stream_redirect?enc=mp3-128&track_id=1510836658&ts=1612946967&t=fa927093fb2bb01299f2cd117a8272c7d5b10cde"},"track_num":16,"is_purchasable":false,"title":"polo
+        harlequin","track_id":1510836658,"is_streamable":true,"art_id":null,"encodings_id":1561207330,"duration":203.83,"track_license_id":null},{"band_id":2707934946,"has_digital_download":false,"is_set_price":false,"album_id":2530224521,"label_id":null,"require_email":false,"merch_ids":null,"label":null,"album_title":null,"merch_sold_out":null,"has_lyrics":false,"band_name":"luxury
+        elite","currency":"USD","price":null,"streaming_url":{"mp3-128":"https://bandcamp.com/stream_redirect?enc=mp3-128&track_id=4127734221&ts=1612946967&t=d76d12261c2b72d81a1b8117ee4e8c7b316b2698"},"track_num":17,"is_purchasable":false,"title":"william
+        and julianna","track_id":4127734221,"is_streamable":true,"art_id":null,"encodings_id":719036420,"duration":162.419,"track_license_id":null}],"package_art":[],"package_details_lite":{},"about":"Hello,
+        it''s me.","band":{"band_id":2707934946,"image_id":13766189,"bio":null,"name":"luxury
+        elite","location":null},"label":null,"album_title":"high society","merch_sold_out":true,"credits":null,"price":0.0,"currency":"USD","tags":[{"geoname":null,"url":"/tag/soundtrack","norm_name":"soundtrack","name":"Soundtrack","loc_id":null,"isloc":false},{"geoname":null,"url":"/tag/escapism","norm_name":"escapism","name":"escapism","loc_id":null,"isloc":false},{"geoname":null,"url":"/tag/late-night-lofi","norm_name":"late-night-lofi","name":"late
+        night lofi","loc_id":null,"isloc":false},{"geoname":null,"url":"/tag/moonlit-tv-dinner","norm_name":"moonlit-tv-dinner","name":"moonlit
+        tv dinner","loc_id":null,"isloc":false},{"geoname":null,"url":"/tag/vaporwave","norm_name":"vaporwave","name":"vaporwave","loc_id":null,"isloc":false},{"geoname":null,"url":"/tag/xerox-fax-machine%27s-superheroes","norm_name":"xerox-fax-machine''s-superheroes","name":"xerox
+        fax machine''s superheroes","loc_id":null,"isloc":false},{"geoname":{"fullname":"United
+        States of America","name":"United States of America","id":6252001},"url":"/tag/usa","norm_name":"usa","name":"USA","loc_id":4011728540,"isloc":true}],"is_preorder":false,"release_date":1601856000,"streaming_limit":3,"num_downloadable_tracks":17,"tralbum_artist":"luxury
+        elite","is_purchasable":false,"featured_track_id":3792959704,"title":"high
+        society","id":2530224521,"free_download":true,"art_id":1077852600,"bandcamp_url":"https://luxuryelite.bandcamp.com/album/high-society"}'
+  recorded_at: Wed, 10 Feb 2021 13:14:35 GMT
+recorded_with: VCR 6.0.0

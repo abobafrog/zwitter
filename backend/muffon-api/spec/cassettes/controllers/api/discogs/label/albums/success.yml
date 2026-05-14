@@ -1,0 +1,142 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://api.discogs.com/labels/26126/releases?key=<DISCOGS_API_KEY>&page=1&per_page=20&secret=<DISCOGS_API_SECRET>&sort=year&sort_order=desc
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - "*/*"
+      User-Agent:
+      - rest-client/2.1.0 (linux x86_64) ruby/3.0.1p64
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Host:
+      - api.discogs.com
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Tue, 25 May 2021 09:21:36 GMT
+      Content-Type:
+      - application/json
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Vary:
+      - Accept-Encoding
+      X-Discogs-Ratelimit:
+      - '60'
+      X-Discogs-Ratelimit-Remaining:
+      - '58'
+      X-Discogs-Ratelimit-Used:
+      - '2'
+      Access-Control-Allow-Headers:
+      - Content-Type, authorization, User-Agent, Private-Auth-Secret, Discogs-UID
+      Access-Control-Allow-Methods:
+      - HEAD,OPTIONS,GET,OPTIONS
+      Access-Control-Expose-Headers:
+      - Location
+      Content-Language:
+      - en
+      X-Discogs-Media-Type:
+      - discogs.v2
+      Access-Control-Allow-Origin:
+      - "*"
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Xss-Protection:
+      - 1; mode=block
+      X-Content-Type-Options:
+      - nosniff
+      Cache-Control:
+      - public, must-revalidate
+      Strict-Transport-Security:
+      - max-age=15724800
+    body:
+      encoding: ASCII-8BIT
+      string: '{"pagination": {"page": 1, "pages": 8694, "per_page": 20, "items":
+        173876, "urls": {"last": "https://api.discogs.com/labels/26126/releases?key=<DISCOGS_API_KEY>&secret=<DISCOGS_API_SECRET>&page=8694&per_page=20&sort=year&sort_order=desc",
+        "next": "https://api.discogs.com/labels/26126/releases?key=<DISCOGS_API_KEY>&secret=<DISCOGS_API_SECRET>&page=2&per_page=20&sort=year&sort_order=desc"}},
+        "releases": [{"status": "Accepted", "format": "12\", Single, Ltd", "catno":
+        "VST 2209", "thumb": "https://img.discogs.com/lWqQkgTg2ZcAlgcd99qevcBUrLA=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-18387763-1618970662-5734.png.jpg",
+        "resource_url": "https://api.discogs.com/releases/18387763", "title": "Chemicals",
+        "id": 18387763, "year": 2021, "artist": "SG Lewis"}, {"status": "Accepted",
+        "format": "LP, Album, Ltd, RE, 180", "catno": "VM LP 179, VMLP179, 3 C064-17889",
+        "thumb": "https://img.discogs.com/C-vYsbUNSU7YWh6RUTEChS4GDZo=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-18806704-1621521544-5159.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/releases/18806704", "title": "L''Uovo
+        Di Colombo", "id": 18806704, "year": 2021, "artist": "L''Uovo Di Colombo"},
+        {"status": "Accepted", "format": "CD", "catno": "UPCH-20578", "thumb": "",
+        "resource_url": "https://api.discogs.com/releases/17821441", "title": "2+0+2+1+3+1+1=
+        10 Years 10 Songs", "id": 17821441, "year": 2021, "artist": "Radwimps"}, {"status":
+        "Accepted", "format": "CD + DVD", "catno": "UPCH-20577", "thumb": "", "resource_url":
+        "https://api.discogs.com/releases/17822650", "title": "2+0+2+1+3+1+1= 10 Years
+        10 Songs", "id": 17822650, "year": 2021, "artist": "Radwimps"}, {"status":
+        "Accepted", "format": "CD + Blu-ray", "catno": "UPCH-20576", "thumb": "",
+        "resource_url": "https://api.discogs.com/releases/17822785", "title": "2+0+2+1+3+1+1=
+        10 Years 10 Songs", "id": 17822785, "year": 2021, "artist": "Radwimps"}, {"status":
+        "Accepted", "format": "2xLP", "catno": "UPCH-20520", "thumb": "https://img.discogs.com/Zg128zGuXBDiwx1TSCSYAZ-11Ug=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-18872866-1621925086-7052.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/releases/18872866", "title": "\u5929\u6c17\u306e\u5b50",
+        "id": 18872866, "year": 2021, "artist": "Radwimps"}, {"status": "Accepted",
+        "format": "CD, Album, SHM + CD, EP, SHM + Ltd, RE, RM", "catno": "UICY-79559/60",
+        "thumb": "https://img.discogs.com/8Tw3JU16ncdnKCY6Gq9X9uH3ksc=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-18837250-1621705016-8048.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/releases/18837250", "title": "Made
+        In Heaven", "id": 18837250, "year": 2021, "artist": "Queen"}, {"status": "Accepted",
+        "format": "2xCD, Album, Ltd, RE, SHM", "catno": "UICY-79557", "thumb": "https://img.discogs.com/tayiZrTY4H_YJJfbYatcT8E4wgA=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-18801217-1621698324-6547.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/releases/18801217", "title": "Innuendo",
+        "id": 18801217, "year": 2021, "artist": "Queen"}, {"status": "Accepted", "format":
+        "CD, Album, RE + CD, EP, RE + Ltd, RM, SHM", "catno": "UICY-79555/6", "thumb":
+        "https://img.discogs.com/EzwfM-XqsmxgR2J2UN_Ct9yvtO4=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-18837247-1621704891-6056.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/releases/18837247", "title": "The
+        Miracle", "id": 18837247, "year": 2021, "artist": "Queen"}, {"status": "Accepted",
+        "format": "CD, Album, RE + CD, EP, RE + Ltd, RM, SHM", "catno": "UICY-79553/4",
+        "thumb": "https://img.discogs.com/E8cmvnv89ooU-6f4fRkttILiGNY=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-18837208-1621704472-8818.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/releases/18837208", "title": "A Kind
+        Of Magic", "id": 18837208, "year": 2021, "artist": "Queen"}, {"status": "Accepted",
+        "format": "CD, Album, RE + CD, EP, RE + Ltd, RM, SHM", "catno": "UICY-79551/2",
+        "thumb": "https://img.discogs.com/Qe_KK_I43Xp7MqBeNbNgiTeena8=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-18837202-1621704366-2504.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/releases/18837202", "title": "The
+        Works", "id": 18837202, "year": 2021, "artist": "Queen"}, {"status": "Accepted",
+        "format": "CD, Album, RE + CD, EP, RE + Ltd, RM, SHM", "catno": "UICY-79549/50",
+        "thumb": "https://img.discogs.com/mWaSFKo0PAhjsgpctcvOc8Gih_c=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-18836650-1621702311-2546.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/releases/18836650", "title": "Hot
+        Space", "id": 18836650, "year": 2021, "artist": "Queen"}, {"status": "Accepted",
+        "format": "CD, Album, RE + CD, EP, RE + Ltd, RM, SHM", "catno": "UICY-79547/8",
+        "thumb": "https://img.discogs.com/UrbpplKgvKxrTEQEKnSCgfqHpKM=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-18836638-1621702186-4449.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/releases/18836638", "title": "Flash
+        Gordon (Original Soundtrack Music)", "id": 18836638, "year": 2021, "artist":
+        "Queen"}, {"status": "Accepted", "format": "CD, Album, RE + CD, EP, RE + Ltd,
+        RM, SHM", "catno": "UICY-79545/6", "thumb": "https://img.discogs.com/0fRoB-1yIKTknUcxp-IFudLJzFg=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-18836419-1621701668-8661.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/releases/18836419", "title": "The
+        Game", "id": 18836419, "year": 2021, "artist": "Queen"}, {"status": "Accepted",
+        "format": "CD, Album, RE + CD, EP, RE + Ltd, RM, SHM", "catno": "UICY-79543/4",
+        "thumb": "https://img.discogs.com/Z-iG7oaiHvQmhZNn3QbaNKq9gjY=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-18836425-1621701254-6970.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/releases/18836425", "title": "Jazz",
+        "id": 18836425, "year": 2021, "artist": "Queen"}, {"status": "Accepted", "format":
+        "CD, Album, RE + CD, EP, RE + Ltd, RM, SHM", "catno": "UICY-79541/2", "thumb":
+        "https://img.discogs.com/c2gaifvoFB46qRtOgAblEiahCHE=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-18836203-1621700425-3394.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/releases/18836203", "title": "News
+        Of The World", "id": 18836203, "year": 2021, "artist": "Queen"}, {"status":
+        "Accepted", "format": "CD, Album, RE + CD, EP, RE + Ltd, RM, SHM", "catno":
+        "UICY-79539/40", "thumb": "https://img.discogs.com/jvkwy4uLWjpiclvk4hssQ1kWBu8=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-18836197-1621700282-3763.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/releases/18836197", "title": "A Day
+        At The Races", "id": 18836197, "year": 2021, "artist": "Queen"}, {"status":
+        "Accepted", "format": "CD, Album, RE + CD, EP, RE + Ltd, RM, SHM", "catno":
+        "UICY-79537/8", "thumb": "https://img.discogs.com/YHGrLtomMgej7LUwL0GCAJiF7Ec=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-18836074-1621699882-3741.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/releases/18836074", "title": "A Night
+        At The Opera", "id": 18836074, "year": 2021, "artist": "Queen"}, {"status":
+        "Accepted", "format": "CD, Album, RE + CD, EP, RE + Ltd, RM, SHM", "catno":
+        "UICY-79535/6", "thumb": "https://img.discogs.com/9NwA7Ove8yZbLdqV4-xflHlbumw=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-18836065-1621699721-1105.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/releases/18836065", "title": "Sheer
+        Heart Attack", "id": 18836065, "year": 2021, "artist": "Queen"}, {"status":
+        "Accepted", "format": "CD, Album, RE, SHM + CD, EP, RE, SHM + Ltd, RM", "catno":
+        "UICY-79533/4", "thumb": "https://img.discogs.com/dwVVp8pDFgBcFWXIEzitMogyKBA=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-18835996-1621699117-7664.jpeg.jpg",
+        "resource_url": "https://api.discogs.com/releases/18835996", "title": "Queen
+        II", "id": 18835996, "year": 2021, "artist": "Queen"}]}'
+  recorded_at: Tue, 25 May 2021 09:21:37 GMT
+recorded_with: VCR 6.0.0

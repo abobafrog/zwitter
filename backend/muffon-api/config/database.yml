@@ -1,0 +1,15 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch('RAILS_MAX_THREADS', 5) %>
+  url: <%= ENV.fetch('MUFFON_DATABASE_URL', 'postgresql://postgres:password@postgres:5432/muffon_api') %>
+
+development:
+  <<: *default
+
+test:
+  <<: *default
+
+production:
+  <<: *default
+  prepared_statements: false

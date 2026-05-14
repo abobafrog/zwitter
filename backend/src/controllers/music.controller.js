@@ -1,5 +1,6 @@
 const { Readable } = require('stream');
 const { spawn } = require('child_process');
+const prisma = require('../config/prisma');
 
 const DEFAULT_MUFFON_API_URL = 'https://muffon.app/api';
 const MUFFON_API_URL = (process.env.MUFFON_API_URL || DEFAULT_MUFFON_API_URL).replace(/\/+$/, '');
@@ -63,6 +64,75 @@ const stripDerivativeMarkers = (value = '') => {
     .replace(/\s+-\s+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+};
+
+const musicTrackKey = ({ title = '', artist = '' }) => {
+  const normalizedTitle = normalizeText(title).slice(0, 110);
+  const normalizedArtist = normalizeText(primaryArtistName(artist)).slice(0, 110);
+  if (!normalizedTitle) return '';
+  return `${normalizedArtist || 'unknown'}::${normalizedTitle}`;
+};
+
+const trackIdentityFrom = (track = {}) => ({
+  key: musicTrackKey(track),
+  title: (track.title || '').toString().trim().slice(0, 240),
+  artist: (track.artist || track.channelTitle || '').toString().trim().slice(0, 240),
+  album: (track.album || '').toString().trim().slice(0, 240) || null,
+  imageUrl: (track.fullArtworkUrl || track.thumbnailUrl || track.image || '').toString().trim().slice(0, 1000) || null,
+  audioUrl: (track.audioUrl || track.previewUrl || track.streamUrl || '').toString().trim().slice(0, 1000) || null,
+  provider: (track.provider || track.source || '').toString().trim().slice(0, 80) || null,
+  providerLabel: (track.providerLabel || '').toString().trim().slice(0, 120) || null,
+  duration: (track.duration || '').toString().trim().slice(0, 20) || null,
+  durationSeconds: numberValue(track.durationSeconds) || null,
+});
+
+const upsertMusicTrack = async (track, tx = prisma) => {
+  const data = trackIdentityFrom(track);
+  if (!data.key || !data.title) return null;
+  return tx.musicTrack.upsert({
+    where: { key: data.key },
+    create: data,
+    update: {
+      title: data.title,
+      artist: data.artist,
+      album: data.album,
+      imageUrl: data.imageUrl,
+      audioUrl: data.audioUrl,
+      provider: data.provider,
+      providerLabel: data.providerLabel,
+      duration: data.duration,
+      durationSeconds: data.durationSeconds,
+    },
+  });
+};
+
+const hydrateTrackRatings = async (tracks, userId = null) => {
+  const items = Array.isArray(tracks) ? tracks : [];
+  const keys = [...new Set(items.map((track) => musicTrackKey(track)).filter(Boolean))];
+  if (!keys.length) return items;
+
+  const [ratings, userLikes] = await Promise.all([
+    prisma.musicTrack.findMany({
+      where: { key: { in: keys } },
+      select: { key: true, likesCount: true },
+    }),
+    userId ? prisma.musicTrackLike.findMany({
+      where: { userId, track: { key: { in: keys } } },
+      select: { track: { select: { key: true } } },
+    }) : Promise.resolve([]),
+  ]);
+  const ratingMap = new Map(ratings.map((item) => [item.key, item.likesCount]));
+  const likedKeys = new Set(userLikes.map((item) => item.track.key));
+
+  return items.map((track) => {
+    const key = musicTrackKey(track);
+    return {
+      ...track,
+      trackKey: key,
+      likesCount: ratingMap.get(key) || 0,
+      likedByMe: likedKeys.has(key),
+    };
+  });
 };
 
 const canonicalTrackText = (value = '') => normalizeText(stripDerivativeMarkers(value));
@@ -183,6 +253,7 @@ const normalizeMuffonTrack = (track, source) => {
     sourceLink: track.source?.links?.original || track.source?.links?.streaming || '',
     audioUrl: `/api/music/muffon/stream/${encodeURIComponent(source)}/${encodeURIComponent(sourceId)}`,
     thumbnailUrl: imageUrlFrom(track.image),
+    trackKey: musicTrackKey({ title, artist }),
   };
 };
 
@@ -218,6 +289,7 @@ const scoreTrack = (track, query) => {
   if (track.sourceLink) score += 12;
   if (track.previewOnly) score -= 180;
   if (track.provider === 'soundcloud') score += 8;
+  score += Math.min(numberValue(track.likesCount), 250) * 12;
   if (DERIVATIVE_TRACK_MARKERS.some((marker) => combined.includes(marker))) score -= 70;
 
   return score;
@@ -243,9 +315,22 @@ const resolveMatchScore = (track, { title = '', artist = '' }) => {
 
   if (DERIVATIVE_TRACK_MARKERS.some((marker) => normalizeText(track.title).includes(marker))) score -= 70;
   if (track.sourceLink) score += 10;
+  score += Math.min(numberValue(track.likesCount), 250) * 10;
   score += Math.min(numberValue(track.durationSeconds), 480) / 18;
 
   return score;
+};
+
+const artistMatches = (candidate = '', expected = '') => {
+  const candidateArtist = normalizeText(primaryArtistName(candidate));
+  const expectedArtist = normalizeText(primaryArtistName(expected));
+  if (!expectedArtist) return true;
+  if (!candidateArtist) return false;
+  return (
+    candidateArtist === expectedArtist ||
+    candidateArtist.includes(expectedArtist) ||
+    expectedArtist.includes(candidateArtist)
+  );
 };
 
 const uniqueTracks = (items) => {
@@ -353,7 +438,9 @@ const searchMusic = async (req, res) => {
   }
 
   try {
-    const { tracks, errors, sources } = await findPlayableTracks({ query, limit });
+    const { tracks: rawTracks, errors, sources } = await findPlayableTracks({ query, limit });
+    const tracks = (await hydrateTrackRatings(rawTracks, req.user?.id))
+      .sort((left, right) => scoreTrack(right, query) - scoreTrack(left, query));
 
     if (!tracks.length && errors.some((error) => hasProductionTokenIssue(error.payload, error.status))) {
       return res.status(502).json({
@@ -394,10 +481,18 @@ const normalizeCatalogTrack = (item) => ({
   durationMs: numberValue(item.trackTimeMillis),
   duration: formatDuration(Math.round(numberValue(item.trackTimeMillis) / 1000)),
   previewUrl: item.previewUrl || '',
+  audioUrl: item.previewUrl || '',
   image: firstValue(item.artworkUrl100, item.artworkUrl60) || '',
+  thumbnailUrl: firstValue(item.artworkUrl100, item.artworkUrl60) || '',
+  fullArtworkUrl: firstValue(item.artworkUrl100, item.artworkUrl60) || '',
   releaseDate: item.releaseDate || '',
   genre: item.primaryGenreName || '',
   explicit: (item.trackExplicitness || '').toLowerCase() === 'explicit',
+  source: 'catalog',
+  provider: 'catalog',
+  providerLabel: 'Каталог превью',
+  previewOnly: Boolean(item.previewUrl),
+  trackKey: musicTrackKey({ title: item.trackName || '', artist: item.artistName || '' }),
 });
 
 const normalizeCatalogAlbum = (item) => ({
@@ -441,7 +536,10 @@ const searchCatalog = async (req, res) => {
 
     const results = Array.isArray(payload?.results) ? payload.results : [];
     const artists = results.filter((item) => item.wrapperType === 'artist').map(normalizeCatalogArtist);
-    const tracks = results.filter((item) => item.wrapperType === 'track' && item.kind === 'song').map(normalizeCatalogTrack);
+    const tracks = await hydrateTrackRatings(
+      results.filter((item) => item.wrapperType === 'track' && item.kind === 'song').map(normalizeCatalogTrack),
+      req.user?.id
+    );
     const albums = results.filter((item) => item.wrapperType === 'collection').map(normalizeCatalogAlbum);
     return res.json({ artists, tracks, albums });
   } catch {
@@ -510,7 +608,10 @@ const getArtistCatalog = async (req, res) => {
       ...albumResults.filter((item) => item.wrapperType === 'collection'),
       ...fallbackAlbumResults.filter((item) => item.wrapperType === 'collection' && normalizeText(item.artistName) === normalizeText(effectiveArtistName)),
     ];
-    const tracks = [...new Map(trackItems.map((item) => [item.trackId?.toString(), normalizeCatalogTrack(item)])).values()];
+    const tracks = await hydrateTrackRatings(
+      [...new Map(trackItems.map((item) => [item.trackId?.toString(), normalizeCatalogTrack(item)])).values()],
+      req.user?.id
+    );
     const albums = [...new Map(albumItems.map((item) => [item.collectionId?.toString(), normalizeCatalogAlbum(item)])).values()];
 
     return res.json({
@@ -523,6 +624,29 @@ const getArtistCatalog = async (req, res) => {
   }
 };
 
+const findCatalogPreviewTrack = async ({ title, artist }) => {
+  const params = new URLSearchParams({
+    term: [artist, title].filter(Boolean).join(' '),
+    media: 'music',
+    entity: 'song',
+    limit: '15',
+    country: 'US',
+  });
+  const { response, payload } = await fetchJson(`${ITUNES_SEARCH_URL}?${params.toString()}`, {
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!response.ok) return null;
+
+  const results = Array.isArray(payload?.results) ? payload.results : [];
+  const ranked = results
+    .filter((item) => item.wrapperType === 'track' && item.kind === 'song' && item.previewUrl)
+    .map(normalizeCatalogTrack)
+    .filter((track) => artistMatches(track.artist, artist))
+    .sort((left, right) => resolveMatchScore(right, { title, artist }) - resolveMatchScore(left, { title, artist }));
+
+  return ranked[0] || null;
+};
+
 const resolveCatalogTrack = async (req, res) => {
   const title = (req.query.title || '').toString().trim();
   const artist = (req.query.artist || '').toString().trim();
@@ -532,6 +656,11 @@ const resolveCatalogTrack = async (req, res) => {
   }
 
   try {
+    const catalogPreview = await findCatalogPreviewTrack({ title, artist }).catch(() => null);
+    if (catalogPreview) {
+      return res.json({ track: catalogPreview });
+    }
+
     const candidateQueries = [...new Set([
       query,
       [title, artist].filter(Boolean).join(' ').trim(),
@@ -539,14 +668,96 @@ const resolveCatalogTrack = async (req, res) => {
       canonicalTrackText(title) !== normalizeText(title) ? [artist, stripDerivativeMarkers(title)].filter(Boolean).join(' ').trim() : '',
     ].filter(Boolean))];
 
-    const { tracks } = await findPlayableTrackCandidates({ queries: candidateQueries, limitPerQuery: 18 });
-    const ranked = [...tracks].sort(
+    const { tracks: rawTracks } = await findPlayableTrackCandidates({ queries: candidateQueries, limitPerQuery: 18 });
+    const tracks = await hydrateTrackRatings(rawTracks, req.user?.id);
+    const ranked = tracks.filter((track) => artistMatches(track.artist, artist)).sort(
       (left, right) => resolveMatchScore(right, { title, artist }) - resolveMatchScore(left, { title, artist })
     );
     const bestMatch = ranked[0] || null;
     return res.json({ track: bestMatch });
   } catch {
     return res.status(502).json({ track: null, message: 'Не удалось подобрать поток для трека.' });
+  }
+};
+
+const likedTrackToPayload = (item) => ({
+  id: `liked-${item.key}`,
+  trackKey: item.key,
+  title: item.title,
+  artist: item.artist,
+  album: item.album || '',
+  thumbnailUrl: item.imageUrl || '',
+  fullArtworkUrl: item.imageUrl || '',
+  audioUrl: item.audioUrl || '',
+  provider: item.provider || 'catalog',
+  providerLabel: item.providerLabel || 'Понравившееся',
+  duration: item.duration || '',
+  durationSeconds: item.durationSeconds || 0,
+  source: item.provider === 'custom' ? 'custom' : 'catalog',
+  previewOnly: item.provider === 'catalog',
+  likesCount: item.likesCount,
+  likedByMe: true,
+});
+
+const getLikedTracks = async (req, res) => {
+  try {
+    const likes = await prisma.musicTrackLike.findMany({
+      where: { userId: req.user.id },
+      orderBy: { createdAt: 'desc' },
+      include: { track: true },
+      take: 100,
+    });
+
+    return res.json({ tracks: likes.map((like) => likedTrackToPayload(like.track)) });
+  } catch {
+    return res.status(500).json({ tracks: [], message: 'Не удалось загрузить понравившиеся треки.' });
+  }
+};
+
+const toggleTrackLike = async (req, res) => {
+  try {
+    const payload = req.body?.track || req.body || {};
+    const identity = trackIdentityFrom(payload);
+    if (!identity.key || !identity.title) {
+      return res.status(400).json({ message: 'Нужны title и artist трека.' });
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const track = await upsertMusicTrack(payload, tx);
+      const existing = await tx.musicTrackLike.findUnique({
+        where: { userId_trackId: { userId: req.user.id, trackId: track.id } },
+      });
+
+      if (existing) {
+        await tx.musicTrackLike.delete({ where: { id: existing.id } });
+        const updated = await tx.musicTrack.update({
+          where: { id: track.id },
+          data: { likesCount: { decrement: 1 } },
+          select: { key: true, likesCount: true },
+        });
+        if (updated.likesCount < 0) {
+          const corrected = await tx.musicTrack.update({
+            where: { id: track.id },
+            data: { likesCount: 0 },
+            select: { key: true, likesCount: true },
+          });
+          return { liked: false, trackKey: corrected.key, likesCount: corrected.likesCount };
+        }
+        return { liked: false, trackKey: updated.key, likesCount: updated.likesCount };
+      }
+
+      await tx.musicTrackLike.create({ data: { userId: req.user.id, trackId: track.id } });
+      const updated = await tx.musicTrack.update({
+        where: { id: track.id },
+        data: { likesCount: { increment: 1 } },
+        select: { key: true, likesCount: true },
+      });
+      return { liked: true, trackKey: updated.key, likesCount: updated.likesCount };
+    });
+
+    return res.json(result);
+  } catch {
+    return res.status(500).json({ message: 'Не удалось обновить сердечко.' });
   }
 };
 
@@ -718,7 +929,16 @@ const streamMuffonTrack = async (req, res) => {
       const value = streamResponse.headers.get(header);
       if (value) res.setHeader(header, value);
     });
-    return Readable.fromWeb(streamResponse.body).pipe(res);
+    const nodeStream = Readable.fromWeb(streamResponse.body);
+    nodeStream.on('error', () => {
+      if (!res.headersSent) {
+        res.status(502).json({ message: 'Не удалось получить аудиопоток muffon.' });
+        return;
+      }
+      res.destroy();
+    });
+    req.on('close', () => nodeStream.destroy());
+    return nodeStream.pipe(res);
   } catch (error) {
     return res.status(502).json({ message: 'Не удалось получить аудиопоток muffon.' });
   }
@@ -832,5 +1052,7 @@ module.exports = {
   resolveCatalogTrack,
   streamMuffonTrack,
   getTrackLyrics,
+  getLikedTracks,
+  toggleTrackLike,
   recognizeTrack,
 };

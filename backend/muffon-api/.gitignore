@@ -1,0 +1,7 @@
+config/credentials/**/*
+public/media
+log
+tmp
+storage
+lib/widevine.wvd
+lib/widevine.json

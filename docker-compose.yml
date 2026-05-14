@@ -45,8 +45,8 @@ services:
       JWT_REFRESH_EXPIRES_IN: 7d
       PORT: 5000
       NODE_ENV: development
-      FRONTEND_URL: http://localhost:3000
-      CORS_ORIGINS: http://localhost:3000
+      FRONTEND_URL: http://www.zwitter.work.gd
+      CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000,http://zwitter.work.gd,http://www.zwitter.work.gd
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       MAIL_FROM: ${MAIL_FROM:-Zwiteer <onboarding@resend.dev>}
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
@@ -63,9 +63,11 @@ services:
       UPLOAD_RATE_LIMIT_MAX: ${UPLOAD_RATE_LIMIT_MAX:-30}
       JOB_QUEUE_ENABLED: ${JOB_QUEUE_ENABLED:-true}
       SLOW_QUERY_MS: ${SLOW_QUERY_MS:-250}
-      MUFFON_API_URL: ${MUFFON_API_URL:-http://host.docker.internal:4000/api}
+      MUFFON_API_URL: http://127.0.0.1:4000/api
       MUFFON_API_VERSION: ${MUFFON_API_VERSION:-2.4.0}
       MUFFON_SOURCES: ${MUFFON_SOURCES:-soundcloud}
+      MUFFON_RAILS_ENV: ${MUFFON_RAILS_ENV:-development}
+      MUFFON_DATABASE_URL: ${MUFFON_DATABASE_URL:-postgresql://postgres:password@postgres:5432/muffon_api}
     ports:
       - "5001:5000"
     volumes:
@@ -102,10 +104,10 @@ services:
     depends_on:
       - backend
     environment:
-      VITE_API_URL: http://localhost:5001
-      VITE_SOCKET_URL: http://localhost:5001
+      VITE_API_URL: http://zwitter.work.gd:5001
+      VITE_SOCKET_URL: http://zwitter.work.gd:5001
     ports:
-      - "3000:80"
+      - "80:80"
 
 volumes:
   pgdata:

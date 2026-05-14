@@ -1,0 +1,61 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://api.discogs.com/artists/wejlhg239gh23?key=<DISCOGS_API_KEY>&secret=<DISCOGS_API_SECRET>
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Faraday v2.12.2
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 404
+      message: Not Found
+    headers:
+      Date:
+      - Tue, 18 Feb 2025 20:59:59 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '52'
+      Connection:
+      - keep-alive
+      Strict-Transport-Security:
+      - max-age=15552000
+      Vary:
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-Discogs-Ratelimit:
+      - '60'
+      X-Discogs-Ratelimit-Remaining:
+      - '58'
+      X-Discogs-Ratelimit-Used:
+      - '2'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Xss-Protection:
+      - 1; mode=block
+      Cf-Cache-Status:
+      - DYNAMIC
+      Set-Cookie:
+      - __cf_bm=fMS2Z7A1nOYEMQvDKGN.6vi1QBov1Z.bfDGWJ3ZZ.C4-1739912399-1.0.1.1-E_5c8LWx7fr8qRnHogQf7i0Z5nR.6hg1e3a94IgGTHBy3fTyIuYf_PQIjbsphlirBhNDeJ42btd.XT.3O8KpCg;
+        path=/; expires=Tue, 18-Feb-25 21:29:59 GMT; domain=.discogs.com; HttpOnly;
+        Secure; SameSite=None
+      Server:
+      - cloudflare
+      Cf-Ray:
+      - 9140f1ac392beeca-WAW
+      Alt-Svc:
+      - h3=":443"; ma=86400
+    body:
+      encoding: ASCII-8BIT
+      string: '{"message": "The requested resource was not found."}'
+  recorded_at: Tue, 18 Feb 2025 20:59:59 GMT
+recorded_with: VCR 6.3.1

@@ -55,9 +55,48 @@ model User {
   sentNotifications Notification[] @relation("NotificationFrom")
   ownedCommunities Community[] @relation("CommunityOwner")
   communityMemberships CommunityMember[]
+  musicTrackLikes MusicTrackLike[]
 
   @@index([isCommunity, followersCount, createdAt])
   @@map("users")
+}
+
+model MusicTrack {
+  id          String   @id @default(uuid())
+  key         String   @unique @db.VarChar(240)
+  title       String   @db.VarChar(240)
+  artist      String   @db.VarChar(240)
+  album       String?  @db.VarChar(240)
+  imageUrl    String?  @map("image_url") @db.VarChar(1000)
+  audioUrl    String?  @map("audio_url") @db.VarChar(1000)
+  provider    String?  @db.VarChar(80)
+  providerLabel String? @map("provider_label") @db.VarChar(120)
+  duration    String?  @db.VarChar(20)
+  durationSeconds Int? @map("duration_seconds")
+  likesCount  Int      @default(0) @map("likes_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  likes MusicTrackLike[]
+
+  @@index([likesCount, updatedAt])
+  @@index([artist, title])
+  @@map("music_tracks")
+}
+
+model MusicTrackLike {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  trackId   String   @map("track_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track MusicTrack @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, trackId])
+  @@index([userId, createdAt])
+  @@index([trackId])
+  @@map("music_track_likes")
 }
 
 model AccountToken {
