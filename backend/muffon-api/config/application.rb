@@ -22,11 +22,15 @@ module MuffonAPI
   class Application < Rails::Application
     def credentials
       @credentials ||=
-        JSON
-          .load_file(
-            credentials_file_path
-          )
-          .deep_symbolize_keys
+        if File.exist?(credentials_file_path)
+          JSON
+            .load_file(
+              credentials_file_path
+            )
+            .deep_symbolize_keys
+        else
+          default_credentials
+        end
     end
 
     def credentials_file_path
@@ -39,6 +43,58 @@ module MuffonAPI
 
     def secret_key_base
       credentials[:secret_key_base]
+    end
+
+    def default_credentials
+      {
+        secret_key_base: ENV.fetch('SECRET_KEY_BASE', 'dev_secret_key_base_123456789'),
+        url: ENV.fetch('MUFFON_API_URL', 'http://localhost:4000'),
+        browser_cookies_path: ENV.fetch('BROWSER_COOKIES_PATH', 'tmp/browser_cookies.sqlite'),
+        tokens: [ENV.fetch('MUFFON_API_TOKEN', 'my_secret_token')],
+        lastfm: {
+          api_key: ENV['LASTFM_API_KEY'],
+          api_secret: ENV['LASTFM_API_SECRET']
+        },
+        proxy: {
+          ru: [nil],
+          uk: {
+            ipv4: [nil],
+            ipv6: [nil]
+          }
+        },
+        proxy_data: {
+          ru: [nil],
+          uk: {
+            ipv4: [nil],
+            ipv6: [nil]
+          }
+        },
+        yandex_music: {
+          session_id: ENV['YANDEX_MUSIC_SESSION_ID']
+        },
+        mailer: {
+          email: ENV['MAILER_EMAIL'],
+          password: ENV['MAILER_PASSWORD'],
+          domain: ENV['MAILER_DOMAIN']
+        },
+        sentry: {
+          url: ENV['SENTRY_DSN']
+        },
+        sidekiq: {
+          username: ENV['SIDEKIQ_USERNAME'],
+          password: ENV['SIDEKIQ_PASSWORD']
+        },
+        storage: {
+          account_id: ENV['R2_ACCOUNT_ID'],
+          access_key_id: ENV['R2_ACCESS_KEY_ID'],
+          secret_access_key: ENV['R2_SECRET_ACCESS_KEY'],
+          bucket: ENV['R2_BUCKET']
+        },
+        database: {
+          username: ENV['MUFFON_DATABASE_USER'] || 'postgres',
+          password: ENV['MUFFON_DATABASE_PASSWORD'] || 'password'
+        }
+      }.deep_symbolize_keys
     end
 
     # Initialize configuration defaults for originally generated Rails version.
