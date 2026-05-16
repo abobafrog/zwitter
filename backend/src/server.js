@@ -43,7 +43,8 @@ const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 
   .filter(Boolean);
 const corsOrigin = (origin, callback) => {
   if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-  return callback(new Error('Not allowed by CORS'));
+  logger.warn('Blocked CORS origin', { origin, allowedOrigins });
+  return callback(null, false);
 };
 
 // Socket.IO
@@ -88,6 +89,7 @@ app.use(cors({
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Logging
 app.use(morgan('combined', {

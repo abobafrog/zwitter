@@ -36,17 +36,20 @@ services:
       redis:
         condition: service_started
     environment:
-      MUFFON_API_TOKEN: my_secret_token
-      DATABASE_URL: postgresql://postgres:password@postgres:5432/twitter_clone
-      REDIS_URL: redis://redis:6379
-      JWT_SECRET: dev-jwt-secret-change-in-production-min-32-chars
-      JWT_REFRESH_SECRET: dev-refresh-secret-change-in-production-min-32-chars
-      JWT_EXPIRES_IN: 15m
-      JWT_REFRESH_EXPIRES_IN: 7d
-      PORT: 5000
-      NODE_ENV: development
-      FRONTEND_URL: https://froklalol.ru
-      CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000,http://froklalol.ru,http://www.froklalol.ru,https://froklalol.ru,https://www.froklalol.ru
+      MUFFON_API_TOKEN: ${MUFFON_API_TOKEN:-my_secret_token}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:password@postgres:5432/twitter_clone}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-in-production-min-32-chars}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev-refresh-secret-change-in-production-min-32-chars}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      PORT: ${PORT:-5000}
+      NODE_ENV: ${NODE_ENV:-development}
+      FRONTEND_URL: ${FRONTEND_URL:-https://froklalol.ru}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://localhost:80,http://localhost:3000,http://138.249.18.42,http://froklalol.ru,http://www.froklalol.ru,https://froklalol.ru,https://www.froklalol.ru}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       MAIL_FROM: ${MAIL_FROM:-Zwiteer <noreply@froklalol.ru>}
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
@@ -63,11 +66,12 @@ services:
       UPLOAD_RATE_LIMIT_MAX: ${UPLOAD_RATE_LIMIT_MAX:-30}
       JOB_QUEUE_ENABLED: ${JOB_QUEUE_ENABLED:-true}
       SLOW_QUERY_MS: ${SLOW_QUERY_MS:-250}
-      MUFFON_API_URL: http://127.0.0.1:4000/api
+      MUFFON_API_URL: ${MUFFON_API_URL:-http://127.0.0.1:4000/api}
       MUFFON_API_VERSION: ${MUFFON_API_VERSION:-2.4.0}
       MUFFON_SOURCES: ${MUFFON_SOURCES:-soundcloud}
       MUFFON_RAILS_ENV: ${MUFFON_RAILS_ENV:-development}
       MUFFON_DATABASE_URL: ${MUFFON_DATABASE_URL:-postgresql://postgres:password@postgres:5432/muffon_api}
+      PRISMA_SYNC_STRATEGY: ${PRISMA_SYNC_STRATEGY:-push}
     ports:
       - "5001:5000"
     volumes:
@@ -87,9 +91,11 @@ services:
       redis:
         condition: service_started
     environment:
-      DATABASE_URL: postgresql://postgres:password@postgres:5432/twitter_clone
-      REDIS_URL: redis://redis:6379
-      NODE_ENV: development
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:password@postgres:5432/twitter_clone}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      NODE_ENV: ${NODE_ENV:-development}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      MAIL_FROM: ${MAIL_FROM:-Zwiteer <noreply@froklalol.ru>}
       WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-5}
       SLOW_QUERY_MS: ${SLOW_QUERY_MS:-250}
     volumes:
@@ -104,8 +110,8 @@ services:
     depends_on:
       - backend
     environment:
-      VITE_API_URL: http://froklalol.ru:5001
-      VITE_SOCKET_URL: http://froklalol.ru:5001
+      VITE_API_URL: ${VITE_API_URL:-http://froklalol.ru:5001}
+      VITE_SOCKET_URL: ${VITE_SOCKET_URL:-http://froklalol.ru:5001}
     ports:
       - "80:80"
 
