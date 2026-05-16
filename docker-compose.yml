@@ -45,8 +45,8 @@ services:
       JWT_REFRESH_EXPIRES_IN: 7d
       PORT: 5000
       NODE_ENV: development
-      FRONTEND_URL: http://www.zwitter.work.gd
-      CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000,http://zwitter.work.gd,http://www.zwitter.work.gd
+      FRONTEND_URL: https://zwitter.work.gd
+      CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:3000,http://zwitter.work.gd,http://www.zwitter.work.gd,https://zwitter.work.gd,https://www.zwitter.work.gd
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       MAIL_FROM: ${MAIL_FROM:-Zwiteer <onboarding@resend.dev>}
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
