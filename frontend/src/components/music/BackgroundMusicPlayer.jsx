@@ -58,7 +58,8 @@ const shortenText = (value = '', maxLength = 48) => {
 
 const normalizeText = (value = '') => value.toString().toLowerCase().replace(/[^a-z0-9а-яё]+/gi, ' ').replace(/\s+/g, ' ').trim();
 const primaryArtistName = (value = '') => value.toString().split(/,|&| feat\. | feat | x | with /i)[0].trim();
-const trackKeyOf = (track = {}) => {
+const trackKeyOf = (track) => {
+  if (!track) return '';
   const title = normalizeText(track.title);
   const artist = normalizeText(primaryArtistName(track.artist || track.channelTitle));
   return track.trackKey || (title ? `${artist || 'unknown'}::${title}` : '');

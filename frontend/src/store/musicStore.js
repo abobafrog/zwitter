@@ -239,7 +239,7 @@ const useMusicStore = create(
         return id;
       },
       setError: (error) => set({ error }),
-      stop: () => set({ isPlaying: false, isPanelOpen: false, activePlaylistId: null, error: '' }),
+      stop: () => set({ currentTrack: null, isPlaying: false, isPanelOpen: false, activePlaylistId: null, error: '' }),
       showPanel: () => set({ isPanelOpen: true }),
       hidePanel: () => set({ isPanelOpen: false }),
     }),
