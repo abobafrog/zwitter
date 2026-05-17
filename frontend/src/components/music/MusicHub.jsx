@@ -657,9 +657,9 @@ export default function MusicHub() {
     : playableTracks;
 
   return (
-    <section className="space-y-5">
+    <section className="music-mobile-shell space-y-5">
       <div
-        className="relative overflow-hidden rounded-[36px] border border-white/10 p-6 shadow-[0_28px_80px_rgba(0,0,0,0.34)]"
+        className="music-mobile-hero relative overflow-hidden rounded-[36px] border border-white/10 p-6 shadow-[0_28px_80px_rgba(0,0,0,0.34)]"
         style={{ backgroundImage: theme.gradient }}
       >
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -669,13 +669,13 @@ export default function MusicHub() {
         </div>
 
         <div className="relative z-[1] grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_360px]">
-          <div className="flex min-h-[420px] flex-col justify-between">
+          <div className="music-mobile-hero-main flex min-h-[420px] flex-col justify-between">
             <div className="max-w-2xl">
               <p className="text-[11px] font-black uppercase tracking-[0.22em] text-white/70">{theme.capsule}</p>
-              <h2 className="mt-3 text-5xl font-black leading-none text-white md:text-6xl">{theme.title}</h2>
-              <p className="mt-4 max-w-xl text-base leading-7 text-white/72">{theme.subtitle}</p>
+              <h2 className="music-mobile-hero-title mt-3 text-5xl font-black leading-none text-white md:text-6xl">{theme.title}</h2>
+              <p className="music-mobile-hero-subtitle mt-4 max-w-xl text-base leading-7 text-white/72">{theme.subtitle}</p>
 
-              <div className="mt-6 flex flex-wrap gap-3">
+              <div className="music-mobile-hero-actions mt-6 flex flex-wrap gap-3">
                 <button
                   type="button"
                   onClick={() => playOrResolve(selectedTrack)}
@@ -703,7 +703,7 @@ export default function MusicHub() {
               </div>
             </div>
 
-            <div className="grid gap-3 lg:grid-cols-3">
+            <div className="music-mobile-hero-chips grid gap-3 lg:grid-cols-3">
               <HeroChip
                 title="Сейчас играет"
                 subtitle={currentTrack ? `${currentTrack.artist || 'Без артиста'} · ${currentTrack.title}` : 'Выбери трек и запусти его'}
@@ -725,8 +725,8 @@ export default function MusicHub() {
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="rounded-[28px] border border-white/10 bg-black/18 p-4 backdrop-blur-md">
+          <div className="music-mobile-side space-y-4">
+            <div className="music-mobile-current rounded-[28px] border border-white/10 bg-black/18 p-4 backdrop-blur-md">
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-white/48">Текущий трек</p>
               <div className="mt-3 flex gap-3">
                 <TrackArtwork track={currentTrack || selectedTrack} className="h-20 w-20 rounded-[22px]" />
@@ -773,7 +773,7 @@ export default function MusicHub() {
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-white/10 bg-black/18 p-4 backdrop-blur-md">
+            <div className="music-mobile-recognition rounded-[28px] border border-white/10 bg-black/18 p-4 backdrop-blur-md">
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-white/48">Shazam-поиск</p>
               <p className="mt-1 text-sm text-white/60">Можно загрузить фрагмент или дать приложению послушать музыку около 8 секунд.</p>
               <label className="mt-4 block rounded-[24px] border border-dashed border-white/14 bg-black/16 px-4 py-5 text-sm text-white/65">
@@ -807,7 +807,7 @@ export default function MusicHub() {
         </div>
       </div>
 
-      <div className="rounded-[32px] border border-white/10 bg-slate-950/72 p-5 shadow-panel">
+      <div className="music-mobile-block rounded-[32px] border border-white/10 bg-slate-950/72 p-5 shadow-panel">
         <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-[11px] font-black uppercase tracking-[0.18em] text-cyan-200/70">Понравившиеся треки</p>
@@ -853,7 +853,7 @@ export default function MusicHub() {
         )}
       </div>
 
-      <div className="rounded-[32px] border border-white/10 bg-slate-950/72 p-5 shadow-panel">
+      <div className="music-mobile-block rounded-[32px] border border-white/10 bg-slate-950/72 p-5 shadow-panel">
         {!isAuthenticated ? (
           <div className="rounded-[28px] border border-cyan-300/20 bg-black/18 p-5 text-center">
             <p className="text-[11px] font-black uppercase tracking-[0.18em] text-cyan-100/70">Плейлисты</p>
@@ -991,7 +991,7 @@ export default function MusicHub() {
         )}
       </div>
 
-      <div className="rounded-[32px] border border-white/10 bg-slate-950/72 p-5 shadow-panel">
+      <div className="music-mobile-block music-mobile-search rounded-[32px] border border-white/10 bg-slate-950/72 p-5 shadow-panel">
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
           <div className="flex items-center gap-3 rounded-full border border-white/20 bg-black/18 px-4 py-3">
             <NavIcon name="search" className="h-5 w-5 text-white/75" />

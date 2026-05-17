@@ -49,10 +49,10 @@ function MobileNav() {
   const items = [
     { to: '/home', icon: 'home', label: 'Главная' },
     { action: () => protectedAction('/messages'), icon: 'messages', label: 'Чаты', badge: user ? totalUnread : 0 },
-    { action: () => protectedAction('/home'), icon: 'plus', label: 'Создать', primary: true },
     { to: '/music', icon: 'music', label: 'Музыка' },
-    { to: '/services', icon: 'compass', label: 'Погода' },
+    { to: '/services', icon: 'compass', label: 'Сервисы' },
     { action: () => protectedAction(user ? `/${user.username}` : '/register'), icon: 'user', label: 'Профиль' },
+    { action: () => protectedAction('/settings'), icon: 'settings', label: 'Настройки' },
   ];
 
   return (
@@ -60,12 +60,15 @@ function MobileNav() {
       {items.map((item) => {
         const content = (
           <>
-            <NavIcon name={item.icon} className="h-5 w-5" />
+            <span className="nebula-mobile-action-icon-wrap">
+              <NavIcon name={item.icon} className="h-5 w-5" />
+            </span>
             {item.badge > 0 && (
               <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-x-accent px-1 text-[10px] font-black text-slate-950 shadow-neon">
                 {item.badge > 9 ? '9+' : item.badge}
               </span>
             )}
+            <span className="nebula-mobile-action-label">{item.label}</span>
           </>
         );
 
@@ -89,7 +92,7 @@ function MobileNav() {
             key={item.label}
             type="button"
             onClick={item.action}
-            className={`nebula-mobile-action relative ${item.primary ? 'bg-gradient-to-r from-x-accent to-blue-500 text-slate-950 shadow-neon' : ''}`}
+            className="nebula-mobile-action relative"
             aria-label={item.label}
           >
             {content}

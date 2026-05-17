@@ -440,9 +440,14 @@ export default function BackgroundMusicPlayer() {
       {isPanelOpen && (
         <div
           ref={panelRef}
-          className="background-music-panel pointer-events-auto overflow-auto rounded-[28px] border border-cyan-300/20 bg-[linear-gradient(180deg,rgba(8,14,34,0.98),rgba(5,8,24,0.98))] shadow-[0_0_44px_rgba(34,211,238,0.18)] backdrop-blur-xl"
+          className={`background-music-panel pointer-events-auto overflow-auto border border-cyan-300/20 bg-[linear-gradient(180deg,rgba(8,14,34,0.98),rgba(5,8,24,0.98))] shadow-[0_0_44px_rgba(34,211,238,0.18)] backdrop-blur-xl ${isMobileViewport ? 'rounded-[28px_28px_20px_20px]' : 'rounded-[28px]'}`}
           style={{ width: frame.width, height: frame.height, resize: isMobileViewport ? 'none' : 'both' }}
         >
+          {isMobileViewport && (
+            <div className="flex justify-center pt-3">
+              <span className="h-1.5 w-14 rounded-full bg-white/20" />
+            </div>
+          )}
           {!isMobileViewport && ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].map((direction) => (
             <button
               key={direction}
@@ -633,7 +638,7 @@ export default function BackgroundMusicPlayer() {
       )}
 
       {!isPanelOpen && (
-        <button type="button" onClick={showPanel} className="pointer-events-auto flex max-w-[calc(100vw-32px)] items-center gap-3 rounded-full border border-cyan-300/35 bg-slate-950/92 px-4 py-3 text-left shadow-neon backdrop-blur-xl">
+        <button type="button" onClick={showPanel} className="background-music-mini pointer-events-auto flex max-w-[calc(100vw-32px)] items-center gap-3 rounded-full border border-cyan-300/35 bg-slate-950/92 px-4 py-3 text-left shadow-neon backdrop-blur-xl">
           <TrackArtwork track={currentTrack} className="h-9 w-9 rounded-full" />
           <span className="min-w-0">
             <span className="block truncate text-sm font-black text-x-text" title={currentTrack.title}>{shortenText(currentTrack.title, 42)}</span>

@@ -3,8 +3,8 @@ import MusicHub from '../components/music/MusicHub';
 
 export default function MusicPage() {
   return (
-    <div className="min-h-full px-4 py-5 sm:px-5">
-      <div className="mb-5 flex items-center gap-2">
+    <div className="music-page-shell min-h-full px-4 py-5 sm:px-5">
+      <div className="music-page-header mb-5 flex items-center gap-3">
         <NavIcon name="music" className="h-5 w-5 text-x-accent" />
         <div>
           <h1 className="text-xl font-black tracking-normal text-white">Музыка</h1>
