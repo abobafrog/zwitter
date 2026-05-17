@@ -182,8 +182,8 @@ export default function TweetComposer({ onSuccess, parentId = null, placeholder 
   };
 
   return (
-    <div className="mx-3 my-4 rounded-3xl border border-x-border/80 bg-x-panel/60 px-4 py-4 shadow-panel backdrop-blur-xl sm:mx-4">
-      <div className="flex gap-3">
+    <div className="tweet-composer-shell mx-3 my-4 rounded-3xl border border-x-border/80 bg-x-panel/60 px-4 py-4 shadow-panel backdrop-blur-xl sm:mx-4">
+      <div className="flex flex-col gap-3 sm:flex-row">
         {/* Avatar */}
         <div className={`h-10 w-10 flex-shrink-0 cosmic-avatar ${identity?.isCommunity ? 'rounded-2xl' : 'rounded-full'}`}>
           {identity?.avatarUrl
@@ -218,11 +218,11 @@ export default function TweetComposer({ onSuccess, parentId = null, placeholder 
             placeholder={placeholder}
             rows={3}
             maxLength={MAX + 20}
-            className="w-full bg-transparent text-xl placeholder-x-muted resize-none focus:outline-none"
+            className="tweet-composer-textarea w-full resize-none bg-transparent text-lg placeholder-x-muted focus:outline-none sm:text-xl"
           />
 
           {!parentId && (
-            <div className="mt-2 flex flex-wrap items-center gap-2">
+            <div className="tweet-composer-toolbar mt-2 flex flex-wrap items-center gap-2">
               {[
                 ['text', 'Текст'],
                 ['photo', 'Фото'],

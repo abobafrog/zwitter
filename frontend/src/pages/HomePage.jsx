@@ -88,7 +88,7 @@ export default function HomePage() {
 
         {isAuthenticated() && <TweetComposer />}
 
-        <section className="mx-3 mb-3 grid grid-cols-3 gap-2 sm:mx-4">
+        <section className="mx-3 mb-3 grid grid-cols-1 gap-2 sm:mx-4 sm:grid-cols-3">
           <div className="rounded-2xl border border-x-border/70 bg-x-panel/45 px-3 py-2">
             <p className="text-lg font-black text-x-text">{feedStats.posts}</p>
             <p className="text-xs font-bold text-x-muted">звитов</p>

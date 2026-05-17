@@ -19,7 +19,8 @@
       radial-gradient(ellipse at 82% 6%, rgba(88, 28, 135, 0.24), transparent 38%),
       radial-gradient(ellipse at 12% 72%, rgba(30, 64, 175, 0.2), transparent 36%),
       linear-gradient(180deg, #02030b 0%, #03071a 46%, #01030a 100%);
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   body::before,
@@ -262,7 +263,7 @@
   }
 
   .cosmic-shell {
-    @apply relative h-screen w-full overflow-hidden bg-transparent text-x-text;
+    @apply relative min-h-[100dvh] w-full overflow-hidden bg-transparent text-x-text;
     --scroll-stars: 0;
   }
 
@@ -843,12 +844,12 @@
   }
 
   .nebula-page {
-    @apply relative z-10 mx-auto flex h-screen min-h-0 w-full max-w-[1200px] items-start overflow-hidden px-4 pb-24 pt-5 md:px-5 md:py-7 md:pb-7;
+    @apply relative z-10 mx-auto flex min-h-[100dvh] w-full max-w-[1200px] items-start overflow-hidden px-4 pb-24 pt-5 md:px-5 md:py-7 md:pb-7;
   }
 
   .nebula-app-frame {
     --left-col: 236px;
-    @apply relative mx-auto grid h-[calc(100vh-116px)] min-h-0 w-full max-w-[1160px] self-start overflow-hidden border border-x-border/55 shadow-panel backdrop-blur-xl md:h-[calc(100vh-56px)] md:rounded-[28px];
+    @apply relative mx-auto grid h-[calc(100dvh-116px)] min-h-0 w-full max-w-[1160px] self-start overflow-hidden border border-x-border/55 shadow-panel backdrop-blur-xl md:h-[calc(100dvh-56px)] md:rounded-[28px];
     grid-template-columns: minmax(0, 1fr);
     transition: grid-template-columns 220ms ease, max-width 220ms ease;
     background:
@@ -1370,7 +1371,8 @@
   }
 
   .nebula-mobile-nav {
-    @apply fixed bottom-3 left-1/2 z-40 flex w-[calc(100%-28px)] max-w-md -translate-x-1/2 items-center justify-between rounded-[26px] border border-x-border/80 bg-x-bg/90 px-4 py-2 shadow-panel backdrop-blur-xl md:hidden;
+    @apply fixed z-40 flex w-[calc(100%-16px)] max-w-md -translate-x-1/2 items-center justify-between rounded-[22px] border border-x-border/80 bg-x-bg/90 px-3 py-2 shadow-panel backdrop-blur-xl md:hidden;
+    bottom: calc(12px + env(safe-area-inset-bottom));
   }
 
   .nebula-mobile-action {
@@ -1521,6 +1523,131 @@
   @media (min-width: 768px) {
     .background-music-player {
       bottom: 24px;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .cosmic-header {
+      padding-left: 14px;
+      padding-right: 14px;
+    }
+
+    .nebula-page {
+      max-width: none;
+      padding: 8px 8px calc(112px + env(safe-area-inset-bottom));
+    }
+
+    .nebula-app-frame {
+      width: 100%;
+      max-width: none;
+      grid-template-columns: minmax(0, 1fr);
+      height: calc(100dvh - 88px);
+      border-left: 0;
+      border-right: 0;
+      border-radius: 24px;
+      box-shadow: none;
+    }
+
+    .nebula-left-slot {
+      display: none;
+    }
+
+    .nebula-main-column {
+      border-left: 0;
+      border-right: 0;
+      background: rgba(3, 7, 18, 0.18);
+    }
+
+    .nebula-pill {
+      @apply px-3 py-2 text-xs;
+    }
+
+    .panel-icon-button {
+      @apply h-10 w-10 rounded-2xl;
+    }
+
+    .background-music-player {
+      left: 8px;
+      right: 8px;
+      bottom: calc(76px + env(safe-area-inset-bottom));
+    }
+
+    .background-music-player-compact .background-music-panel {
+      max-width: calc(100vw - 16px);
+      max-height: calc(100dvh - 92px - env(safe-area-inset-bottom));
+    }
+
+    .settings-stage {
+      padding: 8px;
+    }
+
+    .settings-window {
+      border-radius: 18px;
+    }
+
+    .settings-sidebar {
+      padding: 12px;
+    }
+
+    .settings-sidebar-header {
+      grid-template-columns: 40px minmax(0, 1fr);
+      margin-bottom: 18px;
+    }
+
+    .settings-sidebar-header .settings-square-button:last-child {
+      display: none;
+    }
+
+    .settings-sidebar-nav {
+      gap: 16px;
+    }
+
+    .settings-sidebar-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .settings-sidebar-title {
+      margin-bottom: 0;
+      padding-left: 0;
+    }
+
+    .settings-sidebar-links {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .settings-sidebar-link {
+      min-width: max-content;
+      border: 1px solid rgba(34, 211, 238, 0.2);
+      background: rgba(3, 12, 24, 0.7);
+    }
+
+    .settings-main-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+    }
+
+    .settings-close-button {
+      align-self: flex-end;
+    }
+
+    .settings-main-body {
+      padding: 16px 16px 110px;
+    }
+
+    .settings-row {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .settings-window table {
+      min-width: 520px;
     }
   }
 

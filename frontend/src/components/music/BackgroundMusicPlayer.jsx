@@ -38,15 +38,25 @@ const resizeHandleStyles = {
   sw: { bottom: 0, left: 0, width: 22, height: 22, cursor: 'nesw-resize' },
 };
 
-const clampFrame = (frame) => {
-  const maxWidth = Math.max(MIN_PANEL_WIDTH, window.innerWidth - 32);
-  const maxHeight = Math.max(MIN_PANEL_HEIGHT, window.innerHeight - 32);
+const clampFrame = (frame, isMobileViewport = false) => {
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  if (isMobileViewport) {
+    const inset = 8;
+    const width = Math.max(0, viewportWidth - inset * 2);
+    const height = Math.max(0, viewportHeight - inset * 2 - 72);
+    return { width, height, left: inset, top: inset };
+  }
+
+  const maxWidth = Math.max(MIN_PANEL_WIDTH, viewportWidth - 32);
+  const maxHeight = Math.max(MIN_PANEL_HEIGHT, viewportHeight - 32);
   const width = Math.min(maxWidth, Math.max(MIN_PANEL_WIDTH, Math.round(frame.width || 460)));
   const height = Math.min(maxHeight, Math.max(MIN_PANEL_HEIGHT, Math.round(frame.height || 430)));
-  const maxLeft = Math.max(12, window.innerWidth - width - 12);
-  const maxTop = Math.max(12, window.innerHeight - height - 12);
-  const left = Math.min(maxLeft, Math.max(12, Math.round(frame.left ?? (window.innerWidth - width - EDGE_GAP))));
-  const top = Math.min(maxTop, Math.max(12, Math.round(frame.top ?? (window.innerHeight - height - 24))));
+  const maxLeft = Math.max(12, viewportWidth - width - 12);
+  const maxTop = Math.max(12, viewportHeight - height - 12);
+  const left = Math.min(maxLeft, Math.max(12, Math.round(frame.left ?? (viewportWidth - width - EDGE_GAP))));
+  const top = Math.min(maxTop, Math.max(12, Math.round(frame.top ?? (viewportHeight - height - 24))));
   return { width, height, left, top };
 };
 
@@ -126,6 +136,7 @@ export default function BackgroundMusicPlayer() {
   const [volume, setVolume] = useState(0.78);
   const [panelTab, setPanelTab] = useState('player');
   const [radioSkipping, setRadioSkipping] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(() => window.innerWidth < 768);
   const artistLabel = useMemo(
     () => currentTrack?.artist || currentTrack?.channelTitle || currentTrack?.providerLabel || 'Muffon',
     [currentTrack?.artist, currentTrack?.channelTitle, currentTrack?.providerLabel]
@@ -210,7 +221,8 @@ export default function BackgroundMusicPlayer() {
     if (!isPanelOpen) return undefined;
 
     const syncFrame = () => {
-      const nextFrame = clampFrame(panelFrame);
+      setIsMobileViewport(window.innerWidth < 768);
+      const nextFrame = clampFrame(panelFrame, window.innerWidth < 768);
       if (
         nextFrame.width !== panelFrame.width ||
         nextFrame.height !== panelFrame.height ||
@@ -225,6 +237,13 @@ export default function BackgroundMusicPlayer() {
     window.addEventListener('resize', syncFrame);
     return () => window.removeEventListener('resize', syncFrame);
   }, [isPanelOpen, panelFrame, setPanelFrame]);
+
+  useEffect(() => {
+    const syncViewport = () => setIsMobileViewport(window.innerWidth < 768);
+    syncViewport();
+    window.addEventListener('resize', syncViewport);
+    return () => window.removeEventListener('resize', syncViewport);
+  }, []);
 
   useEffect(() => {
     if (!currentTrack?.audioUrl) {
@@ -318,7 +337,7 @@ export default function BackgroundMusicPlayer() {
   const hasDuration = Number.isFinite(duration) && duration > 0;
   const progressMax = currentTrack?.previewOnly ? 30 : hasDuration ? duration : 30;
   const canSeek = hasAudioStream && hasDuration && !currentTrack?.previewOnly;
-  const frame = clampFrame(panelFrame);
+  const frame = clampFrame(panelFrame, isMobileViewport);
 
   useEffect(() => {
     if (!error) return undefined;
@@ -351,7 +370,7 @@ export default function BackgroundMusicPlayer() {
 
   const beginResize = (direction, event) => {
     event.preventDefault();
-    const startFrame = clampFrame(panelFrame);
+    const startFrame = clampFrame(panelFrame, isMobileViewport);
     const startX = event.clientX;
     const startY = event.clientY;
 
@@ -413,6 +432,8 @@ export default function BackgroundMusicPlayer() {
           top: frame.top,
           right: 'auto',
           bottom: 'auto',
+          width: frame.width,
+          height: frame.height,
         }
         : undefined}
     >
@@ -420,9 +441,9 @@ export default function BackgroundMusicPlayer() {
         <div
           ref={panelRef}
           className="background-music-panel pointer-events-auto overflow-auto rounded-[28px] border border-cyan-300/20 bg-[linear-gradient(180deg,rgba(8,14,34,0.98),rgba(5,8,24,0.98))] shadow-[0_0_44px_rgba(34,211,238,0.18)] backdrop-blur-xl"
-          style={{ width: frame.width, height: frame.height, resize: 'both' }}
+          style={{ width: frame.width, height: frame.height, resize: isMobileViewport ? 'none' : 'both' }}
         >
-          {['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].map((direction) => (
+          {!isMobileViewport && ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].map((direction) => (
             <button
               key={direction}
               type="button"
@@ -499,11 +520,11 @@ export default function BackgroundMusicPlayer() {
               </div>
             ) : (
               <>
-            <div className="flex items-center gap-4">
+            <div className="flex items-start gap-4 max-sm:flex-col">
               <TrackArtwork track={currentTrack} className="h-20 w-20 rounded-[22px]" />
               <div className="min-w-0">
-                <p className="truncate text-[28px] font-black leading-none text-x-text" title={currentTrack.title}>{shortenText(currentTrack.title, 72)}</p>
-                <p className="mt-2 truncate text-lg font-bold text-cyan-100/90" title={artistLabel}>{shortenText(artistLabel, 44)}</p>
+                <p className="truncate text-[28px] font-black leading-none text-x-text max-sm:text-2xl" title={currentTrack.title}>{shortenText(currentTrack.title, 72)}</p>
+                <p className="mt-2 truncate text-lg font-bold text-cyan-100/90 max-sm:text-base" title={artistLabel}>{shortenText(artistLabel, 44)}</p>
                 {currentTrack.album && <p className="mt-1 truncate text-sm text-x-muted" title={currentTrack.album}>{shortenText(currentTrack.album, 56)}</p>}
               </div>
             </div>
@@ -525,8 +546,8 @@ export default function BackgroundMusicPlayer() {
               </div>
             </div>
 
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-2 rounded-full border border-cyan-300/12 bg-white/[0.04] px-2 py-2">
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-4 max-sm:flex-col max-sm:items-stretch">
+              <div className="flex flex-wrap items-center gap-2 rounded-full border border-cyan-300/12 bg-white/[0.04] px-2 py-2 max-sm:justify-center">
                 <button
                   type="button"
                   onClick={() => (activePlaylistId ? playPreviousInPlaylist() : playNextRadioTrack(radioKey, -1))}
@@ -566,12 +587,12 @@ export default function BackgroundMusicPlayer() {
                   <NavIcon name="heart" className="h-4 w-4" />
                 </button>
               </div>
-              <label className="flex items-center gap-3 text-xs font-bold text-x-muted">
+              <label className="flex items-center gap-3 text-xs font-bold text-x-muted max-sm:w-full">
                 <span>Громкость</span>
-                <input type="range" min="0" max="1" step="0.01" value={volume} onChange={(event) => setVolume(Number(event.target.value))} className="music-range w-28 accent-cyan-300" />
+                <input type="range" min="0" max="1" step="0.01" value={volume} onChange={(event) => setVolume(Number(event.target.value))} className="music-range w-28 accent-cyan-300 max-sm:flex-1" />
               </label>
             </div>
-            <div className="mt-3 flex items-center gap-3">
+            <div className="mt-3 flex items-center gap-3 max-sm:flex-col max-sm:items-stretch">
               <label className="flex flex-1 items-center gap-3 text-xs font-bold text-x-muted">
                 <span className="min-w-14">Скорость</span>
                 <input
