@@ -52,7 +52,7 @@ function MobileNav() {
     { to: '/music', icon: 'music', label: 'Музыка' },
     { to: '/services', icon: 'compass', label: 'Сервисы' },
     { action: () => protectedAction(user ? `/${user.username}` : '/register'), icon: 'user', label: 'Профиль' },
-    { action: () => protectedAction('/settings'), icon: 'settings', label: 'Настройки', mobileLabel: 'Настр.' },
+    { action: () => protectedAction('/settings'), icon: 'settings', label: 'Настройки' },
   ];
 
   return (
@@ -68,7 +68,6 @@ function MobileNav() {
                 {item.badge > 9 ? '9+' : item.badge}
               </span>
             )}
-            <span className="nebula-mobile-action-label">{item.mobileLabel || item.label}</span>
           </>
         );
 

@@ -1413,11 +1413,11 @@
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
     align-items: center;
-    width: min(calc(100vw - 36px), 420px);
-    max-width: calc(100vw - 36px);
-    padding: 7px;
+    width: min(calc(100vw - 56px), 352px);
+    max-width: calc(100vw - 56px);
+    padding: 6px;
     border: 1px solid rgba(29, 58, 95, 0.8);
-    border-radius: 24px;
+    border-radius: 999px;
     background: rgba(3, 7, 18, 0.9);
     box-shadow: 0 18px 50px rgba(2, 6, 23, 0.42);
     backdrop-filter: blur(18px);
@@ -1427,25 +1427,15 @@
   }
 
   .nebula-mobile-action {
-    @apply flex min-w-0 w-full flex-col items-center justify-center gap-1 rounded-2xl px-1 py-1.5 text-x-muted transition hover:bg-cyan-300/10 hover:text-x-accent;
+    @apply flex min-w-0 w-full items-center justify-center rounded-full px-1 py-1.5 text-x-muted transition hover:bg-cyan-300/10 hover:text-x-accent;
   }
 
   .nebula-mobile-action-icon-wrap {
-    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-full;
+    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-full;
   }
 
   .nebula-mobile-action-label {
-    display: -webkit-box;
-    width: 100%;
-    min-height: 22px;
-    overflow: hidden;
-    text-align: center;
-    font-size: 10px;
-    font-weight: 700;
-    line-height: 1.05;
-    overflow-wrap: anywhere;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    display: none;
   }
 
   .nebula-mobile-action-active {
@@ -1699,7 +1689,7 @@
 
     .nebula-page {
       max-width: none;
-      padding: 8px 8px calc(112px + env(safe-area-inset-bottom));
+      padding: 8px 8px calc(88px + env(safe-area-inset-bottom));
     }
 
     .nebula-app-frame {
@@ -1783,23 +1773,46 @@
     }
 
     .settings-main-header {
-      flex-direction: column;
-      align-items: flex-start;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
       gap: 12px;
-      padding: 14px 16px;
+      padding: 12px 14px;
     }
 
     .settings-close-button {
-      align-self: flex-end;
+      align-self: auto;
+      flex-shrink: 0;
+    }
+
+    .settings-main-header p {
+      font-size: 10px;
+      letter-spacing: 0.16em;
+    }
+
+    .settings-main-header h2 {
+      font-size: 1.9rem;
+      line-height: 1.05;
     }
 
     .settings-main-body {
-      padding: 16px 16px 110px;
+      padding: 14px 14px 132px;
     }
 
     .settings-mobile-picker {
       display: block;
-      padding: 0 16px 16px;
+      padding: 0 14px 10px;
+    }
+
+    .settings-mobile-picker-label,
+    .settings-mobile-picker-caption {
+      display: none;
+    }
+
+    .settings-mobile-picker-select {
+      border-radius: 16px;
+      padding: 11px 14px;
+      font-size: 14px;
     }
 
     .settings-row {
@@ -2000,20 +2013,14 @@
     }
 
     .nebula-mobile-nav {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      width: min(calc(100vw - 32px), 390px);
-      max-width: calc(100vw - 32px);
-      row-gap: 4px;
-      padding: 7px;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      width: min(calc(100vw - 48px), 344px);
+      max-width: calc(100vw - 48px);
+      padding: 6px;
     }
 
     .nebula-mobile-action {
-      min-height: 52px;
-      gap: 0.35rem;
-    }
-
-    .nebula-mobile-action-label {
-      font-size: 10px;
+      min-height: 44px;
     }
 
     .share-sheet-backdrop {

@@ -191,10 +191,6 @@ export default function SettingsPage() {
   });
 
   const activeEmail = useMemo(() => user?.email || 'email не указан', [user?.email]);
-  const activeSectionMeta = useMemo(
-    () => settingsSections.find(([id]) => id === activeSection) || settingsSections[0],
-    [activeSection]
-  );
   const plusActive = hasPlusAccess(user);
   const { data: sessionData } = useQuery({
     queryKey: ['sessions'],
@@ -586,9 +582,6 @@ export default function SettingsPage() {
           </div>
 
           <div className="settings-mobile-picker">
-            <label htmlFor="settings-mobile-section" className="settings-mobile-picker-label">
-              Раздел настроек
-            </label>
             <select
               id="settings-mobile-section"
               value={activeSection}
@@ -605,9 +598,6 @@ export default function SettingsPage() {
                 </optgroup>
               ))}
             </select>
-            <p className="settings-mobile-picker-caption">
-              Сейчас открыт раздел: {activeSectionMeta[1]}
-            </p>
           </div>
 
           <div ref={settingsBodyRef} className="settings-main-body">
