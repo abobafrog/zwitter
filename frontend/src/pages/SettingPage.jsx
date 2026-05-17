@@ -581,24 +581,26 @@ export default function SettingsPage() {
             </button>
           </div>
 
-          <div className="settings-mobile-picker">
-            <select
-              id="settings-mobile-section"
-              value={activeSection}
-              onChange={(event) => showSettingsSection(event.target.value)}
-              className="settings-mobile-picker-select"
-            >
-              {settingsGroups.map(([group, items]) => (
-                <optgroup key={group} label={group}>
-                  {items.map(([id, label]) => (
-                    <option key={id} value={id}>
-                      {label}
-                    </option>
-                  ))}
-                </optgroup>
+          <nav className="settings-mobile-dock" aria-label="Мобильные разделы настроек">
+            <div className="settings-mobile-dock-track">
+              {settingsSections.map(([id, label, , icon]) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => showSettingsSection(id)}
+                  aria-current={id === activeSection ? 'page' : undefined}
+                  className={[
+                    'settings-mobile-dock-link',
+                    id === activeSection ? 'settings-mobile-dock-link-active' : '',
+                    id === 'danger' ? 'settings-mobile-dock-link-danger' : '',
+                  ].filter(Boolean).join(' ')}
+                >
+                  <NavIcon name={icon} className="h-4 w-4" />
+                  <span>{label}</span>
+                </button>
               ))}
-            </select>
-          </div>
+            </div>
+          </nav>
 
           <div ref={settingsBodyRef} className="settings-main-body">
             {activeSection === 'profile' && (

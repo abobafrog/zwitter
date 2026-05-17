@@ -1374,6 +1374,42 @@
     display: none;
   }
 
+  .settings-mobile-dock {
+    display: none;
+  }
+
+  .settings-mobile-dock-track {
+    display: flex;
+    gap: 10px;
+    min-width: max-content;
+  }
+
+  .settings-mobile-dock-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(34, 211, 238, 0.16);
+    border-radius: 999px;
+    background: rgba(7, 15, 31, 0.82);
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 800;
+    color: rgba(191, 219, 254, 0.82);
+    white-space: nowrap;
+    transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+  }
+
+  .settings-mobile-dock-link-active {
+    border-color: rgba(34, 211, 238, 0.48);
+    background: rgba(34, 211, 238, 0.12);
+    color: #67e8f9;
+    box-shadow: 0 0 18px rgba(34, 211, 238, 0.14);
+  }
+
+  .settings-mobile-dock-link-danger {
+    color: rgba(251, 191, 36, 0.9);
+  }
+
   .settings-mobile-picker-label {
     display: block;
     margin-bottom: 8px;
@@ -1773,26 +1809,7 @@
     }
 
     .settings-main-header {
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 12px 14px;
-    }
-
-    .settings-close-button {
-      align-self: auto;
-      flex-shrink: 0;
-    }
-
-    .settings-main-header p {
-      font-size: 10px;
-      letter-spacing: 0.16em;
-    }
-
-    .settings-main-header h2 {
-      font-size: 1.9rem;
-      line-height: 1.05;
+      display: none;
     }
 
     .settings-main-body {
@@ -1800,19 +1817,19 @@
     }
 
     .settings-mobile-picker {
-      display: block;
-      padding: 0 14px 10px;
-    }
-
-    .settings-mobile-picker-label,
-    .settings-mobile-picker-caption {
       display: none;
     }
 
-    .settings-mobile-picker-select {
-      border-radius: 16px;
-      padding: 11px 14px;
-      font-size: 14px;
+    .settings-mobile-dock {
+      display: block;
+      overflow-x: auto;
+      padding: 12px 14px 10px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .settings-mobile-dock::-webkit-scrollbar {
+      display: none;
     }
 
     .settings-row {
