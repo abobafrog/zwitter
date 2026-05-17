@@ -12,6 +12,9 @@ const {
   updateTweet,
   getTweet,
   deleteTweet,
+  reportTweet,
+  listTweetReports,
+  reviewTweetReport,
   likeTweet,
   retweetTweet,
   bookmarkTweet,
@@ -23,6 +26,7 @@ router.get('/feed', optionalAuth, getFeed);
 router.get('/explore', optionalAuth, getExplore);
 router.get('/search', optionalAuth, searchTweets);
 router.get('/bookmarks', authenticate, getBookmarks);
+router.get('/reports', authenticate, listTweetReports);
 router.get('/:id', optionalAuth, getTweet);
 
 router.use(authenticate);
@@ -48,6 +52,8 @@ router.patch(
 );
 
 router.delete('/:id', deleteTweet);
+router.post('/:id/report', reportTweet);
+router.patch('/reports/:id', reviewTweetReport);
 router.post('/:id/like', likeTweet);
 router.post('/:id/retweet', retweetTweet);
 router.post('/:id/bookmark', bookmarkTweet);

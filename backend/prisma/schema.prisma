@@ -14,6 +14,10 @@ model User {
   id           String    @id @default(uuid())
   username     String    @unique @db.VarChar(50)
   email        String    @unique @db.VarChar(255)
+  role         String    @default("user") @db.VarChar(20)
+  isBanned     Boolean   @default(false) @map("is_banned")
+  bannedAt     DateTime? @map("banned_at")
+  banReason    String?   @map("ban_reason") @db.VarChar(500)
   emailVerified Boolean  @default(false) @map("email_verified")
   emailVerifiedAt DateTime? @map("email_verified_at")
   passwordHash String    @map("password_hash")
@@ -56,6 +60,12 @@ model User {
   ownedCommunities Community[] @relation("CommunityOwner")
   communityMemberships CommunityMember[]
   musicTrackLikes MusicTrackLike[]
+  reportedPosts PostReport[] @relation("PostReportReporter")
+  postReportsAgainst PostReport[] @relation("PostReportTargetUser")
+  reviewedPostReports PostReport[] @relation("PostReportReviewer")
+  reportedUsers UserReport[] @relation("UserReportReporter")
+  userReportsAgainst UserReport[] @relation("UserReportTarget")
+  reviewedUserReports UserReport[] @relation("UserReportReviewer")
 
   @@index([isCommunity, followersCount, createdAt])
   @@map("users")
@@ -231,6 +241,7 @@ model Tweet {
   retweets Retweet[]
   bookmarks Bookmark[]
   notifications Notification[]
+  reports PostReport[]
 
   @@index([createdAt, id])
   @@index([authorId, createdAt])
@@ -240,6 +251,55 @@ model Tweet {
   @@index([viewsCount, createdAt, id])
   @@index([parentId, viewsCount, createdAt])
   @@map("tweets")
+}
+
+model PostReport {
+  id           String   @id @default(uuid())
+  reporterId   String   @map("reporter_id")
+  tweetId      String   @map("tweet_id")
+  targetUserId String   @map("target_user_id")
+  reason       String   @db.VarChar(120)
+  details      String?  @db.VarChar(500)
+  status       String   @default("open") @db.VarChar(20)
+  adminNote    String?  @map("admin_note") @db.VarChar(500)
+  reviewedAt   DateTime? @map("reviewed_at")
+  reviewedById String?  @map("reviewed_by_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  reporter   User  @relation("PostReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  tweet      Tweet @relation(fields: [tweetId], references: [id], onDelete: Cascade)
+  targetUser User  @relation("PostReportTargetUser", fields: [targetUserId], references: [id], onDelete: Cascade)
+  reviewedBy User? @relation("PostReportReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@unique([reporterId, tweetId])
+  @@index([status, createdAt])
+  @@index([tweetId])
+  @@index([targetUserId])
+  @@map("post_reports")
+}
+
+model UserReport {
+  id           String   @id @default(uuid())
+  reporterId   String   @map("reporter_id")
+  targetUserId String   @map("target_user_id")
+  reason       String   @db.VarChar(120)
+  details      String?  @db.VarChar(500)
+  status       String   @default("open") @db.VarChar(20)
+  adminNote    String?  @map("admin_note") @db.VarChar(500)
+  reviewedAt   DateTime? @map("reviewed_at")
+  reviewedById String?  @map("reviewed_by_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  reporter   User  @relation("UserReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetUser User  @relation("UserReportTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+  reviewedBy User? @relation("UserReportReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@unique([reporterId, targetUserId])
+  @@index([status, createdAt])
+  @@index([targetUserId])
+  @@map("user_reports")
 }
 
 model TweetView {

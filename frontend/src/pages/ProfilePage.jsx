@@ -20,6 +20,7 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState('tweets');
   const [editOpen, setEditOpen] = useState(false);
+  const isAdmin = me?.role === 'admin';
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['profile', username],
@@ -67,6 +68,53 @@ export default function ProfilePage() {
     onError: (err) => toast.error(err.response?.data?.error || 'Ошибка'),
   });
 
+  const reportUserMutation = useMutation({
+    mutationFn: ({ reason, details }) => api.post(`/users/${data.id}/report`, { reason, details }),
+    onSuccess: () => toast.success('Жалоба на пользователя отправлена'),
+    onError: (err) => toast.error(err.response?.data?.error || 'Не удалось отправить жалобу'),
+  });
+
+  const moderationMutation = useMutation({
+    mutationFn: ({ action, reason }) => api.patch(`/users/${data.id}/moderation`, { action, reason }),
+    onSuccess: ({ data: response }) => {
+      qc.invalidateQueries({ queryKey: ['profile', username] });
+      toast.success(response.message || 'Статус пользователя обновлён');
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Не удалось обновить статус пользователя'),
+  });
+
+  const isMe = me?.id === data?.id;
+
+  const { data: postReportsData } = useQuery({
+    queryKey: ['admin-post-reports'],
+    queryFn: () => api.get('/tweets/reports').then((r) => r.data.reports),
+    enabled: isAdmin && isMe,
+  });
+
+  const { data: userReportsData } = useQuery({
+    queryKey: ['admin-user-reports'],
+    queryFn: () => api.get('/users/reports').then((r) => r.data.reports),
+    enabled: isAdmin && isMe,
+  });
+
+  const reviewPostReportMutation = useMutation({
+    mutationFn: ({ id, status, adminNote }) => api.patch(`/tweets/reports/${id}`, { status, adminNote }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-post-reports'] });
+      toast.success('Жалоба по посту обновлена');
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Не удалось обновить жалобу'),
+  });
+
+  const reviewUserReportMutation = useMutation({
+    mutationFn: ({ id, status, adminNote }) => api.patch(`/users/reports/${id}`, { status, adminNote }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-user-reports'] });
+      toast.success('Жалоба по пользователю обновлена');
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Не удалось обновить жалобу'),
+  });
+
   if (isLoading) return (
     <div className="flex justify-center py-16">
       <div className="w-7 h-7 border-2 border-x-accent border-t-transparent rounded-full animate-spin" />
@@ -80,7 +128,6 @@ export default function ProfilePage() {
     </div>
   );
 
-  const isMe = me?.id === data.id;
   const isCommunity = data.isCommunity;
   const joinDate = format(new Date(data.createdAt), 'LLLL yyyy', { locale: ru });
 
@@ -142,6 +189,38 @@ export default function ProfilePage() {
       >
         {followMutation.isPending ? '...' : data.isFollowing ? (isCommunity ? 'Выйти' : 'Отписаться') : (isCommunity ? 'Вступить' : 'Подписаться')}
       </button>
+      <button
+        onClick={() => {
+          const reason = window.prompt('Причина жалобы на пользователя');
+          if (!reason?.trim()) return;
+          const details = window.prompt('Дополнительные детали (необязательно)') || '';
+          reportUserMutation.mutate({ reason: reason.trim(), details: details.trim() });
+        }}
+        disabled={!me || reportUserMutation.isPending}
+        className="btn-outline text-sm px-4 py-2 disabled:opacity-50"
+        title="Пожаловаться"
+      >
+        Жалоба
+      </button>
+      {isAdmin && data.role !== 'admin' && (
+        <button
+          onClick={() => {
+            if (data.isBanned) {
+              moderationMutation.mutate({ action: 'unban' });
+              return;
+            }
+            const reason = window.prompt('Причина блокировки пользователя');
+            if (!reason?.trim()) return;
+            moderationMutation.mutate({ action: 'ban', reason: reason.trim() });
+          }}
+          disabled={moderationMutation.isPending}
+          className={`text-sm px-4 py-2 rounded-full font-bold transition-colors disabled:opacity-50 ${
+            data.isBanned ? 'btn-outline' : 'bg-red-500/15 text-red-200 border border-red-400/30'
+          }`}
+        >
+          {moderationMutation.isPending ? '...' : data.isBanned ? 'Разбанить' : 'Забанить'}
+        </button>
+      )}
     </div>
   );
 
@@ -190,6 +269,12 @@ export default function ProfilePage() {
         </div>
 
         {data.bio && <p className="mb-3 text-[15px]">{data.bio}</p>}
+        {data.isBanned && (
+          <div className="mb-3 rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+            <p className="font-bold">Аккаунт заблокирован</p>
+            {data.banReason && <p className="mt-1 text-red-100/85">{data.banReason}</p>}
+          </div>
+        )}
 
         {/* Мета-информация */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-x-muted text-sm mb-3">
@@ -255,6 +340,87 @@ export default function ProfilePage() {
         <div className="py-12 text-center text-x-muted">
           <p>{tab === 'replies' ? 'Нет ответов' : isCommunity ? 'Нет записей' : 'Нет звитов'}</p>
         </div>
+      )}
+
+      {isAdmin && isMe && (
+        <section className="border-t border-x-border/80 px-4 py-6">
+          <div className="mb-4">
+            <h3 className="text-lg font-black">Жалобы на посты</h3>
+            <p className="text-sm text-x-muted">Открытые жалобы, которые может разобрать администратор.</p>
+          </div>
+          <div className="grid gap-3">
+            {(postReportsData || []).map((report) => (
+              <div key={report.id} className="rounded-3xl border border-x-border/75 bg-x-panel/50 p-4">
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="font-bold">@{report.reporter.username}</span>
+                  <span className="text-x-muted">пожаловался на пост @{report.targetUser.username}</span>
+                </div>
+                <p className="mt-2 text-sm text-x-muted">Причина: {report.reason}</p>
+                {report.details && <p className="mt-1 text-sm text-x-text/90">{report.details}</p>}
+                <p className="mt-2 line-clamp-3 text-sm text-x-text/80">{report.tweet?.content || 'Пост без текста'}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => reviewPostReportMutation.mutate({ id: report.id, status: 'resolved', adminNote: 'Обработано администратором' })}
+                    className="btn-primary px-4 py-2 text-sm"
+                  >
+                    Закрыть
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => reviewPostReportMutation.mutate({ id: report.id, status: 'rejected', adminNote: 'Нарушение не подтверждено' })}
+                    className="btn-outline px-4 py-2 text-sm"
+                  >
+                    Отклонить
+                  </button>
+                </div>
+              </div>
+            ))}
+            {(!postReportsData || postReportsData.length === 0) && (
+              <div className="rounded-3xl border border-x-border/75 bg-x-panel/35 p-4 text-sm text-x-muted">
+                Открытых жалоб на посты нет.
+              </div>
+            )}
+          </div>
+
+          <div className="mb-4 mt-8">
+            <h3 className="text-lg font-black">Жалобы на пользователей</h3>
+            <p className="text-sm text-x-muted">Список аккаунтов, на которые пришли жалобы.</p>
+          </div>
+          <div className="grid gap-3">
+            {(userReportsData || []).map((report) => (
+              <div key={report.id} className="rounded-3xl border border-x-border/75 bg-x-panel/50 p-4">
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="font-bold">@{report.reporter.username}</span>
+                  <span className="text-x-muted">пожаловался на @{report.targetUser.username}</span>
+                </div>
+                <p className="mt-2 text-sm text-x-muted">Причина: {report.reason}</p>
+                {report.details && <p className="mt-1 text-sm text-x-text/90">{report.details}</p>}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => reviewUserReportMutation.mutate({ id: report.id, status: 'resolved', adminNote: 'Жалоба обработана' })}
+                    className="btn-primary px-4 py-2 text-sm"
+                  >
+                    Закрыть
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => reviewUserReportMutation.mutate({ id: report.id, status: 'rejected', adminNote: 'Нарушение не подтверждено' })}
+                    className="btn-outline px-4 py-2 text-sm"
+                  >
+                    Отклонить
+                  </button>
+                </div>
+              </div>
+            ))}
+            {(!userReportsData || userReportsData.length === 0) && (
+              <div className="rounded-3xl border border-x-border/75 bg-x-panel/35 p-4 text-sm text-x-muted">
+                Открытых жалоб на пользователей нет.
+              </div>
+            )}
+          </div>
+        </section>
       )}
     </div>
   );

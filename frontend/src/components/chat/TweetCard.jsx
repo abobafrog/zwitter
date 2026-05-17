@@ -65,6 +65,8 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
   const [showShareSheet, setShowShareSheet] = useState(false);
   const [pollVotes, setPollVotes] = useState(() => ({}));
   const [editing, setEditing] = useState(false);
+  const isAdmin = user?.role === 'admin';
+  const canModerateTweet = isAdmin || user?.id === tweet.author.id;
   const { data: chatsData } = useQuery({
     queryKey: ['share-chats'],
     queryFn: () => api.get('/chats').then((r) => r.data.chats),
@@ -166,6 +168,12 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
     },
   });
 
+  const reportMutation = useMutation({
+    mutationFn: ({ reason, details }) => api.post(`/tweets/${tweet.id}/report`, { reason, details }),
+    onSuccess: () => toast.success('Жалоба на пост отправлена'),
+    onError: (error) => toast.error(error.response?.data?.error || 'Не удалось отправить жалобу'),
+  });
+
   const updateMutation = useMutation({
     mutationFn: () => {
       const content = buildTweetContent({
@@ -246,6 +254,19 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
     } catch (error) {
       toast.error(error.response?.data?.error || 'Не удалось отправить в чат');
     }
+  };
+
+  const submitTweetReport = (event) => {
+    event.stopPropagation();
+    if (!user) {
+      toast.error('Сначала войдите в аккаунт');
+      return;
+    }
+
+    const reason = window.prompt('Причина жалобы на пост');
+    if (!reason?.trim()) return;
+    const details = window.prompt('Дополнительные детали (необязательно)') || '';
+    reportMutation.mutate({ reason: reason.trim(), details: details.trim() });
   };
 
   const resetEditor = () => {
@@ -330,26 +351,28 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
           {tweet.community && (
             <span className="text-xs text-x-muted">через @{tweet.author.username}</span>
           )}
-          {user?.id === tweet.author.id && (
+          {canModerateTweet && (
             <div className="ml-auto flex items-center gap-1">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setEditing(true);
-                }}
-                className="rounded-full p-1 text-x-muted transition-colors hover:bg-cyan-400/10 hover:text-x-accent"
-                aria-label="Редактировать звит"
-              >
-                <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
-                  <path d="M3 17.25V21h3.75l11-11.03-3.75-3.75L3 17.25zm17.71-10.04a1.003 1.003 0 0 0 0-1.42l-2.5-2.5a1.003 1.003 0 0 0-1.42 0l-1.96 1.96 3.75 3.75 2.13-2.29z" />
-                </svg>
-              </button>
+              {user?.id === tweet.author.id && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditing(true);
+                  }}
+                  className="rounded-full p-1 text-x-muted transition-colors hover:bg-cyan-400/10 hover:text-x-accent"
+                  aria-label="Редактировать звит"
+                >
+                  <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
+                    <path d="M3 17.25V21h3.75l11-11.03-3.75-3.75L3 17.25zm17.71-10.04a1.003 1.003 0 0 0 0-1.42l-2.5-2.5a1.003 1.003 0 0 0-1.42 0l-1.96 1.96 3.75 3.75 2.13-2.29z" />
+                  </svg>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(); }}
                 className="rounded-full p-1 text-x-muted transition-colors hover:bg-x-danger/10 hover:text-x-danger"
-                aria-label="Удалить звит"
+                aria-label={isAdmin && user?.id !== tweet.author.id ? 'Удалить звит как администратор' : 'Удалить звит'}
               >
                 <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
                   <path d="M16 6V4.5C16 3.12 14.88 2 13.5 2h-3C9.11 2 8 3.12 8 4.5V6H3v2h1.06l.81 11.21C4.98 20.78 6.28 22 7.86 22h8.27c1.58 0 2.88-1.22 3-2.79L19.93 8H21V6h-5zm-6-1.5c0-.28.22-.5.5-.5h3c.27 0 .5.22.5.5V6h-4V4.5zm7.13 15.03c-.04.52-.47.97-1 .97H7.86c-.53 0-.96-.45-1-.97L6.07 8h11.85l-.79 11.53z" />
@@ -535,6 +558,16 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
               </svg>
             </span>
           </button>
+
+          {user && user.id !== tweet.author.id && (
+            <button className="tweet-action hover:text-amber-200 group" onClick={submitTweetReport} title="Пожаловаться">
+              <span className="tweet-action-icon group-hover:bg-amber-300/10">
+                <svg viewBox="0 0 24 24" className="h-[18px] w-[18px] fill-current">
+                  <path d="M6 3h2v18H6V3zm4 1h8.44c1.16 0 1.87 1.28 1.25 2.26L17.2 10l2.49 3.74A1.5 1.5 0 0 1 18.44 16H10V4z" />
+                </svg>
+              </span>
+            </button>
+          )}
         </div>
 
         {replyOpen && (

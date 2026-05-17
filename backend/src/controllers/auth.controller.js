@@ -6,6 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const prisma = require('../config/prisma');
 const logger = require('../utils/logger');
 const { sendPasswordResetEmail, sendVerificationEmail } = require('../services/mail.service');
+const { isBanned } = require('../utils/moderation');
 
 const REFRESH_COOKIE = 'zw_refresh';
 const refreshTtlDays = parseInt(process.env.JWT_REFRESH_TTL_DAYS, 10) || 7;
@@ -61,6 +62,10 @@ const getPublicUser = async (userId) => prisma.user.findUnique({
     id: true,
     username: true,
     email: true,
+    role: true,
+    isBanned: true,
+    bannedAt: true,
+    banReason: true,
     emailVerified: true,
     emailVerifiedAt: true,
     displayName: true,
@@ -191,6 +196,10 @@ const register = async (req, res, next) => {
         id: true,
         username: true,
         email: true,
+        role: true,
+        isBanned: true,
+        bannedAt: true,
+        banReason: true,
         emailVerified: true,
         displayName: true,
         avatarUrl: true,
@@ -245,6 +254,13 @@ const login = async (req, res, next) => {
 
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
       return res.status(401).json({ error: 'Неверный логин или пароль' });
+    }
+    if (isBanned(user)) {
+      clearRefreshCookie(res);
+      return res.status(403).json({
+        error: user.banReason || 'Аккаунт заблокирован администратором',
+        code: 'USER_BANNED',
+      });
     }
 
     if (!user.emailVerified) {
@@ -301,6 +317,11 @@ const refresh = async (req, res, next) => {
     if (!user) {
       clearRefreshCookie(res);
       return res.status(401).json({ error: 'Пользователь не найден' });
+    }
+    if (isBanned(user)) {
+      clearRefreshCookie(res);
+      await prisma.refreshToken.deleteMany({ where: { userId: decoded.userId } });
+      return res.status(403).json({ error: user.banReason || 'Аккаунт заблокирован администратором', code: 'USER_BANNED' });
     }
     if (!user.emailVerified) {
       clearRefreshCookie(res);

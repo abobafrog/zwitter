@@ -8,6 +8,7 @@ const { enqueue } = require('../queues');
 const logger = require('../utils/logger');
 const { tweetSelect, withThreadReplyCounts } = require('./tweet.controller');
 const { redis } = require('../config/redis');
+const { isAdmin } = require('../utils/moderation');
 
 const EMAIL_CHANGE = 'email_change';
 const emailChangeTtlMinutes = parseInt(process.env.EMAIL_CHANGE_TTL_MINUTES, 10) || 30;
@@ -32,17 +33,32 @@ const parseBooleanSetting = (value) => {
   if (typeof value === 'string') return ['1', 'true', 'yes', 'on'].includes(value.toLowerCase());
   return Boolean(value);
 };
+
+const reportSelect = {
+  id: true,
+  reason: true,
+  details: true,
+  status: true,
+  adminNote: true,
+  createdAt: true,
+  reviewedAt: true,
+  reporter: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
+  targetUser: { select: { id: true, username: true, displayName: true, avatarUrl: true, isBanned: true } },
+  reviewedBy: { select: { id: true, username: true, displayName: true } },
+};
+
 const getProfile = async (req, res, next) => {
   try {
     const { username } = req.params;
     const viewerId = req.user?.id;
+    const viewerIsAdmin = isAdmin(req.user);
 
     const user = await prisma.user.findUnique({
       where: { username: username.toLowerCase() },
       select: {
         id: true, username: true, displayName: true,
         bio: true, avatarUrl: true, bannerUrl: true,
-        birthDate: true, isVerified: true, isCommunity: true, ...settingsSelect, createdAt: true,
+        birthDate: true, isVerified: true, isCommunity: true, role: true, isBanned: true, bannedAt: true, banReason: true, ...settingsSelect, createdAt: true,
         _count: { select: { tweets: true, following: true, followers: true } },
         followers: viewerId ? { where: { followerId: viewerId }, select: { id: true } } : false,
       },
@@ -52,7 +68,16 @@ const getProfile = async (req, res, next) => {
 
     const isFollowing = viewerId ? user.followers?.length > 0 : false;
     const { followers, ...rest } = user;
-    res.json({ user: { ...rest, isFollowing } });
+    const isSelf = viewerId === user.id;
+    res.json({
+      user: {
+        ...rest,
+        isFollowing,
+        banReason: viewerIsAdmin || isSelf ? rest.banReason : null,
+        bannedAt: viewerIsAdmin || isSelf ? rest.bannedAt : null,
+        role: viewerIsAdmin || isSelf ? rest.role : 'user',
+      },
+    });
   } catch (error) {
     next(error);
   }
@@ -424,6 +449,117 @@ const deleteAccount = async (req, res, next) => {
   }
 };
 
+const reportUser = async (req, res, next) => {
+  try {
+    const targetUserId = req.params.id;
+    const reporterId = req.user.id;
+    const reason = req.body.reason?.trim();
+    const details = req.body.details?.trim() || null;
+
+    if (!reason) return res.status(400).json({ error: 'Укажи причину жалобы' });
+    if (targetUserId === reporterId) return res.status(400).json({ error: 'Нельзя пожаловаться на себя' });
+
+    const targetUser = await prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: { id: true, username: true, role: true },
+    });
+    if (!targetUser) return res.status(404).json({ error: 'Пользователь не найден' });
+
+    const report = await prisma.userReport.upsert({
+      where: { reporterId_targetUserId: { reporterId, targetUserId } },
+      update: { reason, details, status: 'open', adminNote: null, reviewedAt: null, reviewedById: null },
+      create: { reporterId, targetUserId, reason, details },
+      select: reportSelect,
+    });
+
+    res.status(201).json({ report, message: 'Жалоба на пользователя отправлена' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const moderateUser = async (req, res, next) => {
+  try {
+    if (!isAdmin(req.user)) return res.status(403).json({ error: 'Только администратор может менять статус пользователя' });
+
+    const targetUserId = req.params.id;
+    const action = req.body.action === 'unban' ? 'unban' : 'ban';
+    const reason = req.body.reason?.trim() || null;
+
+    if (targetUserId === req.user.id) {
+      return res.status(400).json({ error: 'Нельзя заблокировать самого себя' });
+    }
+
+    const targetUser = await prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: { id: true, role: true, isBanned: true },
+    });
+    if (!targetUser) return res.status(404).json({ error: 'Пользователь не найден' });
+    if (targetUser.role === 'admin') return res.status(403).json({ error: 'Нельзя заблокировать другого администратора' });
+
+    const user = await prisma.user.update({
+      where: { id: targetUserId },
+      data: action === 'ban'
+        ? { isBanned: true, bannedAt: new Date(), banReason: reason || 'Аккаунт заблокирован администратором' }
+        : { isBanned: false, bannedAt: null, banReason: null },
+      select: {
+        id: true, username: true, displayName: true, role: true, isBanned: true, bannedAt: true, banReason: true,
+      },
+    });
+
+    await prisma.refreshToken.deleteMany({ where: { userId: targetUserId } });
+
+    res.json({
+      user,
+      message: action === 'ban' ? 'Пользователь заблокирован' : 'Пользователь разблокирован',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const listUserReports = async (req, res, next) => {
+  try {
+    if (!isAdmin(req.user)) return res.status(403).json({ error: 'Доступ только для администратора' });
+    const status = req.query.status?.toString().trim() || 'open';
+
+    const reports = await prisma.userReport.findMany({
+      where: status === 'all' ? {} : { status },
+      orderBy: [{ createdAt: 'desc' }],
+      take: 100,
+      select: reportSelect,
+    });
+
+    res.json({ reports });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const reviewUserReport = async (req, res, next) => {
+  try {
+    if (!isAdmin(req.user)) return res.status(403).json({ error: 'Доступ только для администратора' });
+
+    const status = req.body.status === 'rejected' ? 'rejected' : 'resolved';
+    const adminNote = req.body.adminNote?.trim() || null;
+
+    const report = await prisma.userReport.update({
+      where: { id: req.params.id },
+      data: {
+        status,
+        adminNote,
+        reviewedAt: new Date(),
+        reviewedById: req.user.id,
+      },
+      select: reportSelect,
+    });
+
+    res.json({ report, message: status === 'resolved' ? 'Жалоба обработана' : 'Жалоба отклонена' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = { 
   getProfile, 
   updateProfile, 
@@ -435,5 +571,9 @@ module.exports = {
   getUserTweets,
   getFollowers,
   getFollowing,
-  deleteAccount
+  deleteAccount,
+  reportUser,
+  moderateUser,
+  listUserReports,
+  reviewUserReport,
 };

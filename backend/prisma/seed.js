@@ -85,6 +85,7 @@ async function main() {
       username: 'novapulse',
       email: 'novapulse@example.com',
       displayName: 'NovaPulse',
+      role: 'admin',
       bio: 'Исследую миры, создаю будущее. UI, космос и быстрые идеи.',
       birthDate: '12.04.1998',
       isVerified: true,

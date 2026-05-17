@@ -15,9 +15,20 @@ const useDebounce = (value, delay = 600) => {
   return debounced;
 };
 
-const XLogo = () => (
-  <svg viewBox="0 0 24 24" className="w-10 h-10 fill-current">
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.74l7.73-8.835L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+const ZLogo = () => (
+  <svg viewBox="0 0 24 24" className="h-10 w-10 fill-none" aria-hidden="true">
+    <path
+      d="M5 4.5h14l-9.2 7.1L18.5 19H5.5l9.1-7.05L5 4.5z"
+      className="fill-current"
+    />
+    <path
+      d="M6.7 6h9.15l-7.8 5.95 7.15 5.55H8.1l7.75-6L6.7 6z"
+      className="fill-slate-950"
+    />
+    <path
+      d="M7.4 6.8h7.05l-5.8 4.45 5.15 4H9.55l5.8-4.48L7.4 6.8z"
+      className="fill-cyan-300"
+    />
   </svg>
 );
 
@@ -199,9 +210,9 @@ export default function RegisterPage() {
       <div className="cosmic-auth-card">
         
         <div className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-full border border-cyan-300/40 bg-cyan-300/10 text-x-accent shadow-neon">
-          <XLogo />
+          <ZLogo />
         </div>
-        <h1 className="text-3xl font-black mb-6 bg-gradient-to-r from-cyan-200 via-x-accent to-blue-400 bg-clip-text text-transparent">Создать аккаунт в Zwiteer</h1>
+        <h1 className="text-3xl font-black mb-6 bg-gradient-to-r from-cyan-200 via-x-accent to-blue-400 bg-clip-text text-transparent">Создать аккаунт в Zwitter</h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <ValidatedInput label="Отображаемое имя" value={form.displayName}

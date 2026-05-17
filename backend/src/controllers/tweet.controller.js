@@ -5,6 +5,7 @@ const { redis } = require('../config/redis');
 const logger = require('../utils/logger');
 const { createNotification } = require('../services/notification.service');
 const { enqueue } = require('../queues');
+const { isAdmin } = require('../utils/moderation');
 
 const topicSeeds = [
   { name: 'Космос', slug: 'space', keywords: ['космос', 'звезд', 'звёзд', 'орбит', 'галактик', 'планет'] },
@@ -82,6 +83,28 @@ const tweetSelect = (userId) => ({
   retweets: userId ? { where: { userId }, select: { id: true } } : false,
   bookmarks: userId ? { where: { userId }, select: { id: true } } : false,
 });
+
+const postReportSelect = {
+  id: true,
+  reason: true,
+  details: true,
+  status: true,
+  adminNote: true,
+  createdAt: true,
+  reviewedAt: true,
+  reporter: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
+  reviewedBy: { select: { id: true, username: true, displayName: true } },
+  targetUser: { select: { id: true, username: true, displayName: true, avatarUrl: true, isBanned: true } },
+  tweet: {
+    select: {
+      id: true,
+      content: true,
+      imageUrl: true,
+      createdAt: true,
+      author: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
+    },
+  },
+};
 
 const markViewed = async (req, tweets) => {
   if (!tweets.length || !req.user) return;
@@ -597,7 +620,7 @@ const deleteTweet = async (req, res, next) => {
     const tweet = await prisma.tweet.findUnique({ where: { id } });
 
     if (!tweet) return res.status(404).json({ error: 'Твит не найден' });
-    if (tweet.authorId !== req.user.id) return res.status(403).json({ error: 'Нет прав' });
+    if (tweet.authorId !== req.user.id && !isAdmin(req.user)) return res.status(403).json({ error: 'Нет прав' });
 
     await prisma.$transaction(async (tx) => {
       await tx.tweet.delete({ where: { id } });
@@ -615,6 +638,83 @@ const deleteTweet = async (req, res, next) => {
     });
     invalidateExploreCache().catch((error) => logger.warn(`Explore cache invalidation failed: ${error.message}`));
     res.json({ message: 'Твит удалён' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const reportTweet = async (req, res, next) => {
+  try {
+    const reporterId = req.user.id;
+    const tweetId = req.params.id;
+    const reason = req.body.reason?.trim();
+    const details = req.body.details?.trim() || null;
+
+    if (!reason) return res.status(400).json({ error: 'Укажи причину жалобы' });
+
+    const tweet = await prisma.tweet.findUnique({
+      where: { id: tweetId },
+      select: { id: true, authorId: true },
+    });
+    if (!tweet) return res.status(404).json({ error: 'Твит не найден' });
+    if (tweet.authorId === reporterId) return res.status(400).json({ error: 'Нельзя пожаловаться на свой твит' });
+
+    const report = await prisma.postReport.upsert({
+      where: { reporterId_tweetId: { reporterId, tweetId } },
+      update: { reason, details, status: 'open', adminNote: null, reviewedAt: null, reviewedById: null },
+      create: {
+        reporterId,
+        tweetId,
+        targetUserId: tweet.authorId,
+        reason,
+        details,
+      },
+      select: postReportSelect,
+    });
+
+    res.status(201).json({ report, message: 'Жалоба на пост отправлена' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const listTweetReports = async (req, res, next) => {
+  try {
+    if (!isAdmin(req.user)) return res.status(403).json({ error: 'Доступ только для администратора' });
+    const status = req.query.status?.toString().trim() || 'open';
+
+    const reports = await prisma.postReport.findMany({
+      where: status === 'all' ? {} : { status },
+      orderBy: [{ createdAt: 'desc' }],
+      take: 100,
+      select: postReportSelect,
+    });
+
+    res.json({ reports });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const reviewTweetReport = async (req, res, next) => {
+  try {
+    if (!isAdmin(req.user)) return res.status(403).json({ error: 'Доступ только для администратора' });
+
+    const status = req.body.status === 'rejected' ? 'rejected' : 'resolved';
+    const adminNote = req.body.adminNote?.trim() || null;
+
+    const report = await prisma.postReport.update({
+      where: { id: req.params.id },
+      data: {
+        status,
+        adminNote,
+        reviewedAt: new Date(),
+        reviewedById: req.user.id,
+      },
+      select: postReportSelect,
+    });
+
+    res.json({ report, message: status === 'resolved' ? 'Жалоба обработана' : 'Жалоба отклонена' });
   } catch (error) {
     next(error);
   }
@@ -801,6 +901,9 @@ module.exports = {
   updateTweet,
   getTweet,
   deleteTweet,
+  reportTweet,
+  listTweetReports,
+  reviewTweetReport,
   likeTweet,
   retweetTweet,
   bookmarkTweet,

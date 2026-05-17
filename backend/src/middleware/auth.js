@@ -2,6 +2,7 @@
 const jwt = require('jsonwebtoken');
 const prisma = require('../config/prisma');
 const logger = require('../utils/logger');
+const { isBanned } = require('../utils/moderation');
 
 const authenticate = async (req, res, next) => {
   try {
@@ -19,6 +20,10 @@ const authenticate = async (req, res, next) => {
         id: true,
         username: true,
         email: true,
+        role: true,
+        isBanned: true,
+        bannedAt: true,
+        banReason: true,
         emailVerified: true,
         displayName: true,
         avatarUrl: true,
@@ -36,6 +41,9 @@ const authenticate = async (req, res, next) => {
 
     if (!user) {
       return res.status(401).json({ error: 'Пользователь не найден' });
+    }
+    if (isBanned(user)) {
+      return res.status(403).json({ error: user.banReason || 'Аккаунт заблокирован администратором', code: 'USER_BANNED' });
     }
 
     req.user = user;
@@ -65,6 +73,8 @@ const optionalAuth = async (req, res, next) => {
       select: {
         id: true,
         username: true,
+        role: true,
+        isBanned: true,
         displayName: true,
         avatarUrl: true,
         isCommunity: true,
@@ -78,7 +88,7 @@ const optionalAuth = async (req, res, next) => {
         notifyMessages: true,
       },
     });
-    req.user = user || null;
+    req.user = user && !isBanned(user) ? user : null;
     next();
   } catch {
     next();
