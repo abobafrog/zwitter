@@ -1371,20 +1371,36 @@
   }
 
   .nebula-mobile-nav {
-    @apply fixed z-40 grid w-[calc(100%-16px)] max-w-xl -translate-x-1/2 grid-cols-6 items-center rounded-[22px] border border-x-border/80 bg-x-bg/90 px-2 py-2 shadow-panel backdrop-blur-xl md:hidden;
+    position: fixed;
+    z-index: 40;
+    left: 50%;
     bottom: calc(12px + env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    align-items: center;
+    width: min(calc(100vw - 16px), 560px);
+    max-width: calc(100vw - 16px);
+    padding: 8px;
+    border: 1px solid rgba(29, 58, 95, 0.8);
+    border-radius: 22px;
+    background: rgba(3, 7, 18, 0.9);
+    box-shadow: 0 18px 50px rgba(2, 6, 23, 0.42);
+    backdrop-filter: blur(18px);
+    transform: translateX(-50%);
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .nebula-mobile-action {
-    @apply flex min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-1 py-1.5 text-x-muted transition hover:bg-cyan-300/10 hover:text-x-accent;
+    @apply flex min-w-0 w-full flex-col items-center justify-center gap-1 rounded-2xl px-1 py-1.5 text-x-muted transition hover:bg-cyan-300/10 hover:text-x-accent;
   }
 
   .nebula-mobile-action-icon-wrap {
-    @apply flex h-9 w-9 items-center justify-center rounded-full;
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-full;
   }
 
   .nebula-mobile-action-label {
-    @apply max-w-full truncate text-[10px] font-bold leading-none;
+    @apply block w-full overflow-hidden text-ellipsis whitespace-nowrap text-center text-[10px] font-bold leading-none;
   }
 
   .nebula-mobile-action-active {
@@ -1864,6 +1880,16 @@
     .music-mobile-search .rounded-full.bg-white\/10,
     .music-mobile-search .rounded-full.bg-cyan-300 {
       width: 100%;
+    }
+
+    .nebula-mobile-nav {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      row-gap: 6px;
+      padding: 8px;
+    }
+
+    .nebula-mobile-action {
+      min-height: 56px;
     }
   }
 
