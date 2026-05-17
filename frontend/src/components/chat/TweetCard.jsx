@@ -9,6 +9,7 @@ import api from '../../services/api';
 import useAuthStore from '../../store/authStore';
 import useLanguageStore from '../../store/languageStore';
 import { translate } from '../../i18n/translations';
+import NavIcon from '../layout/NavIcon';
 import PhotoViewer from '../ui/PhotoViewer';
 
 const extractTags = (content = '') => [...new Set(content.match(/#[\p{L}\p{N}_-]+/gu) || [])].slice(0, 6);
@@ -640,37 +641,52 @@ export default function TweetCard({ tweet, queryKey, detail = false }) {
       )}
 
       {showShareSheet && (
-        <div className="fixed inset-0 z-[90] flex items-end justify-center bg-slate-950/70 p-4 backdrop-blur-sm" onClick={() => setShowShareSheet(false)}>
-          <div className="w-full max-w-md rounded-3xl border border-x-border bg-x-panel/95 p-4 shadow-panel" onClick={(e) => e.stopPropagation()}>
-            <p className="text-lg font-black text-x-text">Поделиться</p>
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <button type="button" onClick={copyTweetLink} className="rounded-2xl border border-x-border px-4 py-3 text-sm font-bold">Копировать ссылку</button>
+        <div className="share-sheet-backdrop" onClick={() => setShowShareSheet(false)}>
+          <div className="share-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="share-sheet-handle" aria-hidden="true" />
+            <div className="share-sheet-header">
+              <div className="min-w-0">
+                <p className="text-lg font-black text-x-text">Поделиться</p>
+                <p className="mt-1 text-sm text-x-muted">Ссылка, системная отправка или быстрый бросок в чат.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowShareSheet(false)}
+                className="panel-icon-button share-sheet-close"
+                aria-label="Закрыть меню поделиться"
+              >
+                <NavIcon name="close" className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="share-sheet-actions">
+              <button type="button" onClick={copyTweetLink} className="share-sheet-action-button">Копировать ссылку</button>
               <button
                 type="button"
                 onClick={async (e) => {
                   if (navigator.share) {
                     try {
                       await navigator.share({ title: 'Звит', text: parsedContent.plainContent, url: tweetUrl });
+                      setShowShareSheet(false);
                     } catch {}
                   } else {
                     copyTweetLink(e);
                   }
                 }}
-                className="rounded-2xl border border-x-border px-4 py-3 text-sm font-bold"
+                className="share-sheet-action-button"
               >
                 Поделиться
               </button>
             </div>
             {!!user && (
-              <div className="mt-4">
+              <div className="share-sheet-chat-block">
                 <p className="mb-2 text-sm font-bold text-x-muted">Отправить в свои чаты</p>
-                <div className="grid gap-2">
+                <div className="share-sheet-chat-list">
                   {(chatsData || []).slice(0, 6).map((chat) => (
                     <button
                       key={chat.id}
                       type="button"
                       onClick={() => shareIntoChat(chat.id)}
-                      className="flex items-center justify-between rounded-2xl border border-x-border bg-x-bg/55 px-3 py-2 text-left text-sm"
+                      className="share-sheet-chat-item"
                     >
                       <span className="truncate font-bold text-x-text">{chat.isGroup ? chat.name : chat.otherUser?.displayName || chat.name}</span>
                       <span className="text-x-accent">Отправить</span>

@@ -12,7 +12,6 @@ export default function VerifyEmailPage() {
     [location.state?.verificationEmail, params]
   );
   const [form, setForm] = useState({ email: initialEmail, code: '' });
-  const [devCode, setDevCode] = useState(location.state?.devVerificationCode || '');
   const [loading, setLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [verified, setVerified] = useState(false);
@@ -52,11 +51,7 @@ export default function VerifyEmailPage() {
 
     setIsResending(true);
     try {
-      const { data } = await api.post('/auth/resend-verification', { email });
-      if (data.devVerificationCode) {
-        setDevCode(data.devVerificationCode);
-        setForm((prev) => ({ ...prev, code: data.devVerificationCode }));
-      }
+      await api.post('/auth/resend-verification', { email });
       toast.success('Если email не подтверждён, новый код отправлен');
     } catch (error) {
       toast.error(error.response?.data?.error || 'Не удалось отправить код');
@@ -88,15 +83,6 @@ export default function VerifyEmailPage() {
             <p className="rounded-3xl border border-x-border bg-x-panel/60 p-4 text-sm text-x-muted">
               Мы отправляем на почту одноразовый код. Введи его здесь, чтобы активировать аккаунт.
             </p>
-            {devCode && (
-              <button
-                type="button"
-                onClick={() => setForm((prev) => ({ ...prev, code: devCode }))}
-                className="rounded-3xl border border-amber-300/30 bg-amber-300/10 p-4 text-left text-sm font-bold text-amber-100"
-              >
-                Dev-код для локального запуска: {devCode}
-              </button>
-            )}
             <label>
               <span className="mb-1.5 block text-sm font-semibold text-x-muted">Email</span>
               <input

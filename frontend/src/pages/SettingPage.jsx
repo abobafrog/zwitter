@@ -191,6 +191,10 @@ export default function SettingsPage() {
   });
 
   const activeEmail = useMemo(() => user?.email || 'email не указан', [user?.email]);
+  const activeSectionMeta = useMemo(
+    () => settingsSections.find(([id]) => id === activeSection) || settingsSections[0],
+    [activeSection]
+  );
   const plusActive = hasPlusAccess(user);
   const { data: sessionData } = useQuery({
     queryKey: ['sessions'],
@@ -579,6 +583,31 @@ export default function SettingsPage() {
             >
               <NavIcon name="close" className="h-5 w-5" />
             </button>
+          </div>
+
+          <div className="settings-mobile-picker">
+            <label htmlFor="settings-mobile-section" className="settings-mobile-picker-label">
+              Раздел настроек
+            </label>
+            <select
+              id="settings-mobile-section"
+              value={activeSection}
+              onChange={(event) => showSettingsSection(event.target.value)}
+              className="settings-mobile-picker-select"
+            >
+              {settingsGroups.map(([group, items]) => (
+                <optgroup key={group} label={group}>
+                  {items.map(([id, label]) => (
+                    <option key={id} value={id}>
+                      {label}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+            <p className="settings-mobile-picker-caption">
+              Сейчас открыт раздел: {activeSectionMeta[1]}
+            </p>
           </div>
 
           <div ref={settingsBodyRef} className="settings-main-body">

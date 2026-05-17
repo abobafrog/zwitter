@@ -67,7 +67,6 @@ const useAuthStore = create(
             message: data.message,
             emailSent: data.emailSent,
             emailAutoVerified: data.emailAutoVerified,
-            devVerificationCode: data.devVerificationCode,
           };
         } catch (error) {
           // Берём текст ошибки с сервера напрямую

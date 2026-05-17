@@ -180,7 +180,6 @@ export default function RegisterPage() {
         state: {
           verificationEmail: form.email,
           emailSent: result.emailSent,
-          devVerificationCode: result.devVerificationCode,
         },
       });
     } else {

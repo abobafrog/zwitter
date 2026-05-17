@@ -121,10 +121,7 @@ const sendEmailVerification = async (user) => {
     code,
   });
 
-  return {
-    ...result,
-    devCode: process.env.NODE_ENV === 'production' ? undefined : code,
-  };
+  return result;
 };
 
 const sendPasswordReset = async (user) => {
@@ -211,11 +208,9 @@ const register = async (req, res, next) => {
     });
 
     let emailSent = false;
-    let devVerificationCode;
     try {
       const result = await sendEmailVerification(user);
       emailSent = result.sent;
-      devVerificationCode = result.devCode;
     } catch (mailError) {
       logger.error('Verification email send error:', mailError);
     }
@@ -229,7 +224,6 @@ const register = async (req, res, next) => {
         : 'Аккаунт создан, но письмо не отправилось. Попробуй отправить письмо ещё раз.',
       user,
       emailSent,
-      devVerificationCode,
     });
   } catch (error) {
     next(error);
@@ -408,16 +402,14 @@ const resendVerification = async (req, res, next) => {
     if (!email) return res.status(400).json({ error: 'Укажи email' });
 
     const user = await prisma.user.findUnique({ where: { email } });
-    let devVerificationCode;
     if (user && !user.emailVerified) {
-      const result = await sendEmailVerification(user).catch((error) => {
+      await sendEmailVerification(user).catch((error) => {
         logger.error('Resend verification error:', error);
         return null;
       });
-      devVerificationCode = result?.devCode;
     }
 
-    res.json({ message: 'Если email есть и ещё не подтверждён, письмо отправлено.', devVerificationCode });
+    res.json({ message: 'Если email есть и ещё не подтверждён, письмо отправлено.' });
   } catch (error) {
     next(error);
   }
